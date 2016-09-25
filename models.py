@@ -12,9 +12,6 @@ except ImportError:
         'Be sure to add `django_countries` to your INSTALLED_APPS for `driver27` to work properly.'
     )
 
-# large list to historical drivers.
-# Starts in 1911, Fangio's year of birth
-
 class Driver(models.Model):
     last_name = models.CharField(max_length=50)
     first_name = models.CharField(max_length=25)
@@ -33,4 +30,10 @@ class Driver(models.Model):
         unique_together = ('last_name', 'first_name')
 
 
-# Create your models here.
+class Team(models.Model):
+    name = models.CharField(max_length=75)
+    full_name = models.CharField(max_length=200)
+    country = CountryField()
+
+    def __unicode__(self):
+        return self.name
