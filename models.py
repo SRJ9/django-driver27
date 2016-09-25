@@ -56,4 +56,16 @@ class Circuit(models.Model):
         # @todo Add country name in __unicode__
         return self.name
 
+class Season(models.Model):
+    year = models.IntegerField()
+    competition = models.ForeignKey(Competition, related_name='seasons')
+    teams = models.ManyToManyField(Team, related_name='seasons')
+
+    class Meta:
+        unique_together = ('year', 'competition')
+
+    def __unicode__(self):
+        return '/'.join((self.competition.name, str(self.year)))
+
+
 
