@@ -37,3 +37,23 @@ class Team(models.Model):
 
     def __unicode__(self):
         return self.name
+
+class Competition(models.Model):
+    name = models.CharField(max_length=30)
+    full_name = models.CharField(max_length=100)
+    country = CountryField(null=True, blank=True, default=None)
+
+    def __unicode__(self):
+        return self.name
+
+class Circuit(models.Model):
+    name = models.CharField(max_length=30)
+    city = models.CharField(max_length=100, null=True, blank=True)
+    country = CountryField()
+    year_of_built = models.IntegerField()
+
+    def __unicode__(self):
+        # @todo Add country name in __unicode__
+        return self.name
+
+
