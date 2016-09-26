@@ -1,0 +1,3 @@
+[{"model": "driver27.competition", "pk": 1, "fields": {"name": "F1", "full_name": "Formula One", "country": ""}},
+{"model": "driver27.competition", "pk": 2, "fields": {"name": "MGP", "full_name": "Moto GP", "country": ""}}
+]

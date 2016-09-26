@@ -33,6 +33,7 @@ class Driver(models.Model):
 class Team(models.Model):
     name = models.CharField(max_length=75)
     full_name = models.CharField(max_length=200)
+    competitions = models.ManyToManyField('Competition')
     country = CountryField()
 
     def __unicode__(self):
@@ -59,13 +60,26 @@ class Circuit(models.Model):
 class Season(models.Model):
     year = models.IntegerField()
     competition = models.ForeignKey(Competition, related_name='seasons')
-    teams = models.ManyToManyField(Team, related_name='seasons')
+    teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeason')
 
     class Meta:
         unique_together = ('year', 'competition')
 
     def __unicode__(self):
         return '/'.join((self.competition.name, str(self.year)))
+
+class TeamSeason(models.Model):
+    season = models.ForeignKey(Season)
+    team = models.ForeignKey(Team)
+
+    def save(self, *args, **kwargs):
+        if self.season.competition not in self.team.competitions.all():
+            raise ValidationError('Team ' + str(self.team) + ' doesn\'t participate in '+str(self.season.competition))
+        super(TeamSeason, self).save(*args, **kwargs)
+
+    class Meta:
+        auto_created = True
+
 
 
 
