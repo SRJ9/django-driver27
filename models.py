@@ -60,25 +60,25 @@ class Circuit(models.Model):
 class Season(models.Model):
     year = models.IntegerField()
     competition = models.ForeignKey(Competition, related_name='seasons')
-    teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeason')
-
-    class Meta:
-        unique_together = ('year', 'competition')
+    teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeasonRel')
 
     def __unicode__(self):
         return '/'.join((self.competition.name, str(self.year)))
 
-class TeamSeason(models.Model):
-    season = models.ForeignKey(Season)
-    team = models.ForeignKey(Team)
+    class Meta:
+        unique_together = ('year', 'competition')
+
+
+
+class TeamSeasonRel(models.Model):
+    season = models.ForeignKey('Season')
+    team = models.ForeignKey('Team')
+    sponsor_name = models.CharField(max_length=75)
 
     def save(self, *args, **kwargs):
         if self.season.competition not in self.team.competitions.all():
             raise ValidationError('Team ' + str(self.team) + ' doesn\'t participate in '+str(self.season.competition))
-        super(TeamSeason, self).save(*args, **kwargs)
-
-    class Meta:
-        auto_created = True
+        super(TeamSeasonRel, self).save(*args, **kwargs)
 
 
 
