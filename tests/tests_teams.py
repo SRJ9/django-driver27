@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 
 # Create your tests here.
-from driver27.models import Team, Season, Competition, TeamSeason
+from driver27.models import Team, Season, Competition, TeamSeasonRel
 
 class TeamTestCase(TestCase):
 
@@ -24,4 +24,4 @@ class TeamTestCase(TestCase):
         # season 2016
         season = Season.objects.create(year=2017, competition=moto_gp)
 
-        self.assertRaises(ValidationError, TeamSeason.objects.create, **{"season":season,"team":mercedes_team})
+        self.assertRaises(ValidationError, TeamSeasonRel.objects.create, **{"season":season,"team":mercedes_team})
