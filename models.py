@@ -51,7 +51,7 @@ class Circuit(models.Model):
     name = models.CharField(max_length=30)
     city = models.CharField(max_length=100, null=True, blank=True)
     country = CountryField()
-    year_of_built = models.IntegerField()
+    opened_in = models.IntegerField()
 
     # @todo Add Clockwise and length
     def __unicode__(self):

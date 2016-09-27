@@ -21,5 +21,5 @@ class GrandPrixTestCase(TestCase):
         grand_prix.save()
 
         grand_prix_saved = GrandPrix.objects.get(pk=grand_prix.pk)
-        # 1953 is year_built of Melbourne GP Circuit
-        self.assertEqual(grand_prix_saved.default_circuit.year_of_built, 1953)
+        # Melbourne GP Circuit opened in 1953
+        self.assertEqual(grand_prix_saved.default_circuit.opened_in, 1953)
