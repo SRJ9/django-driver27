@@ -53,9 +53,21 @@ class Circuit(models.Model):
     country = CountryField()
     year_of_built = models.IntegerField()
 
+    # @todo Add Clockwise and length
     def __unicode__(self):
         # @todo Add country name in __unicode__
         return self.name
+
+class GrandPrix(models.Model):
+    name = models.CharField(max_length=30)
+    country = CountryField(null=True, blank=True, default=None)
+    first_held = models.IntegerField()
+    default_circuit = models.ForeignKey(Circuit, related_name='default_to_grands_prix', null=True, blank=True, default=None)
+    competitions = models.ManyToManyField('Competition', related_name='grands_prix', default=None)
+
+    def __unicode__(self):
+        return self.name
+
 
 class Season(models.Model):
     year = models.IntegerField()
