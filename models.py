@@ -36,7 +36,7 @@ class DriverCompetitionTeam(models.Model):
     current = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return '%s %s %s' % (self.competition.driver, self.team)
+        return '%s %s %s' % (self.driver_competition.driver, 'in', self.team)
 
     class Meta:
         unique_together = [('team', 'driver_competition'), ('driver_competition', 'current')]
@@ -46,6 +46,14 @@ class DriverCompetition(models.Model):
     competition = models.ForeignKey('Competition')
     teams = models.ManyToManyField('Team', through='DriverCompetitionTeam')
 
+    @property
+    def teams_verbose(self):
+        teams = self.teams
+        if teams.count():
+            return ', '.join([team.name for team in teams.all()])
+        else:
+            return None
+
     def __unicode__(self):
         return '%s %s %s' % (self.driver, 'in', self.competition)
 
@@ -54,7 +62,7 @@ class DriverCompetition(models.Model):
 
 
 class Team(models.Model):
-    name = models.CharField(max_length=75)
+    name = models.CharField(max_length=75, verbose_name='team')
     full_name = models.CharField(max_length=200)
     competitions = models.ManyToManyField('Competition')
     country = CountryField()
@@ -63,7 +71,7 @@ class Team(models.Model):
         return self.name
 
 class Competition(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=30, verbose_name='competition')
     full_name = models.CharField(max_length=100)
     country = CountryField(null=True, blank=True, default=None)
 
@@ -71,7 +79,7 @@ class Competition(models.Model):
         return self.name
 
 class Circuit(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=30, verbose_name='circuit')
     city = models.CharField(max_length=100, null=True, blank=True)
     country = CountryField()
     opened_in = models.IntegerField()
@@ -82,7 +90,7 @@ class Circuit(models.Model):
         return self.name
 
 class GrandPrix(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=30, verbose_name='grand prix')
     country = CountryField(null=True, blank=True, default=None)
     first_held = models.IntegerField(null=True, blank=True)
     default_circuit = models.ForeignKey(Circuit, related_name='default_to_grands_prix', null=True, blank=True, default=None)
