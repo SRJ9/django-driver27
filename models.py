@@ -61,7 +61,7 @@ class Circuit(models.Model):
 class GrandPrix(models.Model):
     name = models.CharField(max_length=30)
     country = CountryField(null=True, blank=True, default=None)
-    first_held = models.IntegerField()
+    first_held = models.IntegerField(null=True, blank=True)
     default_circuit = models.ForeignKey(Circuit, related_name='default_to_grands_prix', null=True, blank=True, default=None)
     competitions = models.ManyToManyField('Competition', related_name='grands_prix', default=None)
 
