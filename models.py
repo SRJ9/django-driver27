@@ -17,6 +17,7 @@ class Driver(models.Model):
     first_name = models.CharField(max_length=25)
     year_of_birth = models.IntegerField()
     country = CountryField()
+    competitions = models.ManyToManyField('Competition', through='DriverCompetition')
 
     def save(self, *args, **kwargs):
         if self.year_of_birth < 1900 or self.year_of_birth > 2099:
@@ -28,6 +29,28 @@ class Driver(models.Model):
 
     class Meta:
         unique_together = ('last_name', 'first_name')
+
+class DriverCompetitionTeam(models.Model):
+    team = models.ForeignKey('Team')
+    driver_competition = models.ForeignKey('DriverCompetition')
+    current = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return '%s %s %s' % (self.competition.driver, self.team)
+
+    class Meta:
+        unique_together = [('team', 'driver_competition'), ('driver_competition', 'current')]
+
+class DriverCompetition(models.Model):
+    driver = models.ForeignKey(Driver)
+    competition = models.ForeignKey('Competition')
+    teams = models.ManyToManyField('Team', through='DriverCompetitionTeam')
+
+    def __unicode__(self):
+        return '%s %s %s' % (self.driver, 'in', self.competition)
+
+    class Meta:
+        unique_together = ('driver', 'competition')
 
 
 class Team(models.Model):
