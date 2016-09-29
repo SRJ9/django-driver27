@@ -32,14 +32,14 @@ class Driver(models.Model):
 
 class DriverCompetitionTeam(models.Model):
     team = models.ForeignKey('Team')
-    driver_competition = models.ForeignKey('DriverCompetition')
+    enrolled = models.ForeignKey('DriverCompetition')
     current = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return '%s %s %s' % (self.driver_competition.driver, 'in', self.team)
+        return '%s %s %s' % (self.enrolled.driver, 'in', self.team)
 
     class Meta:
-        unique_together = [('team', 'driver_competition'), ('driver_competition', 'current')]
+        unique_together = [('team', 'enrolled'), ('enrolled', 'current')]
 
 class DriverCompetition(models.Model):
     driver = models.ForeignKey(Driver)
