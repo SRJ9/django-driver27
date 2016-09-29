@@ -31,8 +31,8 @@ class Driver(models.Model):
         unique_together = ('last_name', 'first_name')
 
 class DriverCompetitionTeam(models.Model):
-    team = models.ForeignKey('Team')
-    enrolled = models.ForeignKey('DriverCompetition')
+    team = models.ForeignKey('Team', related_name='partners')
+    enrolled = models.ForeignKey('DriverCompetition', related_name='squad')
     current = models.BooleanField(default=False)
 
     def __unicode__(self):
@@ -42,8 +42,8 @@ class DriverCompetitionTeam(models.Model):
         unique_together = [('team', 'enrolled'), ('enrolled', 'current')]
 
 class DriverCompetition(models.Model):
-    driver = models.ForeignKey(Driver)
-    competition = models.ForeignKey('Competition')
+    driver = models.ForeignKey(Driver, related_name='career')
+    competition = models.ForeignKey('Competition', related_name='career')
     teams = models.ManyToManyField('Team', through='DriverCompetitionTeam')
 
     @property
@@ -64,7 +64,7 @@ class DriverCompetition(models.Model):
 class Team(models.Model):
     name = models.CharField(max_length=75, verbose_name='team')
     full_name = models.CharField(max_length=200)
-    competitions = models.ManyToManyField('Competition')
+    competitions = models.ManyToManyField('Competition', related_name='teams')
     country = CountryField()
 
     def __unicode__(self):
