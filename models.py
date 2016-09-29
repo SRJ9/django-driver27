@@ -99,10 +99,14 @@ class GrandPrix(models.Model):
     def __unicode__(self):
         return self.name
 
+    class Meta:
+        verbose_name_plural = 'grands prix'
+
 
 class Season(models.Model):
     year = models.IntegerField()
     competition = models.ForeignKey(Competition, related_name='seasons')
+    rounds = models.IntegerField(blank=True, null=True, default=None)
     teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeasonRel')
 
     def __unicode__(self):
@@ -110,6 +114,27 @@ class Season(models.Model):
 
     class Meta:
         unique_together = ('year', 'competition')
+
+class Race(models.Model):
+    season = models.ForeignKey(Season, related_name='races')
+    round = models.IntegerField()
+    grand_prix = models.ForeignKey(GrandPrix, related_name='races', blank=True, null=True, default=None)
+    circuit = models.ForeignKey(Circuit, related_name='races', blank=True, null=True, default=None)
+    date = models.DateField(blank=True, null=True, default=None)
+
+    def __unicode__(self):
+        race_str = str(self.season) + '-'+str(self.round)
+        if self.grand_prix:
+            race_str += '.' + str(self.grand_prix)
+        return race_str
+
+    class Meta:
+        unique_together = ('season', 'round')
+
+
+
+
+
 
 
 

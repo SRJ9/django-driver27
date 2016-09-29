@@ -1,8 +1,11 @@
 from django.contrib import admin
 
-from .models import Driver, Team, Competition, Circuit, Season, GrandPrix
+from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race
 from .models import DriverCompetition, DriverCompetitionTeam
 
+class RaceInline(admin.TabularInline):
+    model = Race
+    extra = 1
 
 class DriverCompetitionTeamInline(admin.TabularInline):
     model = DriverCompetitionTeam
@@ -31,11 +34,14 @@ class DriverAdmin(admin.ModelAdmin):
     list_filter = ('competitions__name',)
     inlines = [DriverCompetitionInline]
 
+class SeasonAdmin(admin.ModelAdmin):
+    inlines = [RaceInline]
+
 admin.site.register(Driver, DriverAdmin)
 admin.site.register(Team)
 admin.site.register(Competition)
 admin.site.register(Circuit)
-admin.site.register(Season)
+admin.site.register(Season, SeasonAdmin)
 admin.site.register(GrandPrix)
 
 # m2m admin
