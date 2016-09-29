@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race
-from .models import DriverCompetition, DriverCompetitionTeam
+from .models import DriverCompetition, DriverCompetitionTeam, TeamSeasonRel
 
 class RaceInline(admin.TabularInline):
     model = Race
@@ -13,6 +13,10 @@ class DriverCompetitionTeamInline(admin.TabularInline):
 
 class DriverCompetitionInline(admin.TabularInline):
     model = DriverCompetition
+    extra = 1
+
+class TeamSeasonInline(admin.TabularInline):
+    model = TeamSeasonRel
     extra = 1
 
 class DriverCompetitionAdmin(admin.ModelAdmin):
@@ -35,7 +39,7 @@ class DriverAdmin(admin.ModelAdmin):
     inlines = [DriverCompetitionInline]
 
 class SeasonAdmin(admin.ModelAdmin):
-    inlines = [RaceInline]
+    inlines = [TeamSeasonInline, RaceInline]
 
 admin.site.register(Driver, DriverAdmin)
 admin.site.register(Team)

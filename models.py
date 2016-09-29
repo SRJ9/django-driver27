@@ -131,22 +131,18 @@ class Race(models.Model):
     class Meta:
         unique_together = ('season', 'round')
 
-
-
-
-
-
-
-
 class TeamSeasonRel(models.Model):
     season = models.ForeignKey('Season')
     team = models.ForeignKey('Team')
-    sponsor_name = models.CharField(max_length=75)
+    sponsor_name = models.CharField(max_length=75, null=True, blank=True, default=None)
 
     def save(self, *args, **kwargs):
         if self.season.competition not in self.team.competitions.all():
             raise ValidationError('Team ' + str(self.team) + ' doesn\'t participate in '+str(self.season.competition))
         super(TeamSeasonRel, self).save(*args, **kwargs)
+
+    class Meta:
+        unique_together = ('season', 'team')
 
 
 
