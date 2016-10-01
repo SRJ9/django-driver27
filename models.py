@@ -153,4 +153,7 @@ class Result(models.Model):
     finish = models.IntegerField(blank=True, null=True, default=None)
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
+    class Meta:
+        unique_together = ('race', 'contender')
+
 
