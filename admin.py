@@ -126,15 +126,22 @@ class RaceAdmin(admin.ModelAdmin):
                 qualifying = result.qualifying if result.qualifying else ''
                 finish = result.finish if result.finish else ''
 
+            checked_ord = (contender.pk in race_contenders)
+            finish_ord = finish if finish else 999999999
+
             entry = {
                 'contender': contender.pk,
                 'driver_name': driver_name,
                 'team': contender.team.name,
-                'checked': 'checked' if contender.pk in race_contenders else '',
+                'checked_ord': checked_ord,
+                'checked': 'checked' if checked_ord else '',
                 'qualifying': qualifying,
-                'finish': finish
+                'finish': finish,
+                'finish_ord': finish_ord
             }
             entries.append(entry)
+
+            entries = sorted(entries, key=lambda x: (-x['checked_ord'],x['finish_ord']))
 
         context = {'race': race, 'season': season, 'entries': entries, 'title': title}
         tpl = 'driver27/admin/results.html'
