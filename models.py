@@ -34,12 +34,14 @@ class DriverCompetitionTeam(models.Model):
     team = models.ForeignKey('Team', related_name='partners')
     enrolled = models.ForeignKey('DriverCompetition', related_name='squad')
     current = models.BooleanField(default=False)
+    seasons = models.ManyToManyField('Season', blank=True, default=None)
 
     def __unicode__(self):
         return '%s %s %s' % (self.enrolled.driver, 'in', self.team)
 
     class Meta:
         unique_together = [('team', 'enrolled'), ('enrolled', 'current')]
+        ordering = ['enrolled__driver__last_name', 'team']
 
 class DriverCompetition(models.Model):
     driver = models.ForeignKey(Driver, related_name='career')
