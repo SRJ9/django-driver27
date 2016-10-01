@@ -1,0 +1,32 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static admin_modify admin_urls %}
+{% block content %}
+
+    <h1>{{ race }}</h1>
+    <h3>{{ season }}</h3>
+
+    <form method="POST">
+    {% csrf_token %}
+        <table>
+            <tr>
+                <th>Entry</th>
+                <th>Name</th>
+                <th>Team</th>
+                <th>Qualifying</th>
+                <th>Finish</th>
+            </tr>
+            {% for entry in entries %}
+            <tr>
+                <td><input type="checkbox" name="entry[]" value="{{ entry.contender }}" {{ entry.checked }}></td>
+                <td>{{ entry.driver_name }}</td>
+                <td>{{ entry.team }}</td>
+                <td><input type="integer" name="qualifying_{{ entry.contender }}" value="{{ entry.qualifying }}" size="3"></td>
+                <td><input type="integer" name="finish_{{ entry.contender }}" value="{{ entry.finish }}" size="3"></td>
+            </tr>
+       {% endfor %}
+    </table>
+    <input type="submit" value="Send entries"/>
+    </form>
+
+
+{% endblock %}
