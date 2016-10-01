@@ -146,6 +146,11 @@ class TeamSeasonRel(models.Model):
     class Meta:
         unique_together = ('season', 'team')
 
-
+class Result(models.Model):
+    race = models.ForeignKey(Race, related_name='results')
+    contender = models.ForeignKey(DriverCompetitionTeam, related_name='results')
+    qualifying = models.IntegerField(blank=True, null=True, default=None)
+    finish = models.IntegerField(blank=True, null=True, default=None)
+    comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
 
