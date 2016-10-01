@@ -17,11 +17,11 @@
             </tr>
             {% for entry in entries %}
             <tr>
-                <td><input type="checkbox" name="entry[]" value="{{ entry.contender }}" {{ entry.checked }}></td>
+                <td><input type="checkbox" name="entry[]" value="{{ entry.contender }}" {% if entry.checked %}checked{% endif %}></td>
                 <td>{{ entry.driver_name }}</td>
                 <td>{{ entry.team }}</td>
-                <td><input type="integer" name="qualifying_{{ entry.contender }}" value="{{ entry.qualifying }}" size="3"></td>
-                <td><input type="integer" name="finish_{{ entry.contender }}" value="{{ entry.finish }}" size="3"></td>
+                <td><input type="integer" name="qualifying_{{ entry.contender }}" value="{% if entry.qualifying %}{{ entry.qualifying }}{% endif %}" size="3"></td>
+                <td><input type="integer" name="finish_{{ entry.contender }}" value="{% if entry.finish %}{{ entry.finish }}{% endif %}" size="3"></td>
             </tr>
        {% endfor %}
     </table>

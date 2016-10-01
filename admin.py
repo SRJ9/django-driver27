@@ -118,30 +118,26 @@ class RaceAdmin(admin.ModelAdmin):
             enrolled = contender.enrolled
             driver_name = ' '.join((enrolled.driver.first_name, enrolled.driver.last_name))
 
-            qualifying = ''
-            finish = ''
+            qualifying = None
+            finish = None
 
             if contender.pk in race_contenders:
                 result = Result.objects.get(race=race, contender=contender)
-                qualifying = result.qualifying if result.qualifying else ''
-                finish = result.finish if result.finish else ''
+                qualifying = result.qualifying
+                finish = result.finish
 
-            checked_ord = (contender.pk in race_contenders)
-            finish_ord = finish if finish else 999999999
 
             entry = {
                 'contender': contender.pk,
                 'driver_name': driver_name,
                 'team': contender.team.name,
-                'checked_ord': checked_ord,
-                'checked': 'checked' if checked_ord else '',
+                'checked': contender.pk in race_contenders,
                 'qualifying': qualifying,
                 'finish': finish,
-                'finish_ord': finish_ord
             }
             entries.append(entry)
 
-            entries = sorted(entries, key=lambda x: (-x['checked_ord'],x['finish_ord']))
+            entries = sorted(entries, key=lambda x: (-x['checked'],x['finish'],x['qualifying']))
 
         context = {'race': race, 'season': season, 'entries': entries, 'title': title}
         tpl = 'driver27/admin/results.html'
