@@ -50,7 +50,7 @@ class RaceAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(RaceAdmin, self).get_urls()
         urlpatterns = [
-            url(r'(?P<race_id>\d+)/results/$', self.admin_site.admin_view(self.results))
+            url(r'(?P<race_id>\d+)/results/$', self.admin_site.admin_view(self.results), name='results')
         ]
 
         return urlpatterns + urls
@@ -88,6 +88,7 @@ class RaceAdmin(admin.ModelAdmin):
 
     def results(self, request, race_id):
         race = self.model.objects.get(pk=race_id)
+        title = 'Results in %s' % race
         season = race.season
         season_contenders = DriverCompetitionTeam.objects.filter(seasons__pk=season.pk)
         if request.POST:
@@ -135,8 +136,7 @@ class RaceAdmin(admin.ModelAdmin):
             }
             entries.append(entry)
 
-        context = {'race': race, 'season': season, 'entries': entries}
-
+        context = {'race': race, 'season': season, 'entries': entries, 'title': title}
         tpl = 'driver27/admin/results.html'
         return render(request, tpl, context)
 
