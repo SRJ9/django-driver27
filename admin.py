@@ -78,11 +78,15 @@ class RaceAdmin(admin.ModelAdmin):
             field_prefix = 'contender-'+str(entry)+'-'
             qualifying = request.POST.get(field_prefix + 'qualifying', None)
             finish = request.POST.get(field_prefix + 'finish', None)
+            fastest_lap = request.POST.get(field_prefix + 'fastest-lap', None)
+            retired = request.POST.get(field_prefix + 'retired', None)
             Result.objects.create(
                 race=race,
                 contender_id=entry,
                 qualifying=qualifying if qualifying else None,
-                finish=finish if finish else None
+                finish=finish if finish else None,
+                fastest_lap=fastest_lap if fastest_lap else False,
+                retired = retired if retired else False
             )
 
     def update_result_entries(self, request, entries, race):
@@ -90,6 +94,8 @@ class RaceAdmin(admin.ModelAdmin):
             field_prefix = 'contender-'+str(entry)+'-'
             qualifying = request.POST.get(field_prefix + 'qualifying', None)
             finish = request.POST.get(field_prefix + 'finish', None)
+            fastest_lap = request.POST.get(field_prefix + 'fastest-lap', None)
+            retired = request.POST.get(field_prefix + 'retired', None)
             result = Result.objects.get(race=race, contender_id=entry)
             update_needed = False
             if qualifying != result.qualifying:
@@ -98,6 +104,10 @@ class RaceAdmin(admin.ModelAdmin):
             if finish != result.finish:
                 result.finish = finish if finish else None
                 update_needed = True
+            if fastest_lap != result.fastest_lap:
+                result.fastest_lap = fastest_lap if fastest_lap else False
+            if retired != result.retired:
+                result.retired = retired if retired else False
             if update_needed:
                 result.save()
 
@@ -142,12 +152,15 @@ class RaceAdmin(admin.ModelAdmin):
             season_points = get_season_points(season, enrolled)
 
             points = finish = qualifying = None
+            fastest_lap = retired = False
 
             if contender.pk in race_contenders:
                 result = Result.objects.get(race=race, contender=contender)
                 qualifying = result.qualifying
                 finish = result.finish if result.finish else None
                 points = result.points
+                fastest_lap = result.fastest_lap
+                retired = result.retired
 
             entry = {
                 'contender': contender.pk,
@@ -158,6 +171,8 @@ class RaceAdmin(admin.ModelAdmin):
                 'qualified': True if qualifying else False,
                 'finish': finish,
                 'finished': True if finish else False,
+                'fastest_lap': fastest_lap,
+                'retired': retired,
                 'points': points,
                 'season_points': season_points
             }
