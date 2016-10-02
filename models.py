@@ -151,6 +151,8 @@ class Result(models.Model):
     contender = models.ForeignKey(DriverCompetitionTeam, related_name='results')
     qualifying = models.IntegerField(blank=True, null=True, default=None)
     finish = models.IntegerField(blank=True, null=True, default=None)
+    fastest_lap = models.BooleanField(default=False)
+    retired = models.BooleanField(default=False)
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
     class Meta:
