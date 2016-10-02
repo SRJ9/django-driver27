@@ -176,6 +176,25 @@ class Result(models.Model):
     retired = models.BooleanField(default=False)
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
+    @property
+    def points(self):
+        race = self.race
+        scoring = self.race.season.get_scoring()
+        points = 0
+        if scoring:
+            if 'fastest_lap' in scoring and self.fastest_lap:
+                points += scoring['fastest_lap']
+
+            points_factor = {'double': 2, 'half': 0.5}
+            factor = points_factor[race.alter_punctuation] if race.alter_punctuation in points_factor else 1
+            points_scoring = sorted(scoring['finish'], reverse=True)
+            if self.finish:
+                scoring_len = len(points_scoring)
+                if self.finish <= scoring_len:
+                    points += points_scoring[self.finish-1]*factor
+        return points if points > 0 else None
+
+
     class Meta:
         unique_together = ('race', 'contender')
 

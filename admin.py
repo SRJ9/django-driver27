@@ -6,6 +6,7 @@ from django.db.models.fields import BLANK_CHOICE_DASH
 
 from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
 from .models import DriverCompetition, DriverCompetitionTeam, TeamSeasonRel
+from .models import get_season_points
 import punctuation
 
 lr_diff = lambda l, r: list(set(l).difference(r))
@@ -134,15 +135,17 @@ class RaceAdmin(admin.ModelAdmin):
         for contender in season_contenders:
             enrolled = contender.enrolled
             driver_name = ' '.join((enrolled.driver.first_name, enrolled.driver.last_name))
+            season_points = get_season_points(season, enrolled)
 
             qualifying = None
             finish = None
+            points = None
 
             if contender.pk in race_contenders:
                 result = Result.objects.get(race=race, contender=contender)
                 qualifying = result.qualifying
-                finish = result.finish
-
+                finish = result.finish if result.finish else None
+                points = result.points
 
             entry = {
                 'contender': contender.pk,
@@ -150,11 +153,25 @@ class RaceAdmin(admin.ModelAdmin):
                 'team': contender.team.name,
                 'checked': contender.pk in race_contenders,
                 'qualifying': qualifying,
+                'qualified': True if qualifying else False,
                 'finish': finish,
+                'finished': True if finish else False,
+                'points': points,
+                'season_points': season_points
             }
             entries.append(entry)
 
-            entries = sorted(entries, key=lambda x: (-x['checked'],x['finish'],x['qualifying']))
+        if race_contenders:
+            entries = sorted(entries, key=lambda x: (
+                -x['checked'],
+                -x['finished'],
+                x['finish'],
+                -x['qualified'],
+                x['qualifying'],
+                -x['season_points']
+            ))
+        else:
+            entries = sorted(entries, key=lambda x: -x['season_points'])
 
         context = {'race': race, 'season': season, 'entries': entries, 'title': title}
         tpl = 'driver27/admin/results.html'

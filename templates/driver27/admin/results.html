@@ -14,6 +14,8 @@
                 <th>Team</th>
                 <th>Qualifying</th>
                 <th>Finish</th>
+                <th>Points</th>
+                <th>Season points*</th>
             </tr>
             {% for entry in entries %}
             <tr>
@@ -22,6 +24,8 @@
                 <td>{{ entry.team }}</td>
                 <td><input type="integer" name="qualifying_{{ entry.contender }}" value="{% if entry.qualifying %}{{ entry.qualifying }}{% endif %}" size="3"></td>
                 <td><input type="integer" name="finish_{{ entry.contender }}" value="{% if entry.finish %}{{ entry.finish }}{% endif %}" size="3"></td>
+                <td>{% if entry.points %}{{ entry.points }}{% endif %}</td>
+                <td>{% if entry.season_points %}{{ entry.season_points }}{% endif %}</td>
             </tr>
        {% endfor %}
     </table>
