@@ -65,6 +65,8 @@ class SeasonAdmin(admin.ModelAdmin):
 
 
 class RaceAdmin(admin.ModelAdmin):
+    list_display = ('__unicode__', 'season')
+    list_filter = ('season',)
     def get_urls(self):
         urls = super(RaceAdmin, self).get_urls()
         urlpatterns = [
