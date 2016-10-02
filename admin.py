@@ -1,9 +1,12 @@
 from django.contrib import admin
+from django import forms
 from django.conf.urls import url
 from django.shortcuts import render
+from django.db.models.fields import BLANK_CHOICE_DASH
 
 from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
 from .models import DriverCompetition, DriverCompetitionTeam, TeamSeasonRel
+import punctuation
 
 lr_diff = lambda l, r: list(set(l).difference(r))
 lr_intr = lambda l, r: list(set(l).intersection(r))
@@ -43,8 +46,22 @@ class DriverAdmin(admin.ModelAdmin):
     list_filter = ('competitions__name',)
     inlines = [DriverCompetitionInline]
 
+class SeasonAdminForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(SeasonAdminForm, self).__init__(*args, **kwargs)
+        punctuation_dict = punctuation.DRIVER27_PUNCTUATION
+        punctuation_choices = [(punct['code'], punct['label']) for punct in punctuation_dict]
+        self.fields['punctuation'] = forms.ChoiceField(choices=BLANK_CHOICE_DASH + list(punctuation_choices), initial=None)
+
+    class Meta:
+        model = Season
+        fields = ('year', 'competition', 'rounds', 'punctuation')
+
 class SeasonAdmin(admin.ModelAdmin):
     inlines = [TeamSeasonInline, RaceInline]
+    form = SeasonAdminForm
+
 
 class RaceAdmin(admin.ModelAdmin):
     def get_urls(self):

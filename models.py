@@ -13,6 +13,13 @@ except ImportError:
         'Be sure to add `django_countries` to your INSTALLED_APPS for `driver27` to work properly.'
     )
 
+def get_season_points(season, enrolled_driver, rounds=None):
+    if not isinstance(season, Season) or not isinstance(enrolled_driver, DriverCompetition):
+        return None
+    results = Result.objects.filter(race__season=season, contender__enrolled=enrolled_driver).order_by('race__round')
+    points_list = [result.points for result in results.all() if result.points is not None]
+    return sum(points_list)
+
 class Driver(models.Model):
     last_name = models.CharField(max_length=50)
     first_name = models.CharField(max_length=25)
@@ -112,6 +119,12 @@ class Season(models.Model):
     rounds = models.IntegerField(blank=True, null=True, default=None)
     teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeasonRel')
     punctuation = models.CharField(max_length=20, null=True, default=None)
+
+    def get_scoring(self):
+        for scoring in punctuation.DRIVER27_PUNCTUATION:
+            if scoring['code'] == self.punctuation:
+                return scoring
+        return None
 
     def __unicode__(self):
         return '/'.join((self.competition.name, str(self.year)))
