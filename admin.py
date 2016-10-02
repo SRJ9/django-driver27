@@ -75,8 +75,9 @@ class RaceAdmin(admin.ModelAdmin):
 
     def add_result_entries(self, request, entries, race):
         for entry in entries:
-            qualifying = request.POST.get('qualifying_' + str(entry), None)
-            finish = request.POST.get('finish_' + str(entry), None)
+            field_prefix = 'contender-'+str(entry)+'-'
+            qualifying = request.POST.get(field_prefix + 'qualifying', None)
+            finish = request.POST.get(field_prefix + 'finish', None)
             Result.objects.create(
                 race=race,
                 contender_id=entry,
@@ -86,8 +87,9 @@ class RaceAdmin(admin.ModelAdmin):
 
     def update_result_entries(self, request, entries, race):
         for entry in entries:
-            qualifying = request.POST.get('qualifying_' + str(entry), None)
-            finish = request.POST.get('finish_' + str(entry), None)
+            field_prefix = 'contender-'+str(entry)+'-'
+            qualifying = request.POST.get(field_prefix + 'qualifying', None)
+            finish = request.POST.get(field_prefix + 'finish', None)
             result = Result.objects.get(race=race, contender_id=entry)
             update_needed = False
             if qualifying != result.qualifying:
@@ -104,6 +106,20 @@ class RaceAdmin(admin.ModelAdmin):
             result = Result.objects.get(race=race, contender_id=entry)
             result.delete()
 
+    def update_race_contenders(self, request, new_contenders, race):
+        old_contenders = [result.contender_id for result in race.results.all()]
+        entries_to_add = lr_diff(new_contenders, old_contenders)
+        entries_to_upd = lr_intr(new_contenders, old_contenders)
+        entries_to_del = lr_diff(old_contenders, new_contenders)
+        if entries_to_add:
+            self.add_result_entries(request, entries_to_add, race)
+
+        if entries_to_upd:
+            self.update_result_entries(request, entries_to_upd, race)
+
+        if entries_to_del:
+            self.del_result_entries(request, entries_to_del, race)
+
     def results(self, request, race_id):
         race = self.model.objects.get(pk=race_id)
         title = 'Results in %s' % race
@@ -114,22 +130,10 @@ class RaceAdmin(admin.ModelAdmin):
             post_entries = request.POST.getlist('entry[]')
             if post_entries:
                 post_entries = map(int, post_entries)
-                entries_to_add = lr_diff(post_entries, race_contenders)
-                entries_to_upd = lr_intr(post_entries, race_contenders)
-                entries_to_del = lr_diff(race_contenders, post_entries)
-                if entries_to_add:
-                    self.add_result_entries(request, entries_to_add, race)
+                self.update_race_contenders(request, post_entries, race)
 
-                if entries_to_upd:
-                    self.update_result_entries(request, entries_to_upd, race)
-
-                if entries_to_del:
-                    self.del_result_entries(request, entries_to_del, race)
             else:
                 self.del_result_entries(request, race_contenders, race)
-
-
-
         race_contenders = [result.contender_id for result in race.results.all()]
         entries = []
         for contender in season_contenders:
@@ -137,9 +141,7 @@ class RaceAdmin(admin.ModelAdmin):
             driver_name = ' '.join((enrolled.driver.first_name, enrolled.driver.last_name))
             season_points = get_season_points(season, enrolled)
 
-            qualifying = None
-            finish = None
-            points = None
+            points = finish = qualifying = None
 
             if contender.pk in race_contenders:
                 result = Result.objects.get(race=race, contender=contender)

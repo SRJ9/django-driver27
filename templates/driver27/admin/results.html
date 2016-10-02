@@ -22,8 +22,8 @@
                 <td><input type="checkbox" name="entry[]" value="{{ entry.contender }}" {% if entry.checked %}checked{% endif %}></td>
                 <td>{{ entry.driver_name }}</td>
                 <td>{{ entry.team }}</td>
-                <td><input type="integer" name="qualifying_{{ entry.contender }}" value="{% if entry.qualifying %}{{ entry.qualifying }}{% endif %}" size="3"></td>
-                <td><input type="integer" name="finish_{{ entry.contender }}" value="{% if entry.finish %}{{ entry.finish }}{% endif %}" size="3"></td>
+                <td><input type="integer" name="contender-{{ entry.contender }}-qualifying" value="{% if entry.qualifying %}{{ entry.qualifying }}{% endif %}" size="3"></td>
+                <td><input type="integer" name="contender-{{ entry.contender }}-finish" value="{% if entry.finish %}{{ entry.finish }}{% endif %}" size="3"></td>
                 <td>{% if entry.points %}{{ entry.points }}{% endif %}</td>
                 <td>{% if entry.season_points %}{{ entry.season_points }}{% endif %}</td>
             </tr>
