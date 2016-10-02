@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import datetime
 from django.db import models
 from django.core.exceptions import ValidationError
+import punctuation
 
 try:
     from django_countries.fields import CountryField
@@ -110,6 +111,7 @@ class Season(models.Model):
     competition = models.ForeignKey(Competition, related_name='seasons')
     rounds = models.IntegerField(blank=True, null=True, default=None)
     teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeasonRel')
+    punctuation = models.CharField(max_length=20, null=True, default=None)
 
     def __unicode__(self):
         return '/'.join((self.competition.name, str(self.year)))
@@ -118,11 +120,17 @@ class Season(models.Model):
         unique_together = ('year', 'competition')
 
 class Race(models.Model):
+    ALTER_PUNCTUATION = (
+        ('double', 'Double'),
+        ('half', 'Half')
+    )
     season = models.ForeignKey(Season, related_name='races')
     round = models.IntegerField()
     grand_prix = models.ForeignKey(GrandPrix, related_name='races', blank=True, null=True, default=None)
     circuit = models.ForeignKey(Circuit, related_name='races', blank=True, null=True, default=None)
     date = models.DateField(blank=True, null=True, default=None)
+    alter_punctuation = models.CharField(choices=ALTER_PUNCTUATION, null=True, blank=True, default=None, max_length=6)
+
 
     def __unicode__(self):
         race_str = str(self.season) + '-'+str(self.round)
