@@ -4,6 +4,7 @@ import datetime
 from django.db import models
 from django.core.exceptions import ValidationError
 import punctuation
+from slugify import slugify
 
 try:
     from django_countries.fields import CountryField
@@ -84,6 +85,11 @@ class Competition(models.Model):
     name = models.CharField(max_length=30, verbose_name='competition')
     full_name = models.CharField(max_length=100)
     country = CountryField(null=True, blank=True, default=None)
+    slug = models.SlugField(null=True, blank=True, default=None)
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Competition, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return self.name
