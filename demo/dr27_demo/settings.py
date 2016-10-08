@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_countries',
+    'tabbed_admin',
     'driver27',
 ]
 
@@ -121,3 +122,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+TABBED_ADMIN_USE_JQUERY_UI = True
