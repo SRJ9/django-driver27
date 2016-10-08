@@ -34,7 +34,10 @@ class DriverCompetitionAdmin(admin.ModelAdmin):
     inlines = [DriverCompetitionTeamInline]
 
     def print_current(self, obj):
-        filter_current = DriverCompetitionTeam.objects.filter(enrolled__driver=obj.driver).filter(enrolled__competition=obj.competition).filter(current=True)
+        filter_current = DriverCompetitionTeam.objects.filter(
+            enrolled__driver=obj.driver,
+            enrolled__competition=obj.competition,
+            current=True)
         if filter_current.count():
             return filter_current[0].team
         else:
