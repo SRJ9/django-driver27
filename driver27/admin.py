@@ -12,6 +12,13 @@ import punctuation
 lr_diff = lambda l, r: list(set(l).difference(r))
 lr_intr = lambda l, r: list(set(l).intersection(r))
 
+class RelatedCompetitionAdmin(object):
+    """ Aux class to share print_competitions method between driver and team """
+    def print_competitions(self, obj):
+        return ', '.join("%s" % competition for competition in obj.competitions.all())
+    print_competitions.short_description = 'competitions'
+
+
 class RaceInline(admin.TabularInline):
     model = Race
     extra = 1
@@ -45,8 +52,8 @@ class DriverCompetitionAdmin(admin.ModelAdmin):
     print_current.short_description = 'current team'
 
 
-class DriverAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'country')
+class DriverAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
+    list_display = ('__unicode__', 'country', 'print_competitions')
     list_filter = ('competitions__name',)
     inlines = [DriverCompetitionInline]
 
@@ -199,12 +206,8 @@ class RaceAdmin(admin.ModelAdmin):
         tpl = 'driver27/admin/results.html'
         return render(request, tpl, context)
 
-class TeamAdmin(admin.ModelAdmin):
+class TeamAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_display = ('__unicode__', 'country', 'print_competitions')
-
-    def print_competitions(self, obj):
-        return ', '.join("%s" % competition for competition in obj.competitions.all())
-    print_competitions.short_description = 'competitions'
 
 admin.site.register(Driver, DriverAdmin)
 admin.site.register(Team, TeamAdmin)
