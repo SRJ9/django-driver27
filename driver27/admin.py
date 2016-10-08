@@ -34,6 +34,14 @@ class TeamSeasonInline(admin.TabularInline):
     model = TeamSeasonRel
     extra = 1
 
+class DriverCompetitionInline(admin.TabularInline):
+    model = DriverCompetition
+    extra = 1
+
+class TeamInline(admin.TabularInline):
+    model = Team
+    extra = 1
+
 class DriverAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_display = ('__unicode__', 'country', 'print_competitions')
     list_filter = ('competitions__name',)
@@ -44,6 +52,7 @@ class TeamAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
 
 class CompetitionAdmin(admin.ModelAdmin):
     list_display = ('name', 'full_name')
+    inlines = [DriverCompetitionInline]
 
 class CircuitAdmin(admin.ModelAdmin):
     list_display = ('name', 'city', 'country', 'opened_in')
