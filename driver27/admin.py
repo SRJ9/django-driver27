@@ -45,10 +45,7 @@ class DriverCompetitionAdmin(admin.ModelAdmin):
             enrolled__driver=obj.driver,
             enrolled__competition=obj.competition,
             current=True)
-        if filter_current.count():
-            return filter_current[0].team
-        else:
-            return None
+        return filter_current[0].team if filter_current.count() else None
     print_current.short_description = 'current team'
 
 
