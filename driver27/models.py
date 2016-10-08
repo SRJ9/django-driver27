@@ -9,17 +9,10 @@ from slugify import slugify
 try:
     from django_countries.fields import CountryField
 except ImportError:
-    raise ImportError(
+    raise (
         'You are using the `driver27` app which requires the `django-countries` module.'
         'Be sure to add `django_countries` to your INSTALLED_APPS for `driver27` to work properly.'
     )
-
-def get_season_points(season, enrolled_driver, rounds=None):
-    if not isinstance(season, Season) or not isinstance(enrolled_driver, DriverCompetition):
-        return None
-    results = Result.objects.filter(race__season=season, contender__enrolled=enrolled_driver).order_by('race__round')
-    points_list = [result.points for result in results.all() if result.points is not None]
-    return sum(points_list)
 
 class Driver(models.Model):
     last_name = models.CharField(max_length=50)
@@ -57,13 +50,15 @@ class DriverCompetition(models.Model):
     competition = models.ForeignKey('Competition', related_name='career')
     teams = models.ManyToManyField('Team', through='DriverCompetitionTeam')
 
+    def get_season(self, season):
+        contender_season = ContenderSeason(self, season)
+        contender_season.set_teams()
+        return contender_season
+
     @property
     def teams_verbose(self):
         teams = self.teams
-        if teams.count():
-            return ', '.join([team.name for team in teams.all()])
-        else:
-            return None
+        return ', '.join([team.name for team in teams.all()]) if teams.count() else None
 
     def __unicode__(self):
         return '%s %s %s' % (self.driver, 'in', self.competition)
@@ -132,6 +127,39 @@ class Season(models.Model):
                 return scoring
         return None
 
+    def contenders(self):
+        return DriverCompetition.objects.filter(squad__seasons__exact=self).distinct()
+
+    def points_rank(self):
+        contenders = self.contenders()
+        rank = []
+        for contender in contenders:
+            contender_season = contender.get_season(self)
+            rank.append((contender_season.get_points(), contender.driver, contender_season.teams_verbose))
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        return rank
+
+    def team_points_rank(self):
+        teams = self.teams.all()
+        rank = []
+        for team in teams:
+            team_season = TeamSeasonRel.objects.get(season=self, team=team)
+            rank.append((team_season.get_points(), team))
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        return rank
+
+
+    @property
+    def leader(self):
+        rank = self.points_rank()
+        return rank[0]
+
+    @property
+    def team_leader(self):
+        rank = self.team_points_rank()
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        return rank[0]
+
     def __unicode__(self):
         return '/'.join((self.competition.name, str(self.year)))
 
@@ -150,6 +178,13 @@ class Race(models.Model):
     date = models.DateField(blank=True, null=True, default=None)
     alter_punctuation = models.CharField(choices=ALTER_PUNCTUATION, null=True, blank=True, default=None, max_length=6)
 
+    @property
+    def pole(self):
+        return self.results.get(qualifying=1)
+
+    @property
+    def winner(self):
+        return self.results.get(finish=1)
 
     def __unicode__(self):
         race_str = str(self.season) + '-'+str(self.round)
@@ -170,6 +205,12 @@ class TeamSeasonRel(models.Model):
             raise ValidationError('Team ' + str(self.team) + ' doesn\'t participate in '+str(self.season.competition))
         super(TeamSeasonRel, self).save(*args, **kwargs)
 
+    def get_points(self):
+        results = Result.objects.filter(race__season=self.season, contender__team=self.team) \
+            .order_by('race__round')
+        points_list = [result.points for result in results.all() if result.points is not None]
+        return sum(points_list)
+
     class Meta:
         unique_together = ('season', 'team')
 
@@ -181,6 +222,14 @@ class Result(models.Model):
     fastest_lap = models.BooleanField(default=False)
     retired = models.BooleanField(default=False)
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
+
+    @property
+    def driver(self):
+        return self.contender.enrolled.driver
+
+    @property
+    def team(self):
+        return self.contender.team
 
     @property
     def points(self):
@@ -205,3 +254,26 @@ class Result(models.Model):
         unique_together = ('race', 'contender')
 
 
+class ContenderSeason(object):
+    contender = None
+    season = None
+    teams = None
+    contender_teams = None
+    teams_verbose = None
+
+    def __init__(self, contender, season):
+        self.contender = contender
+        self.season = season
+
+
+    def set_teams(self):
+        self.contender_teams = DriverCompetitionTeam.objects.filter(enrolled__pk=self.contender.pk, seasons__pk=self.season.pk)
+        self.teams = Team.objects.filter(partners__in=self.contender_teams)
+        self.teams_verbose = ', '.join([team.name for team in self.teams])
+
+
+    def get_points(self):
+        results = Result.objects.filter(race__season=self.season, contender__enrolled=self.contender)\
+            .order_by('race__round')
+        points_list = [result.points for result in results.all() if result.points is not None]
+        return sum(points_list)
