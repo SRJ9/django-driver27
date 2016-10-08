@@ -4,6 +4,8 @@ from django.conf.urls import url
 from django.shortcuts import render
 from django.db.models.fields import BLANK_CHOICE_DASH
 
+from tabbed_admin import TabbedModelAdmin
+
 from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
 from .models import DriverCompetition, DriverCompetitionTeam, TeamSeasonRel
 from .models import ContenderSeason
@@ -42,17 +44,40 @@ class TeamInline(admin.TabularInline):
     model = Team
     extra = 1
 
-class DriverAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
+class DriverAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
     list_display = ('__unicode__', 'country', 'print_competitions')
     list_filter = ('competitions__name',)
-    inlines = [DriverCompetitionInline]
+    tab_overview = (
+        (None, {
+        'fields': ('last_name', 'first_name', 'year_of_birth', 'country')
+        }),
+    )
+    tab_competitions = (
+        DriverCompetitionInline,
+    )
+    tabs = [
+        ('Overview', tab_overview),
+        ('Competitions', tab_competitions)
+    ]
 
 class TeamAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_display = ('__unicode__', 'country', 'print_competitions')
 
-class CompetitionAdmin(admin.ModelAdmin):
+class CompetitionAdmin(TabbedModelAdmin):
+    model = Competition
     list_display = ('name', 'full_name')
-    inlines = [DriverCompetitionInline]
+    tab_overview = (
+        (None, {
+        'fields': ('name', 'full_name', 'country', 'slug')
+        }),
+    )
+    tab_drivers = (
+        DriverCompetitionInline,
+    )
+    tabs = [
+        ('Overview', tab_overview),
+        ('Drivers', tab_drivers)
+    ]
 
 class CircuitAdmin(admin.ModelAdmin):
     list_display = ('name', 'city', 'country', 'opened_in')
@@ -72,9 +97,24 @@ class SeasonAdminForm(forms.ModelForm):
         model = Season
         fields = ('year', 'competition', 'rounds', 'punctuation')
 
-class SeasonAdmin(admin.ModelAdmin):
-    inlines = [TeamSeasonInline, RaceInline]
+class SeasonAdmin(TabbedModelAdmin):
     form = SeasonAdminForm
+    tab_overview = (
+        (None, {
+        'fields': ('year', 'competition', 'rounds', 'punctuation')
+        }),
+    )
+    tab_teams = (
+        TeamSeasonInline,
+    )
+    tab_races = (
+        RaceInline,
+    )
+    tabs = [
+        ('Overview', tab_overview),
+        ('Teams', tab_teams),
+        ('Races', tab_races)
+    ]
 
 class RaceAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'season')
@@ -208,10 +248,21 @@ class RaceAdmin(admin.ModelAdmin):
         tpl = 'driver27/admin/results.html'
         return render(request, tpl, context)
 
-class DriverCompetitionAdmin(admin.ModelAdmin):
+class DriverCompetitionAdmin(TabbedModelAdmin):
     list_display = ('__unicode__', 'competition', 'teams_verbose', 'print_current')
     list_filter = ('competition',)
-    inlines = [DriverCompetitionTeamInline]
+    tab_overview = (
+        (None, {
+        'fields': ('driver', 'competition')
+        }),
+    )
+    tab_teams = (
+        DriverCompetitionTeamInline,
+    )
+    tabs = [
+        ('Overview', tab_overview),
+        ('Teams', tab_teams)
+    ]
 
     def print_current(self, obj):
         filter_current = DriverCompetitionTeam.objects.filter(
