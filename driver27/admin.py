@@ -18,7 +18,6 @@ class RelatedCompetitionAdmin(object):
         return ', '.join("%s" % competition for competition in obj.competitions.all())
     print_competitions.short_description = 'competitions'
 
-
 class RaceInline(admin.TabularInline):
     model = Race
     extra = 1
@@ -35,24 +34,22 @@ class TeamSeasonInline(admin.TabularInline):
     model = TeamSeasonRel
     extra = 1
 
-class DriverCompetitionAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'competition', 'teams_verbose', 'print_current')
-    list_filter = ('competition',)
-    inlines = [DriverCompetitionTeamInline]
-
-    def print_current(self, obj):
-        filter_current = DriverCompetitionTeam.objects.filter(
-            enrolled__driver=obj.driver,
-            enrolled__competition=obj.competition,
-            current=True)
-        return filter_current[0].team if filter_current.count() else None
-    print_current.short_description = 'current team'
-
-
 class DriverAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_display = ('__unicode__', 'country', 'print_competitions')
     list_filter = ('competitions__name',)
     inlines = [DriverCompetitionInline]
+
+class TeamAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
+    list_display = ('__unicode__', 'country', 'print_competitions')
+
+class CompetitionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'full_name')
+
+class CircuitAdmin(admin.ModelAdmin):
+    list_display = ('name', 'city', 'country', 'opened_in')
+
+class GrandPrixAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
+    list_display = ('name', 'country', 'default_circuit', 'print_competitions')
 
 class SeasonAdminForm(forms.ModelForm):
 
@@ -69,7 +66,6 @@ class SeasonAdminForm(forms.ModelForm):
 class SeasonAdmin(admin.ModelAdmin):
     inlines = [TeamSeasonInline, RaceInline]
     form = SeasonAdminForm
-
 
 class RaceAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'season')
@@ -203,15 +199,26 @@ class RaceAdmin(admin.ModelAdmin):
         tpl = 'driver27/admin/results.html'
         return render(request, tpl, context)
 
-class TeamAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
-    list_display = ('__unicode__', 'country', 'print_competitions')
+class DriverCompetitionAdmin(admin.ModelAdmin):
+    list_display = ('__unicode__', 'competition', 'teams_verbose', 'print_current')
+    list_filter = ('competition',)
+    inlines = [DriverCompetitionTeamInline]
+
+    def print_current(self, obj):
+        filter_current = DriverCompetitionTeam.objects.filter(
+            enrolled__driver=obj.driver,
+            enrolled__competition=obj.competition,
+            current=True)
+        return filter_current[0].team if filter_current.count() else None
+    print_current.short_description = 'current team'
+
 
 admin.site.register(Driver, DriverAdmin)
 admin.site.register(Team, TeamAdmin)
-admin.site.register(Competition)
-admin.site.register(Circuit)
+admin.site.register(Competition, CompetitionAdmin)
+admin.site.register(Circuit, CircuitAdmin)
+admin.site.register(GrandPrix, GrandPrixAdmin)
 admin.site.register(Season, SeasonAdmin)
-admin.site.register(GrandPrix)
 admin.site.register(Race, RaceAdmin)
 
 # m2m admin
