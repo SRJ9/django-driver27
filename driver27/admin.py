@@ -196,8 +196,15 @@ class RaceAdmin(admin.ModelAdmin):
         tpl = 'driver27/admin/results.html'
         return render(request, tpl, context)
 
+class TeamAdmin(admin.ModelAdmin):
+    list_display = ('__unicode__', 'country', 'print_competitions')
+
+    def print_competitions(self, obj):
+        return ', '.join("%s" % competition for competition in obj.competitions.all())
+    print_competitions.short_description = 'competitions'
+
 admin.site.register(Driver, DriverAdmin)
-admin.site.register(Team)
+admin.site.register(Team, TeamAdmin)
 admin.site.register(Competition)
 admin.site.register(Circuit)
 admin.site.register(Season, SeasonAdmin)
