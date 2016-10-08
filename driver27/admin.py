@@ -6,7 +6,7 @@ from django.db.models.fields import BLANK_CHOICE_DASH
 
 from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
 from .models import DriverCompetition, DriverCompetitionTeam, TeamSeasonRel
-from .models import get_season_points
+from .models import ContenderSeason
 import punctuation
 
 lr_diff = lambda l, r: list(set(l).difference(r))
@@ -151,7 +151,7 @@ class RaceAdmin(admin.ModelAdmin):
         for contender in season_contenders:
             enrolled = contender.enrolled
             driver_name = ' '.join((enrolled.driver.first_name, enrolled.driver.last_name))
-            season_points = get_season_points(season, enrolled)
+            season_points = ContenderSeason(enrolled, season).get_points()
 
             points = finish = qualifying = None
             fastest_lap = retired = False
