@@ -31,6 +31,7 @@ class Driver(models.Model):
 
     class Meta:
         unique_together = ('last_name', 'first_name')
+        ordering = ['last_name', 'first_name']
 
 class DriverCompetitionTeam(models.Model):
     team = models.ForeignKey('Team', related_name='partners')
@@ -65,6 +66,7 @@ class DriverCompetition(models.Model):
 
     class Meta:
         unique_together = ('driver', 'competition')
+        ordering = ['competition__name', 'driver__last_name', 'driver__first_name']
 
 
 class Team(models.Model):
@@ -75,6 +77,9 @@ class Team(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    class Meta:
+        ordering = ['name']
 
 class Competition(models.Model):
     name = models.CharField(max_length=30, verbose_name='competition', unique=True)
@@ -89,6 +94,9 @@ class Competition(models.Model):
     def __unicode__(self):
         return self.name
 
+    class Meta:
+        ordering = ['name']
+
 class Circuit(models.Model):
     name = models.CharField(max_length=30, verbose_name='circuit', unique=True)
     city = models.CharField(max_length=100, null=True, blank=True)
@@ -99,6 +107,9 @@ class Circuit(models.Model):
     def __unicode__(self):
         # @todo Add country name in __unicode__
         return self.name
+
+    class Meta:
+        ordering = ['name']
 
 class GrandPrix(models.Model):
     name = models.CharField(max_length=30, verbose_name='grand prix', unique=True)
@@ -112,6 +123,7 @@ class GrandPrix(models.Model):
 
     class Meta:
         verbose_name_plural = 'grands prix'
+        ordering = ['name']
 
 
 class Season(models.Model):
@@ -165,6 +177,7 @@ class Season(models.Model):
 
     class Meta:
         unique_together = ('year', 'competition')
+        ordering = ['competition__name', 'year']
 
 class Race(models.Model):
     ALTER_PUNCTUATION = (
@@ -194,6 +207,7 @@ class Race(models.Model):
 
     class Meta:
         unique_together = ('season', 'round')
+        ordering = ['season', 'round']
 
 class TeamSeasonRel(models.Model):
     season = models.ForeignKey('Season')
@@ -252,6 +266,7 @@ class Result(models.Model):
 
     class Meta:
         unique_together = [('race', 'contender'), ('race', 'qualifying'), ('race', 'finish')]
+        ordering = ['race__season', 'race__round', 'finish', 'qualifying']
 
 
 class ContenderSeason(object):
