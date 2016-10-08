@@ -1,0 +1,36 @@
+{% extends 'driver27/base.html' %}
+{% block dr27_menu %}
+    {% include 'driver27/season-menu-pre.html' %}
+    {% include 'driver27/season-menu.html' %}
+{% endblock %}
+{% block dr27_content %}
+    {{ block.super }}
+     <table class="table">
+    <tr>
+        <th>Points</th>
+        <th>Driver</th>
+        <th>Team</th>
+    </tr>
+    {% for points,driver,teams in driver_rank %}
+        <tr>
+        <td>{{ points }}</td>
+        <td>{{ driver }}</td>
+        <td>{{ teams }}</td>
+
+        </tr>
+    {% endfor %}
+     </table>
+
+     <table class="table">
+    <tr>
+        <th>Points</th>
+        <th>Team</th>
+    </tr>
+    {% for points,team in team_rank %}
+        <tr>
+        <td>{{ points }}</td>
+        <td>{{ team }}</td>
+        </tr>
+    {% endfor %}
+     </table>
+{% endblock %}

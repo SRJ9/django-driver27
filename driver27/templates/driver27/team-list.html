@@ -1,0 +1,24 @@
+{% extends 'driver27/base.html' %}
+{% block dr27_menu %}
+    {% include 'driver27/season-menu-pre.html' %}
+
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-team' season.competition.slug season.year %}">Teams</a>
+    </li>
+{% endblock %}
+{% block dr27_content %}
+    {{ block.super }}
+    <table class="table">
+    <tr>
+        <th>Points</th>
+        <th>{{ model | capfirst }}</th>
+    </tr>
+    {% for points,team in rank %}
+        <tr>
+        <td>{{ points }}</td>
+        <td>{{ team }}</td>
+        </tr>
+    {% endfor %}
+
+    </table>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'driver27/base.html' %}
+{% block dr27_menu %}
+    {% include 'driver27/season-menu-pre.html' %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-race-list' season.competition.slug season.year %}">Races</a>
+    </li>
+{% endblock %}
+{% block dr27_content %}
+    {{ block.super }}
+    <table class="table">
+    <tr>
+        <th>Round</th>
+        <th>Date</th>
+        <th>Grand Prix</th>
+        <th>Circuit</th>
+        <th>Winner</th>
+        <th>Winner team</th>
+    </tr>
+    {% for race in races %}
+        <tr>
+            <td><a href="{% url 'season-race-view' season.competition.slug season.year race.round %}">{{ race.round }}</a></td>
+            <td>{{ race.date }}</td>
+            <td>{{ race.grand_prix }}</td>
+            <td>{{ race.circuit }}</td>
+            <td>{{ race.winner.driver }}</td>
+            <td>{{ race.winner.team }}</td>
+        </tr>
+    {% endfor %}
+
+    </table>
+
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'driver27/base.html' %}
+{% load bootstrap3 %}
+
+{% block dr27_content %}
+{{ block.super }}
+            <table class="table">
+                <tr>
+                    <th>Name</th>
+                    <th>Seasons</th>
+                </tr>
+                {% for competition in competitions %}
+                <tr>
+                    <td><a href="{% url 'competition-view' competition.slug %}">{{ competition }}</a></td>
+                    <td>
+                        {% if competition.seasons.count %}
+                            <ul>
+                                {% for season in competition.seasons.all %}
+                                    <li>
+                                        <a href="{% url 'season-view' competition.slug season.year %}">
+                                            {{ season }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </table>
+
+
+{% endblock %}
