@@ -68,8 +68,8 @@ class DriverCompetition(models.Model):
 
 
 class Team(models.Model):
-    name = models.CharField(max_length=75, verbose_name='team')
-    full_name = models.CharField(max_length=200)
+    name = models.CharField(max_length=75, verbose_name='team', unique=True)
+    full_name = models.CharField(max_length=200, unique=True)
     competitions = models.ManyToManyField('Competition', related_name='teams')
     country = CountryField()
 
@@ -77,8 +77,8 @@ class Team(models.Model):
         return self.name
 
 class Competition(models.Model):
-    name = models.CharField(max_length=30, verbose_name='competition')
-    full_name = models.CharField(max_length=100)
+    name = models.CharField(max_length=30, verbose_name='competition', unique=True)
+    full_name = models.CharField(max_length=100, unique=True)
     country = CountryField(null=True, blank=True, default=None)
     slug = models.SlugField(null=True, blank=True, default=None)
 
@@ -90,7 +90,7 @@ class Competition(models.Model):
         return self.name
 
 class Circuit(models.Model):
-    name = models.CharField(max_length=30, verbose_name='circuit')
+    name = models.CharField(max_length=30, verbose_name='circuit', unique=True)
     city = models.CharField(max_length=100, null=True, blank=True)
     country = CountryField()
     opened_in = models.IntegerField()
@@ -101,7 +101,7 @@ class Circuit(models.Model):
         return self.name
 
 class GrandPrix(models.Model):
-    name = models.CharField(max_length=30, verbose_name='grand prix')
+    name = models.CharField(max_length=30, verbose_name='grand prix', unique=True)
     country = CountryField(null=True, blank=True, default=None)
     first_held = models.IntegerField(null=True, blank=True)
     default_circuit = models.ForeignKey(Circuit, related_name='default_to_grands_prix', null=True, blank=True, default=None)
@@ -251,7 +251,7 @@ class Result(models.Model):
 
 
     class Meta:
-        unique_together = ('race', 'contender')
+        unique_together = [('race', 'contender'), ('race', 'qualifying'), ('race', 'finish')]
 
 
 class ContenderSeason(object):
