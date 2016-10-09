@@ -191,6 +191,13 @@ class Race(models.Model):
     date = models.DateField(blank=True, null=True, default=None)
     alter_punctuation = models.CharField(choices=ALTER_PUNCTUATION, null=True, blank=True, default=None, max_length=6)
 
+    def save(self, *args, **kwargs):
+        if self.season.competition not in self.grand_prix.competitions.all():
+            raise ValidationError(
+                "%s is not a/an %s Grand Prix" % (self.grand_prix, self.season.competition)
+            )
+        super(Race, self).save(*args, **kwargs)
+
     @property
     def pole(self):
         return self.results.get(qualifying=1)
@@ -216,7 +223,9 @@ class TeamSeasonRel(models.Model):
 
     def save(self, *args, **kwargs):
         if self.season.competition not in self.team.competitions.all():
-            raise ValidationError('Team ' + str(self.team) + ' doesn\'t participate in '+str(self.season.competition))
+            raise ValidationError(
+                'Team %s doesn\'t participate in %s' % (self.team, self.season.competition)
+            )
         super(TeamSeasonRel, self).save(*args, **kwargs)
 
     def get_points(self):

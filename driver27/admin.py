@@ -26,6 +26,12 @@ class RaceInline(admin.TabularInline):
     model = Race
     extra = 1
 
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == 'grand_prix':
+            if request._obj_ is not None:
+                kwargs['queryset'] = GrandPrix.objects.filter(competitions__exact=request._obj_.competition)
+        return super(RaceInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
 class DriverCompetitionTeamInline(admin.TabularInline):
     model = DriverCompetitionTeam
     extra = 3

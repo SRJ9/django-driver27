@@ -16,7 +16,7 @@ class GrandPrixTestCase(TestCase):
         """
 
         circuit = Circuit.objects.get(pk=1)
-	grand_prix = GrandPrix.objects.get(name='Australian Grand Prix')
+        grand_prix = GrandPrix.objects.get(name='Australian Grand Prix')
         grand_prix.default_circuit = circuit
         grand_prix.save()
 
