@@ -227,6 +227,8 @@ class TeamSeasonRel(models.Model):
 
     class Meta:
         unique_together = ('season', 'team')
+        verbose_name = 'Team Season'
+        verbose_name_plural = 'Teams Season'
 
 class Result(models.Model):
     race = models.ForeignKey(Race, related_name='results')
