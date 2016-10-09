@@ -4,6 +4,8 @@ from django.conf.urls import url
 from django.shortcuts import render
 from django.db.models.fields import BLANK_CHOICE_DASH
 
+from django.core.urlresolvers import reverse
+
 from tabbed_admin import TabbedModelAdmin
 
 from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
@@ -119,13 +121,23 @@ class SeasonAdmin(TabbedModelAdmin):
 class RaceAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'season')
     list_filter = ('season',)
+    readonly_fields = ('print_results_link',)
+
+
+
     def get_urls(self):
         urls = super(RaceAdmin, self).get_urls()
         urlpatterns = [
-            url(r'(?P<race_id>\d+)/results/$', self.admin_site.admin_view(self.results), name='results')
+            url(r'(?P<race_id>\d+)/results/$', self.admin_site.admin_view(self.results), name='driver27_race_results')
         ]
 
         return urlpatterns + urls
+
+    def print_results_link(self, obj):
+        results_url = reverse("admin:driver27_race_results", args=[obj.pk])
+        return '<a href="%s">%s</a>' % (results_url, 'Results')
+    print_results_link.allow_tags = True
+    print_results_link.short_description = 'link'
 
     def add_result_entries(self, request, entries, race):
         for entry in entries:
