@@ -38,6 +38,13 @@ class TeamSeasonInline(admin.TabularInline):
     model = TeamSeasonRel
     extra = 1
 
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == 'team':
+            if request._obj_ is not None:
+                kwargs['queryset'] = Team.objects.filter(competitions__exact=request._obj_.competition)
+        return super(TeamSeasonInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+
 class DriverCompetitionInline(admin.TabularInline):
     model = DriverCompetition
     extra = 1
@@ -117,6 +124,11 @@ class SeasonAdmin(TabbedModelAdmin):
         ('Teams', tab_teams),
         ('Races', tab_races)
     ]
+
+    def get_form(self, request, obj=None, **kwargs):
+        # just save obj reference for future processing in Inline
+        request._obj_ = obj
+        return super(SeasonAdmin, self).get_form(request, obj, **kwargs)
 
 class RaceAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'season')
