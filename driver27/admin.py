@@ -244,7 +244,12 @@ class RaceAdmin(admin.ModelAdmin):
         else:
             entries = sorted(entries, key=lambda x: -x['season_points'])
 
-        context = {'race': race, 'season': season, 'entries': entries, 'title': title}
+        context = {
+            'race': race, 'season': season, 'entries': entries, 'title': title,
+            'opts': self.model._meta,
+            'app_label': self.model._meta.app_label,
+            'change': True
+        }
         tpl = 'driver27/admin/results.html'
         return render(request, tpl, context)
 
