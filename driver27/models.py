@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-import datetime
 from django.db import models
+from django.db.models.signals import m2m_changed
 from django.core.exceptions import ValidationError
 import punctuation
 from slugify import slugify
@@ -39,12 +39,33 @@ class DriverCompetitionTeam(models.Model):
     current = models.BooleanField(default=False)
     seasons = models.ManyToManyField('Season', blank=True, default=None)
 
+    def save(self, *args, **kwargs):
+        if self.enrolled.competition not in self.team.competitions.all():
+            raise ValidationError(
+                "%s is not a team of %s" % (self.team, self.enrolled.competition)
+            )
+        super(DriverCompetitionTeam, self).save(*args, **kwargs)
+
     def __unicode__(self):
         return '%s %s %s' % (self.enrolled.driver, 'in', self.team)
 
     class Meta:
         unique_together = [('team', 'enrolled'), ('enrolled', 'current')]
         ordering = ['enrolled__driver__last_name', 'team']
+
+
+def contender_team_season(sender, instance, action, **kwargs):
+    if action == 'post_add':
+        for season in instance.seasons.all():
+            season_competition = season.competition
+            # if season_competition not in instance.team.competitions.all(): # is assumed in DriverCompetitionTeam save.
+            if season_competition != instance.enrolled.competition:
+                raise ValidationError(
+                    '%s is not registered in %s (competition of %s)' % (instance.enrolled.driver,
+                                                                              season_competition, season)
+                )
+
+m2m_changed.connect(contender_team_season, sender=DriverCompetitionTeam.seasons.through)
 
 class DriverCompetition(models.Model):
     driver = models.ForeignKey(Driver, related_name='career')
