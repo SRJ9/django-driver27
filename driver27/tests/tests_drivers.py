@@ -7,8 +7,8 @@ from driver27.models import Driver, Competition, DriverCompetition, DriverCompet
 class DriverTestCase(TestCase):
 
     fixtures = ['drivers-2016.json', 'competition.json', 'driver-competition-2016.json', 'teams-2016.json',
-                'teams-competition.json',
-                'driver-competition-team-2016.json', 'seasons-2016.json']
+                'teams-competition.json','seasons-2016.json',
+                'driver-competition-team-2016.json']
 
     @staticmethod
     def get_test_driver_A():

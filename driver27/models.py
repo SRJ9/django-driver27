@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from django.db.models.signals import m2m_changed
+from django.db.models.signals import m2m_changed, pre_save
 from django.core.exceptions import ValidationError
 import punctuation
 from slugify import slugify
@@ -54,16 +54,16 @@ class DriverCompetitionTeam(models.Model):
         ordering = ['enrolled__driver__last_name', 'team']
 
 
-def contender_team_season(sender, instance, action, **kwargs):
-    if action == 'post_add':
-        for season in instance.seasons.all():
-            season_competition = season.competition
-            # if season_competition not in instance.team.competitions.all(): # is assumed in DriverCompetitionTeam save.
-            if season_competition != instance.enrolled.competition:
-                raise ValidationError(
-                    '%s is not registered in %s (competition of %s)' % (instance.enrolled.driver,
-                                                                              season_competition, season)
-                )
+def contender_team_season(sender, instance, action, pk_set, **kwargs):
+    enrolled_competition = instance.enrolled.competition
+    accepted_seasons = [season.pk for season in enrolled_competition.seasons.all()]
+    for pk in pk_set:
+        if pk not in accepted_seasons:
+            pk_season = Season.objects.get(pk=pk)
+            raise ValidationError(
+                '%s is not a/an %s season' % (pk_season, enrolled_competition)
+            )
+
 
 m2m_changed.connect(contender_team_season, sender=DriverCompetitionTeam.seasons.through)
 
