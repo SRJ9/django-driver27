@@ -36,6 +36,13 @@ class DriverCompetitionTeamInline(admin.TabularInline):
     model = DriverCompetitionTeam
     extra = 3
 
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == 'team':
+            if request._obj_ is not None:
+                kwargs['queryset'] = Team.objects.filter(competitions__exact=request._obj_.competition)
+        return super(DriverCompetitionTeamInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+
 class DriverCompetitionInline(admin.TabularInline):
     model = DriverCompetition
     extra = 1
@@ -49,11 +56,6 @@ class TeamSeasonInline(admin.TabularInline):
             if request._obj_ is not None:
                 kwargs['queryset'] = Team.objects.filter(competitions__exact=request._obj_.competition)
         return super(TeamSeasonInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
-
-
-class DriverCompetitionInline(admin.TabularInline):
-    model = DriverCompetition
-    extra = 1
 
 class TeamInline(admin.TabularInline):
     model = Team
@@ -306,6 +308,11 @@ class DriverCompetitionAdmin(TabbedModelAdmin):
             current=True)
         return filter_current[0].team if filter_current.count() else None
     print_current.short_description = 'current team'
+
+    def get_form(self, request, obj=None, **kwargs):
+        # just save obj reference for future processing in Inline
+        request._obj_ = obj
+        return super(DriverCompetitionAdmin, self).get_form(request, obj, **kwargs)
 
 
 admin.site.register(Driver, DriverAdmin)
