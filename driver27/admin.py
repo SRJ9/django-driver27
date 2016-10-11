@@ -25,6 +25,16 @@ class RelatedCompetitionAdmin(object):
 class RaceInline(admin.TabularInline):
     model = Race
     extra = 1
+    readonly_fields = ('print_results_link', )
+
+    def print_results_link(self, obj):
+        if obj.pk:
+            results_url = reverse("admin:driver27_race_results", args=[obj.pk])
+            return '<a href="%s">%s</a>' % (results_url, 'Results')
+        else:
+            return None
+    print_results_link.allow_tags = True
+    print_results_link.short_description = 'Results link'
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'grand_prix':
