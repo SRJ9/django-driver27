@@ -44,13 +44,19 @@ class DriverCompetitionTeam(models.Model):
             raise ValidationError(
                 "%s is not a team of %s" % (self.team, self.enrolled.competition)
             )
+        if self.current:
+            current_count = DriverCompetitionTeam.objects.filter(enrolled=self.enrolled, current=True)
+            if self.pk:
+                current_count = current_count.exclude(pk=self.pk)
+            if current_count.count():
+                self.current = False
         super(DriverCompetitionTeam, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return '%s %s %s' % (self.enrolled.driver, 'in', self.team)
 
     class Meta:
-        unique_together = [('team', 'enrolled'), ('enrolled', 'current')]
+        unique_together = ('team', 'enrolled')
         ordering = ['enrolled__driver__last_name', 'team']
 
 
