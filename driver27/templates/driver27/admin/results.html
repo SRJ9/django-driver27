@@ -29,6 +29,7 @@
                 <th>Finish</th>
                 <th>Fastest lap</th>
                 <th>Retired</th>
+                <th>Wildcard</th>
                 <th>Points</th>
                 <th>Season points*</th>
             </tr>
@@ -41,6 +42,7 @@
                 <td><input type="integer" name="contender-{{ entry.contender }}-finish" value="{% if entry.finish %}{{ entry.finish }}{% endif %}" size="3"></td>
                 <td><input type="checkbox" name="contender-{{ entry.contender }}-fastest-lap" value="1" {% if entry.fastest_lap %}checked{% endif %}></td>
                 <td><input type="checkbox" name="contender-{{ entry.contender }}-retired" value="1" {% if entry.retired %}checked{% endif %}></td>
+                <td><input type="checkbox" name="contender-{{ entry.contender }}-wildcard" value="1" {% if entry.wildcard %}checked{% endif %}></td>
                 <td>{% if entry.points %}{{ entry.points }}{% endif %}</td>
                 <td>{% if entry.season_points %}{{ entry.season_points }}{% endif %}</td>
             </tr>

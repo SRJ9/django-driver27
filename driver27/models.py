@@ -257,6 +257,7 @@ class TeamSeasonRel(models.Model):
 
     def get_points(self):
         results = Result.objects.filter(race__season=self.season, contender__team=self.team) \
+            .exclude(wildcard=True) \
             .order_by('race__round')
         points_list = [result.points for result in results.all() if result.points is not None]
         return sum(points_list)
@@ -273,6 +274,7 @@ class Result(models.Model):
     finish = models.IntegerField(blank=True, null=True, default=None)
     fastest_lap = models.BooleanField(default=False)
     retired = models.BooleanField(default=False)
+    wildcard = models.BooleanField(default=False)
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
     @property

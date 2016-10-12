@@ -18,6 +18,7 @@
         <th>Start</th>
         <th>Retired</th>
         <th>Fastest lap</th>
+        <th>Wildcard</th>
     </tr>
     {% for result in results %}
         <tr>
@@ -27,6 +28,7 @@
         <td>{{ result.qualifying }}</td>
         <td>{{ result.retired }}</td>
         <td>{{ result.fastest_lap }}</td>
+        <td>{{ result.wildcard }}</td>
         </tr>
     {% endfor %}
 
