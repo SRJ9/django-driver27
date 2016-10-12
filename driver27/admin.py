@@ -149,11 +149,21 @@ class SeasonAdmin(TabbedModelAdmin):
         return super(SeasonAdmin, self).get_form(request, obj, **kwargs)
 
 class RaceAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'season')
+    list_display = ('__unicode__', 'season', 'print_pole', 'print_winner', 'print_fastest')
     list_filter = ('season',)
     readonly_fields = ('print_results_link',)
 
+    def print_pole(self, obj):
+        return "%s" % obj.pole.driver
+    print_pole.short_description = 'Pole'
 
+    def print_winner(self, obj):
+        return "%s" % obj.winner.driver
+    print_winner.short_description = 'Winner'
+
+    def print_fastest(self, obj):
+        return "%s" % obj.fastest.driver
+    print_fastest.short_description = 'Fastest'
 
     def get_urls(self):
         urls = super(RaceAdmin, self).get_urls()

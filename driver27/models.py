@@ -233,6 +233,10 @@ class Race(models.Model):
     def winner(self):
         return self.results.get(finish=1)
 
+    @property
+    def fastest(self):
+        return self.results.get(fastest_lap=True)
+
     def __unicode__(self):
         race_str = str(self.season) + '-'+str(self.round)
         if self.grand_prix:
