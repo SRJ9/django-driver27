@@ -281,6 +281,15 @@ class Result(models.Model):
     wildcard = models.BooleanField(default=False)
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
+    def save(self, *args, **kwargs):
+        if self.fastest_lap:
+            fastest_count = Result.objects.filter(race=self.race, fastest_lap=True)
+            if self.pk:
+                fastest_count = fastest_count.exclude(pk=self.pk)
+            if fastest_count.count():
+                self.fastest_lap = False
+        super(Result, self).save(*args, **kwargs)
+
     @property
     def driver(self):
         return self.contender.enrolled.driver
