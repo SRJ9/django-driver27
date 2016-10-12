@@ -52,6 +52,18 @@ class DriverCompetitionTeamInline(admin.TabularInline):
                 kwargs['queryset'] = Team.objects.filter(competitions__exact=request._obj_.competition)
         return super(DriverCompetitionTeamInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
+class TeamContenderSeasonInline(admin.TabularInline):
+    model = DriverCompetitionTeam.seasons.through
+    extra = 3
+    ordering = ('drivercompetitionteam',)
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == 'drivercompetitionteam':
+            if request._obj_ is not None:
+                kwargs['queryset'] = DriverCompetitionTeam.objects.filter(
+                    enrolled__competition__exact=request._obj_.competition)
+        return super(TeamContenderSeasonInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class DriverCompetitionInline(admin.TabularInline):
     model = DriverCompetition
@@ -134,13 +146,20 @@ class SeasonAdmin(TabbedModelAdmin):
     tab_teams = (
         TeamSeasonInline,
     )
+    tab_drivers = (
+        # (None, {
+        #     'fields': ('team_contenders',)
+        # }),
+        TeamContenderSeasonInline,
+    )
     tab_races = (
         RaceInline,
     )
     tabs = [
         ('Overview', tab_overview),
         ('Teams', tab_teams),
-        ('Races', tab_races)
+        ('Drivers', tab_drivers),
+        ('Races', tab_races),
     ]
 
     def get_form(self, request, obj=None, **kwargs):

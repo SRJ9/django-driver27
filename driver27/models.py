@@ -37,7 +37,7 @@ class DriverCompetitionTeam(models.Model):
     team = models.ForeignKey('Team', related_name='partners')
     enrolled = models.ForeignKey('DriverCompetition', related_name='squad')
     current = models.BooleanField(default=False)
-    seasons = models.ManyToManyField('Season', blank=True, default=None)
+    seasons = models.ManyToManyField('Season', related_name='team_contenders', blank=True, default=None)
 
     def save(self, *args, **kwargs):
         if self.enrolled.competition not in self.team.competitions.all():
