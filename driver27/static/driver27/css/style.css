@@ -1,0 +1,33 @@
+.result, .retired, .fastest, .wildcard {
+  color: #FFFFFF;
+  font-variant: small-caps;
+  border-radius: 15%; }
+
+.retired {
+  background-color: red; }
+
+.fastest {
+  background-color: blue; }
+
+.wildcard {
+  background-color: orange; }
+
+.finish_1 {
+  background-color: gold !important;
+  font-size: 1.8em; }
+
+.finish_2 {
+  background-color: silver !important;
+  font-size: 1.6em; }
+
+.finish_3 {
+  background-color: #CD7F32 !important;
+  font-size: 1.3em; }
+
+.points {
+  background-color: darkseagreen; }
+
+tr:not(.points) {
+  font-size: 0.9em; }
+
+/*# sourceMappingURL=style.css.map */

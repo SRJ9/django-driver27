@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.db.models import Count
 from .models import Competition, Season
 
 
@@ -59,7 +60,8 @@ def race_list(request, competition_slug, year):
 def race_view(request, competition_slug, year, race_id=None):
     season = get_season(competition_slug, year)
     race = season.races.get(round=race_id)
-    results = race.results.all().order_by('finish', 'qualifying')
+    results = race.results.all()\
+        .annotate(null_position=Count('finish')).order_by('-null_position', 'finish', 'qualifying')
     title = 'Results of %s' % race
     context = {'race': race, 'season': season, 'title': title, 'results': results}
     tpl = 'driver27/race-view.html'

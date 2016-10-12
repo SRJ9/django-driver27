@@ -1,4 +1,5 @@
 {% extends 'driver27/base.html' %}
+{% load static %}
 {% block dr27_menu %}
     {% include 'driver27/season-menu-pre.html' %}
     <li class="nav-item">
@@ -16,21 +17,42 @@
         <th>Driver</th>
         <th>Team</th>
         <th>Start</th>
-        <th>Retired</th>
-        <th>Fastest lap</th>
-        <th>Wildcard</th>
+        <th>&nbsp;</th>
     </tr>
     {% for result in results %}
-        <tr>
-        <td>{{ result.finish }}</td>
+        <tr class="finish_{{ result.finish }} {% if result.points %}points{% endif %}">
+        <td>
+            {% if result.retired %}
+                <span class="result retired">Retired</span>
+            {% else %}
+                {{ result.finish }}
+            {% endif %}
+        </td>
         <td>{{ result.driver }}</td>
         <td>{{ result.team }}</td>
-        <td>{{ result.qualifying }}</td>
-        <td>{{ result.retired }}</td>
-        <td>{{ result.fastest_lap }}</td>
-        <td>{{ result.wildcard }}</td>
+        <td>
+            {% if result.qualifying %}
+                {{ result.qualifying }}
+            {% else %}
+                -
+            {% endif %}
+        </td>
+        <td>
+            {% if result.wildcard %}
+                <span class="result wildcard">Wildcard</span>
+            {% endif %}
+            {% if result.fastest_lap %}
+                <span class="result fastest">Fastest lap</span>
+            {% endif %}
+        </td>
         </tr>
     {% endfor %}
 
     </table>
+{% endblock %}
+
+{% block bootstrap3_extra_head %}
+
+    <link rel="stylesheet" href="{% static 'driver27/css/style.css' %}">
+
 {% endblock %}
