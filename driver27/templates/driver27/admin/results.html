@@ -15,6 +15,8 @@
 {% block content %}
 
     <h3>{{ race.circuit }}</h3>
+    <label for="select-all">Select all</label>
+    <input type="checkbox" id="select-all" value="1"/>
 
     <form method="POST">
     {% csrf_token %}
@@ -32,7 +34,7 @@
             </tr>
             {% for entry in entries %}
             <tr>
-                <td><input type="checkbox" name="entry[]" value="{{ entry.contender }}" {% if entry.checked %}checked{% endif %}></td>
+                <td><input type="checkbox" name="entry[]" value="{{ entry.contender }}" class="entry" {% if entry.checked %}checked{% endif %}></td>
                 <td>{{ entry.driver_name }}</td>
                 <td>{{ entry.team }}</td>
                 <td><input type="integer" name="contender-{{ entry.contender }}-qualifying" value="{% if entry.qualifying %}{{ entry.qualifying }}{% endif %}" size="3"></td>
@@ -48,4 +50,17 @@
     </form>
 
 
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $('#select-all').click(function() {
+                var c = this.checked;
+                $('.entry').prop('checked',c);
+            });
+        });
+    </script>
 {% endblock %}
