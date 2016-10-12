@@ -22,7 +22,7 @@
     {% for result in results %}
         <tr class="finish_{{ result.finish }} {% if result.points %}points{% endif %}">
         <td>
-            {% if result.retired %}
+            {% if result.retired or  not result.finish %}
                 <span class="result retired">Retired</span>
             {% else %}
                 {{ result.finish }}

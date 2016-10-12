@@ -327,8 +327,10 @@ class ContenderSeason(object):
         self.teams_verbose = ', '.join([team.name for team in self.teams])
 
 
-    def get_points(self):
+    def get_points(self, limit_races=None):
         results = Result.objects.filter(race__season=self.season, contender__enrolled=self.contender)\
             .order_by('race__round')
+        if isinstance(limit_races, int):
+            results = results[:limit_races]
         points_list = [result.points for result in results.all() if result.points is not None]
         return sum(points_list)

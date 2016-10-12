@@ -250,7 +250,7 @@ class RaceAdmin(admin.ModelAdmin):
         for contender in season_contenders:
             enrolled = contender.enrolled
             driver_name = ' '.join((enrolled.driver.first_name, enrolled.driver.last_name))
-            season_points = ContenderSeason(enrolled, season).get_points()
+            season_points = ContenderSeason(enrolled, season).get_points(limit_races=race.round)
 
             points = finish = qualifying = None
             fastest_lap = retired = wildcard = False
