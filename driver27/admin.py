@@ -6,6 +6,7 @@ from django.db.models.fields import BLANK_CHOICE_DASH
 
 from django.core.urlresolvers import reverse
 
+from modelclone import ClonableModelAdmin
 from tabbed_admin import TabbedModelAdmin
 
 from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
@@ -136,7 +137,7 @@ class SeasonAdminForm(forms.ModelForm):
         model = Season
         fields = ('year', 'competition', 'rounds', 'punctuation')
 
-class SeasonAdmin(TabbedModelAdmin):
+class SeasonAdmin(ClonableModelAdmin, TabbedModelAdmin):
     form = SeasonAdminForm
     tab_overview = (
         (None, {
