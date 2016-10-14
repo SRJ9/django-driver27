@@ -1,8 +1,7 @@
 from django.test import TestCase
-from django.core.exceptions import ValidationError
 
 # Create your tests here.
-from driver27.models import Circuit, GrandPrix, Competition
+from driver27.models import Circuit, GrandPrix
 
 class GrandPrixTestCase(TestCase):
 

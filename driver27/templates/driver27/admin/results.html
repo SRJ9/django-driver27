@@ -35,14 +35,14 @@
             </tr>
             {% for entry in entries %}
             <tr>
-                <td><input type="checkbox" name="entry[]" value="{{ entry.contender }}" class="entry" {% if entry.checked %}checked{% endif %}></td>
+                <td><input type="checkbox" name="entry[]" value="{{ entry.seat }}" class="entry" {% if entry.checked %}checked{% endif %}></td>
                 <td>{{ entry.driver_name }}</td>
                 <td>{{ entry.team }}</td>
-                <td><input type="integer" name="contender-{{ entry.contender }}-qualifying" value="{% if entry.qualifying %}{{ entry.qualifying }}{% endif %}" size="3"></td>
-                <td><input type="integer" name="contender-{{ entry.contender }}-finish" value="{% if entry.finish %}{{ entry.finish }}{% endif %}" size="3"></td>
-                <td><input type="checkbox" name="contender-{{ entry.contender }}-fastest-lap" value="1" {% if entry.fastest_lap %}checked{% endif %}></td>
-                <td><input type="checkbox" name="contender-{{ entry.contender }}-retired" value="1" {% if entry.retired %}checked{% endif %}></td>
-                <td><input type="checkbox" name="contender-{{ entry.contender }}-wildcard" value="1" {% if entry.wildcard %}checked{% endif %}></td>
+                <td><input type="integer" name="seat-{{ entry.seat }}-qualifying" value="{% if entry.qualifying %}{{ entry.qualifying }}{% endif %}" size="3"></td>
+                <td><input type="integer" name="seat-{{ entry.seat }}-finish" value="{% if entry.finish %}{{ entry.finish }}{% endif %}" size="3"></td>
+                <td><input type="checkbox" name="seat-{{ entry.seat }}-fastest-lap" value="1" {% if entry.fastest_lap %}checked{% endif %}></td>
+                <td><input type="checkbox" name="seat-{{ entry.seat }}-retired" value="1" {% if entry.retired %}checked{% endif %}></td>
+                <td><input type="checkbox" name="seat-{{ entry.seat }}-wildcard" value="1" {% if entry.wildcard %}checked{% endif %}></td>
                 <td>{% if entry.points %}{{ entry.points }}{% endif %}</td>
                 <td>{% if entry.season_points %}{{ entry.season_points }}{% endif %}</td>
             </tr>

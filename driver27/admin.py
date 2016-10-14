@@ -10,7 +10,7 @@ from modelclone import ClonableModelAdmin
 from tabbed_admin import TabbedModelAdmin
 
 from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
-from .models import DriverCompetition, DriverCompetitionTeam, TeamSeasonRel
+from .models import Contender, Seat, TeamSeason
 from .models import ContenderSeason
 import punctuation
 
@@ -43,35 +43,35 @@ class RaceInline(admin.TabularInline):
                 kwargs['queryset'] = GrandPrix.objects.filter(competitions__exact=request._obj_.competition)
         return super(RaceInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
-class DriverCompetitionTeamInline(admin.TabularInline):
-    model = DriverCompetitionTeam
+class SeatInline(admin.TabularInline):
+    model = Seat
     extra = 3
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'team':
             if request._obj_ is not None:
                 kwargs['queryset'] = Team.objects.filter(competitions__exact=request._obj_.competition)
-        return super(DriverCompetitionTeamInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+        return super(SeatInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
-class TeamContenderSeasonInline(admin.TabularInline):
-    model = DriverCompetitionTeam.seasons.through
+class SeatSeasonInline(admin.TabularInline):
+    model = Seat.seasons.through
     extra = 3
-    ordering = ('drivercompetitionteam',)
+    ordering = ('seat',)
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == 'drivercompetitionteam':
+        if db_field.name == 'seat':
             if request._obj_ is not None:
-                kwargs['queryset'] = DriverCompetitionTeam.objects.filter(
-                    enrolled__competition__exact=request._obj_.competition)
-        return super(TeamContenderSeasonInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+                kwargs['queryset'] = Seat.objects.filter(
+                    contender__competition__exact=request._obj_.competition)
+        return super(SeatSeasonInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class DriverCompetitionInline(admin.TabularInline):
-    model = DriverCompetition
+class ContenderInline(admin.TabularInline):
+    model = Contender
     extra = 1
 
 class TeamSeasonInline(admin.TabularInline):
-    model = TeamSeasonRel
+    model = TeamSeason
     extra = 1
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
@@ -93,7 +93,7 @@ class DriverAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
         }),
     )
     tab_competitions = (
-        DriverCompetitionInline,
+        ContenderInline,
     )
     tabs = [
         ('Overview', tab_overview),
@@ -112,7 +112,7 @@ class CompetitionAdmin(TabbedModelAdmin):
         }),
     )
     tab_drivers = (
-        DriverCompetitionInline,
+        ContenderInline,
     )
     tabs = [
         ('Overview', tab_overview),
@@ -137,7 +137,7 @@ class SeasonAdminForm(forms.ModelForm):
         model = Season
         fields = ('year', 'competition', 'rounds', 'punctuation')
 
-class SeasonAdmin(ClonableModelAdmin, TabbedModelAdmin):
+class SeasonAdmin(TabbedModelAdmin):
     form = SeasonAdminForm
     tab_overview = (
         (None, {
@@ -151,7 +151,7 @@ class SeasonAdmin(ClonableModelAdmin, TabbedModelAdmin):
         # (None, {
         #     'fields': ('team_contenders',)
         # }),
-        TeamContenderSeasonInline,
+        SeatSeasonInline,
     )
     tab_races = (
         RaceInline,
@@ -201,7 +201,7 @@ class RaceAdmin(admin.ModelAdmin):
 
     def add_result_entries(self, request, entries, race):
         for entry in entries:
-            field_prefix = 'contender-'+str(entry)+'-'
+            field_prefix = '%s-%s-' % ('seat-', str(entry))
             qualifying = request.POST.get(field_prefix + 'qualifying', None)
             finish = request.POST.get(field_prefix + 'finish', None)
             fastest_lap = request.POST.get(field_prefix + 'fastest-lap', None)
@@ -209,7 +209,7 @@ class RaceAdmin(admin.ModelAdmin):
             wildcard = request.POST.get(field_prefix + 'wildcard', None)
             Result.objects.create(
                 race=race,
-                contender_id=entry,
+                seat_id=entry,
                 qualifying=qualifying if qualifying else None,
                 finish=finish if finish else None,
                 fastest_lap=fastest_lap if fastest_lap else False,
@@ -219,13 +219,14 @@ class RaceAdmin(admin.ModelAdmin):
 
     def update_result_entries(self, request, entries, race):
         for entry in entries:
-            field_prefix = 'contender-'+str(entry)+'-'
+            field_prefix = '%s-%s-' % ('seat', entry)
+            # raise Exception('field_prefix')
             qualifying = request.POST.get(field_prefix + 'qualifying', None)
             finish = request.POST.get(field_prefix + 'finish', None)
             fastest_lap = request.POST.get(field_prefix + 'fastest-lap', None)
             retired = request.POST.get(field_prefix + 'retired', None)
             wildcard = request.POST.get(field_prefix + 'wildcard', None)
-            result = Result.objects.get(race=race, contender_id=entry)
+            result = Result.objects.get(race=race, seat_id=entry)
             update_needed = False
             if qualifying != result.qualifying:
                 result.qualifying = qualifying if qualifying else None
@@ -244,14 +245,14 @@ class RaceAdmin(admin.ModelAdmin):
 
     def del_result_entries(self, request, entries, race):
         for entry in entries:
-            result = Result.objects.get(race=race, contender_id=entry)
+            result = Result.objects.get(race=race, seat_id=entry)
             result.delete()
 
-    def update_race_contenders(self, request, new_contenders, race):
-        old_contenders = [result.contender_id for result in race.results.all()]
-        entries_to_add = lr_diff(new_contenders, old_contenders)
-        entries_to_upd = lr_intr(new_contenders, old_contenders)
-        entries_to_del = lr_diff(old_contenders, new_contenders)
+    def update_race_seats(self, request, new_seats, race):
+        old_seats = [result.seat_id for result in race.results.all()]
+        entries_to_add = lr_diff(new_seats, old_seats)
+        entries_to_upd = lr_intr(new_seats, old_seats)
+        entries_to_del = lr_diff(old_seats, new_seats)
         if entries_to_add:
             self.add_result_entries(request, entries_to_add, race)
 
@@ -265,40 +266,42 @@ class RaceAdmin(admin.ModelAdmin):
         race = self.model.objects.get(pk=race_id)
         title = 'Results in %s' % race
         season = race.season
-        season_contenders = DriverCompetitionTeam.objects.filter(seasons__pk=season.pk)
+        season_seats = Seat.objects.filter(seasons__pk=season.pk)
         if request.POST:
-            race_contenders = [result.contender_id for result in race.results.all()]
             post_entries = request.POST.getlist('entry[]')
             if post_entries:
                 post_entries = map(int, post_entries)
-                self.update_race_contenders(request, post_entries, race)
+                self.update_race_seats(request, post_entries, race)
 
             else:
-                self.del_result_entries(request, race_contenders, race)
-        race_contenders = [result.contender_id for result in race.results.all()]
+                race_seats = [result.seat_id for result in race.results.all()]
+                self.del_result_entries(request, race_seats, race)
+        race_seats = [result.seat_id for result in race.results.all()]
         entries = []
-        for contender in season_contenders:
-            enrolled = contender.enrolled
-            driver_name = ' '.join((enrolled.driver.first_name, enrolled.driver.last_name))
-            season_points = ContenderSeason(enrolled, season).get_points(limit_races=race.round)
+        for seat in season_seats:
+            contender = seat.contender
+            driver_name = ' '.join((contender.driver.first_name, contender.driver.last_name))
+            season_points = ContenderSeason(contender, season).get_points(limit_races=race.round)
 
             points = finish = qualifying = None
             fastest_lap = retired = wildcard = False
 
-            if contender.pk in race_contenders:
-                result = Result.objects.get(race=race, contender=contender)
+            is_race_seat = False
+            if seat.pk in race_seats:
+                result = Result.objects.get(race=race, seat=seat)
                 qualifying = result.qualifying
                 finish = result.finish if result.finish else None
                 points = result.points
                 fastest_lap = result.fastest_lap
                 retired = result.retired
                 wildcard = result.wildcard
+                is_race_seat = True
 
             entry = {
-                'contender': contender.pk,
+                'seat': seat.pk,
                 'driver_name': driver_name,
-                'team': contender.team.name,
-                'checked': contender.pk in race_contenders,
+                'team': seat.team.name,
+                'checked': is_race_seat,
                 'qualifying': qualifying,
                 'qualified': True if qualifying else False,
                 'finish': finish,
@@ -311,7 +314,7 @@ class RaceAdmin(admin.ModelAdmin):
             }
             entries.append(entry)
 
-        if race_contenders:
+        if race_seats:
             entries = sorted(entries, key=lambda x: (
                 -x['checked'],
                 -x['finished'],
@@ -332,7 +335,7 @@ class RaceAdmin(admin.ModelAdmin):
         tpl = 'driver27/admin/results.html'
         return render(request, tpl, context)
 
-class DriverCompetitionAdmin(TabbedModelAdmin):
+class ContenderAdmin(TabbedModelAdmin):
     list_display = ('__unicode__', 'competition', 'teams_verbose', 'print_current')
     list_filter = ('competition',)
     tab_overview = (
@@ -341,7 +344,7 @@ class DriverCompetitionAdmin(TabbedModelAdmin):
         }),
     )
     tab_teams = (
-        DriverCompetitionTeamInline,
+        SeatInline,
     )
     tabs = [
         ('Overview', tab_overview),
@@ -349,9 +352,9 @@ class DriverCompetitionAdmin(TabbedModelAdmin):
     ]
 
     def print_current(self, obj):
-        filter_current = DriverCompetitionTeam.objects.filter(
-            enrolled__driver=obj.driver,
-            enrolled__competition=obj.competition,
+        filter_current = Seat.objects.filter(
+            contender__driver=obj.driver,
+            contender__competition=obj.competition,
             current=True)
         return filter_current[0].team if filter_current.count() else None
     print_current.short_description = 'current team'
@@ -359,7 +362,7 @@ class DriverCompetitionAdmin(TabbedModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         # just save obj reference for future processing in Inline
         request._obj_ = obj
-        return super(DriverCompetitionAdmin, self).get_form(request, obj, **kwargs)
+        return super(ContenderAdmin, self).get_form(request, obj, **kwargs)
 
 
 admin.site.register(Driver, DriverAdmin)
@@ -371,4 +374,4 @@ admin.site.register(Season, SeasonAdmin)
 admin.site.register(Race, RaceAdmin)
 
 # m2m admin
-admin.site.register(DriverCompetition, DriverCompetitionAdmin)
+admin.site.register(Contender, ContenderAdmin)

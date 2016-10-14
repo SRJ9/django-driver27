@@ -19,7 +19,7 @@ class Driver(models.Model):
     first_name = models.CharField(max_length=25)
     year_of_birth = models.IntegerField()
     country = CountryField()
-    competitions = models.ManyToManyField('Competition', through='DriverCompetition')
+    competitions = models.ManyToManyField('Competition', through='Contender', related_name='drivers')
 
     def save(self, *args, **kwargs):
         if self.year_of_birth < 1900 or self.year_of_birth > 2099:
@@ -33,50 +33,10 @@ class Driver(models.Model):
         unique_together = ('last_name', 'first_name')
         ordering = ['last_name', 'first_name']
 
-class DriverCompetitionTeam(models.Model):
-    team = models.ForeignKey('Team', related_name='partners')
-    enrolled = models.ForeignKey('DriverCompetition', related_name='squad')
-    current = models.BooleanField(default=False)
-    seasons = models.ManyToManyField('Season', related_name='team_contenders', blank=True, default=None)
-
-    def save(self, *args, **kwargs):
-        if self.enrolled.competition not in self.team.competitions.all():
-            raise ValidationError(
-                "%s is not a team of %s" % (self.team, self.enrolled.competition)
-            )
-        if self.current:
-            current_count = DriverCompetitionTeam.objects.filter(enrolled=self.enrolled, current=True)
-            if self.pk:
-                current_count = current_count.exclude(pk=self.pk)
-            if current_count.count():
-                self.current = False
-        super(DriverCompetitionTeam, self).save(*args, **kwargs)
-
-    def __unicode__(self):
-        return '%s %s %s' % (self.enrolled.driver, 'in', self.team)
-
-    class Meta:
-        unique_together = ('team', 'enrolled')
-        ordering = ['enrolled__driver__last_name', 'team']
-
-
-def contender_team_season(sender, instance, action, pk_set, **kwargs):
-    enrolled_competition = instance.enrolled.competition
-    accepted_seasons = [season.pk for season in enrolled_competition.seasons.all()]
-    for pk in pk_set:
-        if pk not in accepted_seasons:
-            pk_season = Season.objects.get(pk=pk)
-            raise ValidationError(
-                '%s is not a/an %s season' % (pk_season, enrolled_competition)
-            )
-
-
-m2m_changed.connect(contender_team_season, sender=DriverCompetitionTeam.seasons.through)
-
-class DriverCompetition(models.Model):
+class Contender(models.Model):
     driver = models.ForeignKey(Driver, related_name='career')
-    competition = models.ForeignKey('Competition', related_name='career')
-    teams = models.ManyToManyField('Team', through='DriverCompetitionTeam')
+    competition = models.ForeignKey('Competition', related_name='contenders')
+    teams = models.ManyToManyField('Team', through='Seat', related_name='contenders')
 
     def get_season(self, season):
         contender_season = ContenderSeason(self, season)
@@ -94,6 +54,48 @@ class DriverCompetition(models.Model):
     class Meta:
         unique_together = ('driver', 'competition')
         ordering = ['competition__name', 'driver__last_name', 'driver__first_name']
+
+class Seat(models.Model):
+    team = models.ForeignKey('Team', related_name='seats')
+    contender = models.ForeignKey('Contender', related_name='seats')
+    current = models.BooleanField(default=False)
+    seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None)
+
+    def save(self, *args, **kwargs):
+        if self.contender.competition not in self.team.competitions.all():
+            raise ValidationError(
+                "%s is not a team of %s" % (self.team, self.contender.competition)
+            )
+        if self.current:
+            current_count = Seat.objects.filter(contender=self.contender, current=True)
+            if self.pk:
+                current_count = current_count.exclude(pk=self.pk)
+            if current_count.count():
+                self.current = False
+        super(Seat, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return '%s %s %s' % (self.contender.driver, 'in', self.team)
+
+    class Meta:
+        unique_together = ('team', 'contender')
+        ordering = ['contender__driver__last_name', 'team']
+
+
+def seat_season(sender, instance, action, pk_set, **kwargs):
+    """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition"""
+    contender_competition = instance.contender.competition
+    accepted_seasons = [season.pk for season in contender_competition.seasons.all()]
+    for pk in pk_set:
+        if pk not in accepted_seasons:
+            pk_season = Season.objects.get(pk=pk)
+            raise ValidationError(
+                '%s is not a/an %s season' % (pk_season, contender_competition)
+            )
+
+m2m_changed.connect(seat_season, sender=Seat.seasons.through)
+
+
 
 
 class Team(models.Model):
@@ -157,7 +159,7 @@ class Season(models.Model):
     year = models.IntegerField()
     competition = models.ForeignKey(Competition, related_name='seasons')
     rounds = models.IntegerField(blank=True, null=True, default=None)
-    teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeasonRel')
+    teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeason')
     punctuation = models.CharField(max_length=20, null=True, default=None)
 
     def get_scoring(self):
@@ -167,7 +169,7 @@ class Season(models.Model):
         return None
 
     def contenders(self):
-        return DriverCompetition.objects.filter(squad__seasons__exact=self).distinct()
+        return Contender.objects.filter(seats__seasons__exact=self).distinct()
 
     def points_rank(self):
         contenders = self.contenders()
@@ -182,7 +184,7 @@ class Season(models.Model):
         teams = self.teams.all()
         rank = []
         for team in teams:
-            team_season = TeamSeasonRel.objects.get(season=self, team=team)
+            team_season = TeamSeason.objects.get(season=self, team=team)
             rank.append((team_season.get_points(), team))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
@@ -238,18 +240,18 @@ class Race(models.Model):
         return self.results.get(fastest_lap=True)
 
     def __unicode__(self):
-        race_str = str(self.season) + '-'+str(self.round)
+        race_str = '%s-%s' % (self.season, self.round)
         if self.grand_prix:
-            race_str += '.' + str(self.grand_prix)
+            race_str += '.%s' % self.grand_prix
         return race_str
 
     class Meta:
         unique_together = ('season', 'round')
         ordering = ['season', 'round']
 
-class TeamSeasonRel(models.Model):
-    season = models.ForeignKey('Season')
-    team = models.ForeignKey('Team')
+class TeamSeason(models.Model):
+    season = models.ForeignKey('Season', related_name='teams_season')
+    team = models.ForeignKey('Team', related_name='seasons_team')
     sponsor_name = models.CharField(max_length=75, null=True, blank=True, default=None)
 
     def save(self, *args, **kwargs):
@@ -257,10 +259,10 @@ class TeamSeasonRel(models.Model):
             raise ValidationError(
                 'Team %s doesn\'t participate in %s' % (self.team, self.season.competition)
             )
-        super(TeamSeasonRel, self).save(*args, **kwargs)
+        super(TeamSeason, self).save(*args, **kwargs)
 
     def get_points(self):
-        results = Result.objects.filter(race__season=self.season, contender__team=self.team) \
+        results = Result.objects.filter(race__season=self.season, seat__team=self.team) \
             .exclude(wildcard=True) \
             .order_by('race__round')
         points_list = [result.points for result in results.all() if result.points is not None]
@@ -273,7 +275,7 @@ class TeamSeasonRel(models.Model):
 
 class Result(models.Model):
     race = models.ForeignKey(Race, related_name='results')
-    contender = models.ForeignKey(DriverCompetitionTeam, related_name='results')
+    seat = models.ForeignKey(Seat, related_name='results')
     qualifying = models.IntegerField(blank=True, null=True, default=None)
     finish = models.IntegerField(blank=True, null=True, default=None)
     fastest_lap = models.BooleanField(default=False)
@@ -292,11 +294,11 @@ class Result(models.Model):
 
     @property
     def driver(self):
-        return self.contender.enrolled.driver
+        return self.seat.contender.driver
 
     @property
     def team(self):
-        return self.contender.team
+        return self.seat.team
 
     @property
     def points(self):
@@ -318,7 +320,7 @@ class Result(models.Model):
 
 
     class Meta:
-        unique_together = [('race', 'contender'), ('race', 'qualifying'), ('race', 'finish')]
+        unique_together = [('race', 'seat'), ('race', 'qualifying'), ('race', 'finish')]
         ordering = ['race__season', 'race__round', 'finish', 'qualifying']
 
 
@@ -335,13 +337,13 @@ class ContenderSeason(object):
 
 
     def set_teams(self):
-        self.contender_teams = DriverCompetitionTeam.objects.filter(enrolled__pk=self.contender.pk, seasons__pk=self.season.pk)
-        self.teams = Team.objects.filter(partners__in=self.contender_teams)
+        self.seats = Seat.objects.filter(contender__pk=self.contender.pk, seasons__pk=self.season.pk)
+        self.teams = Team.objects.filter(seats__in=self.seats)
         self.teams_verbose = ', '.join([team.name for team in self.teams])
 
 
     def get_points(self, limit_races=None):
-        results = Result.objects.filter(race__season=self.season, contender__enrolled=self.contender)\
+        results = Result.objects.filter(race__season=self.season, seat__contender=self.contender)\
             .order_by('race__round')
         if isinstance(limit_races, int):
             results = results[:limit_races]

@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 
 # Create your tests here.
-from driver27.models import Driver, Competition, DriverCompetition, DriverCompetitionTeam, Team, Season
+from driver27.models import Driver, Competition, Contender, Seat, Team, Season
 
 class DriverTestCase(TestCase):
 
@@ -32,9 +32,9 @@ class DriverTestCase(TestCase):
     def test_if_hamilton_can_start_moto_gp_season(self):
         hamilton = Driver.objects.get(pk=1)
         formula_one = Competition.objects.get(pk=1)
-        hamilton_f1 = DriverCompetition.objects.get(driver=hamilton, competition=formula_one)
+        hamilton_f1 = Contender.objects.get(driver=hamilton, competition=formula_one)
         mercedes_team = Team.objects.get(pk=1)
-        hamilton_mercedes = DriverCompetitionTeam.objects.get(team=mercedes_team, enrolled=hamilton_f1)
+        hamilton_mercedes = Seat.objects.get(team=mercedes_team, contender=hamilton_f1)
 
         moto_gp = Competition.objects.get(pk=2)
         season = Season.objects.create(year=2017, competition=moto_gp)
