@@ -1,5 +1,50 @@
 # driver27
-Racing competition manager in Django
+Racing competition manager in Django where you can manage different
+motor competitions with its own punctuation rules, races, drivers, teams
+which, at the same time, can be part of multiple competitions.
+
+Versions
+========
+- 0.14-ALO (Fernando Alonso 14)
+- 0.27-VIL (Gilles Villeneuve 27)
+
+0.14
+====
+- Initial models
+- Basic relation restriction with exceptions and tests
+- Basic templates to frontend views
+- Basic demo to test the app
+
+models
+===========
+- Driver
+- Team
+- Circuit
+- Grand Prix
+- Competition
+- Season
+- Race
+- Result
+- Contender (Driver/Competition relation)
+- Seat (Contender/Team relation)
+- fixtures folder contains fixture of each model to demo project.
+
+Demo
+====
+```bash
+$ git clone https://github.com/SRJ9/django-driver27
+$ cd django-driver27 # or name of destiny folder
+$ python demo/manage.py runserver
+```
+
+Todo
+====
+- [ ] Add records by season, driver, team, competition
+- [ ] Add drivers profile with records, last_wins, teams...
+- [ ] Add easy clone to Season
+- [ ] Translate
+- [ ] 1980's punctuation. Only 11 best results.
+- [ ] Old punctuation. Split season races, and get only 4 of each half.
 
 # History
 Driver 27 is a reference to car number of Gilles Villeneuve, F1 Driver died in 1982. Gilles is considered one of best driver despite he never won the World Championship, something that Jacques Villeneuve, his son, did in 1998.
