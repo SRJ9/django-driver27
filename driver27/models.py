@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.db.models.signals import m2m_changed, pre_save
 from django.core.exceptions import ValidationError
-import punctuation
+from driver27 import punctuation
 from slugify import slugify
 
 try:
