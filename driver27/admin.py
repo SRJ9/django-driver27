@@ -6,7 +6,6 @@ from django.db.models.fields import BLANK_CHOICE_DASH
 
 from django.core.urlresolvers import reverse
 
-from modelclone import ClonableModelAdmin
 from tabbed_admin import TabbedModelAdmin
 
 from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
