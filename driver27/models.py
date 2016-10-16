@@ -86,9 +86,10 @@ def seat_season(sender, instance, action, pk_set, **kwargs):
     """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition"""
     contender_competition = instance.contender.competition
     accepted_seasons = [season.pk for season in contender_competition.seasons.all()]
-    if pk_set:
+    if pk_set and isinstance(pk_set, list):
         for pk in pk_set:
-            if pk not in accepted_seasons:
+            # pk needs int convert in 1.7
+            if int(pk) not in accepted_seasons:
                 pk_season = Season.objects.get(pk=pk)
                 raise ValidationError(
                     '%s is not a/an %s season' % (pk_season, contender_competition)
