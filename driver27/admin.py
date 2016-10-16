@@ -11,7 +11,7 @@ from tabbed_admin import TabbedModelAdmin
 from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
 from .models import Contender, Seat, TeamSeason
 from .models import ContenderSeason
-import punctuation
+from . import punctuation
 
 lr_diff = lambda l, r: list(set(l).difference(r))
 lr_intr = lambda l, r: list(set(l).intersection(r))
