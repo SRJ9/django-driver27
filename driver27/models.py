@@ -40,7 +40,6 @@ class Contender(models.Model):
 
     def get_season(self, season):
         contender_season = ContenderSeason(self, season)
-        contender_season.set_teams()
         return contender_season
 
     @property
@@ -336,9 +335,6 @@ class ContenderSeason(object):
     def __init__(self, contender, season):
         self.contender = contender
         self.season = season
-
-
-    def set_teams(self):
         self.seats = Seat.objects.filter(contender__pk=self.contender.pk, seasons__pk=self.season.pk)
         self.teams = Team.objects.filter(seats__in=self.seats)
         self.teams_verbose = ', '.join([team.name for team in self.teams])
