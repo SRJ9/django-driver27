@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.db.models.signals import m2m_changed, pre_save
 from django.core.exceptions import ValidationError
+from django.utils.encoding import python_2_unicode_compatible
 from . import punctuation
 from slugify import slugify
 
@@ -14,6 +15,7 @@ except ImportError:
         'Be sure to add `django_countries` to your INSTALLED_APPS for `driver27` to work properly.'
     )
 
+@python_2_unicode_compatible
 class Driver(models.Model):
     last_name = models.CharField(max_length=50)
     first_name = models.CharField(max_length=25)
