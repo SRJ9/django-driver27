@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/SRJ9/django-driver27.svg?branch=master)](https://travis-ci.org/SRJ9/django-driver27)
+[![codecov](https://codecov.io/gh/SRJ9/django-driver27/branch/master/graph/badge.svg)](https://codecov.io/gh/SRJ9/django-driver27)
+
 # driver27
 Racing competition manager in Django where you can manage different
 motor competitions with its own punctuation rules, races, drivers, teams
