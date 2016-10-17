@@ -26,7 +26,7 @@ class Driver(models.Model):
             raise ValidationError('Year_of_birth must be between 1900 and 2099')
         super(Driver, self).save(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return ', '.join((self.last_name, self.first_name))
 
     class Meta:
@@ -48,7 +48,7 @@ class Contender(models.Model):
         teams = self.teams
         return ', '.join([team.name for team in teams.all()]) if teams.count() else None
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s %s %s' % (self.driver, 'in', self.competition)
 
     class Meta:
@@ -74,7 +74,7 @@ class Seat(models.Model):
                 self.current = False
         super(Seat, self).save(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s %s %s' % (self.contender.driver, 'in', self.team)
 
     class Meta:
@@ -106,7 +106,7 @@ class Team(models.Model):
     competitions = models.ManyToManyField('Competition', related_name='teams')
     country = CountryField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -122,7 +122,7 @@ class Competition(models.Model):
         self.slug = slugify(self.name)
         super(Competition, self).save(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -135,8 +135,8 @@ class Circuit(models.Model):
     opened_in = models.IntegerField()
 
     # @todo Add Clockwise and length
-    def __unicode__(self):
-        # @todo Add country name in __unicode__
+    def __str__(self):
+        # @todo Add country name in __str__
         return self.name
 
     class Meta:
@@ -149,7 +149,7 @@ class GrandPrix(models.Model):
     default_circuit = models.ForeignKey(Circuit, related_name='default_to_grands_prix', null=True, blank=True, default=None)
     competitions = models.ManyToManyField('Competition', related_name='grands_prix', default=None)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -203,7 +203,7 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank[0]
 
-    def __unicode__(self):
+    def __str__(self):
         return '/'.join((self.competition.name, str(self.year)))
 
     class Meta:
@@ -241,7 +241,7 @@ class Race(models.Model):
     def fastest(self):
         return self.results.get(fastest_lap=True)
 
-    def __unicode__(self):
+    def __str__(self):
         race_str = '%s-%s' % (self.season, self.round)
         if self.grand_prix:
             race_str += '.%s' % self.grand_prix
