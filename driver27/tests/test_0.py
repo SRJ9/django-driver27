@@ -1,7 +1,10 @@
 # coding=utf-8
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from driver27.models import Driver
+from django.db import IntegrityError
+from driver27.models import Driver, Competition
+
+from slugify import slugify
 
 class ZeroTestCase(TestCase):
 
@@ -24,3 +27,11 @@ class ZeroTestCase(TestCase):
         emmet_brown['year_of_birth'] = 1985
         self.assertTrue(Driver.objects.create(**emmet_brown))
 
+    def test_competition_save(self):
+        competition_args = {'name': 'Formula España', 'full_name': 'Formula Española 3'}
+        self.assertTrue(Competition.objects.create(**competition_args))
+        competition = Competition.objects.get(name='Formula España')
+        self.assertEquals(competition.slug, slugify(competition.name))
+        self.assertEquals(str(competition), competition_args['name'])
+        # create duplicate competition
+        self.assertRaises(IntegrityError, Competition.objects.create, **competition_args)

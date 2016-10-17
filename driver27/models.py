@@ -1,3 +1,4 @@
+# coding=utf-8
 from __future__ import unicode_literals
 
 from django.db import models
@@ -113,6 +114,7 @@ class Team(models.Model):
     class Meta:
         ordering = ['name']
 
+@python_2_unicode_compatible
 class Competition(models.Model):
     name = models.CharField(max_length=30, verbose_name='competition', unique=True)
     full_name = models.CharField(max_length=100, unique=True)
