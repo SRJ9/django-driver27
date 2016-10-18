@@ -25,6 +25,7 @@ class Driver(models.Model):
     competitions = models.ManyToManyField('Competition', through='Contender', related_name='drivers')
 
     def save(self, *args, **kwargs):
+        # @todo allow empty year_of_birth
         if self.year_of_birth < 1900 or self.year_of_birth > 2099:
             raise ValidationError('Year_of_birth must be between 1900 and 2099')
         super(Driver, self).save(*args, **kwargs)
@@ -36,6 +37,24 @@ class Driver(models.Model):
         unique_together = ('last_name', 'first_name')
         ordering = ['last_name', 'first_name']
 
+@python_2_unicode_compatible
+class Competition(models.Model):
+    name = models.CharField(max_length=30, verbose_name='competition', unique=True)
+    full_name = models.CharField(max_length=100, unique=True)
+    country = CountryField(null=True, blank=True, default=None)
+    slug = models.SlugField(null=True, blank=True, default=None)
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Competition, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+@python_2_unicode_compatible
 class Contender(models.Model):
     driver = models.ForeignKey(Driver, related_name='career')
     competition = models.ForeignKey('Competition', related_name='contenders')
@@ -114,22 +133,7 @@ class Team(models.Model):
     class Meta:
         ordering = ['name']
 
-@python_2_unicode_compatible
-class Competition(models.Model):
-    name = models.CharField(max_length=30, verbose_name='competition', unique=True)
-    full_name = models.CharField(max_length=100, unique=True)
-    country = CountryField(null=True, blank=True, default=None)
-    slug = models.SlugField(null=True, blank=True, default=None)
 
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
-        super(Competition, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['name']
 
 class Circuit(models.Model):
     name = models.CharField(max_length=30, verbose_name='circuit', unique=True)
