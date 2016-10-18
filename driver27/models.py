@@ -70,12 +70,26 @@ class Contender(models.Model):
         return ', '.join([team.name for team in teams.all()]) if teams.count() else None
 
     def __str__(self):
-        return '%s %s %s' % (self.driver, 'in', self.competition)
+        return '%s in %s' % (self.driver, self.competition)
 
     class Meta:
         unique_together = ('driver', 'competition')
         ordering = ['competition__name', 'driver__last_name', 'driver__first_name']
 
+@python_2_unicode_compatible
+class Team(models.Model):
+    name = models.CharField(max_length=75, verbose_name='team', unique=True)
+    full_name = models.CharField(max_length=200, unique=True)
+    competitions = models.ManyToManyField('Competition', related_name='teams')
+    country = CountryField()
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+@python_2_unicode_compatible
 class Seat(models.Model):
     team = models.ForeignKey('Team', related_name='seats')
     contender = models.ForeignKey('Contender', related_name='seats')
@@ -96,7 +110,7 @@ class Seat(models.Model):
         super(Seat, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '%s %s %s' % (self.contender.driver, 'in', self.team)
+        return '%s in %s' % (self.contender.driver, self.team)
 
     class Meta:
         unique_together = ('team', 'contender')
@@ -121,17 +135,7 @@ m2m_changed.connect(seat_season, sender=Seat.seasons.through)
 
 
 
-class Team(models.Model):
-    name = models.CharField(max_length=75, verbose_name='team', unique=True)
-    full_name = models.CharField(max_length=200, unique=True)
-    competitions = models.ManyToManyField('Competition', related_name='teams')
-    country = CountryField()
 
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['name']
 
 
 

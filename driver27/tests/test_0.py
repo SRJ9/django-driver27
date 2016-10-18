@@ -2,7 +2,7 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from driver27.models import Driver, Competition, Contender
+from driver27.models import Driver, Competition, Team, Contender, Seat
 
 from slugify import slugify
 
@@ -16,7 +16,7 @@ class ZeroTestCase(TestCase):
         print('Se han cargado todos los fixtures')
 
     def set_test_contender(self):
-        test_driver_args = {'last_name': 'Driver', 'first_name': 'One', 'year_of_birth': 1985}
+        test_driver_args = {'last_name': 'García', 'first_name': 'Juan', 'year_of_birth': 1985}
         self.assertTrue(Driver.objects.create(**test_driver_args))
         test_competition_args = {'name': 'Competition A', 'full_name': 'Competition ABC'}
         self.assertTrue(Competition.objects.create(**test_competition_args))
@@ -42,13 +42,35 @@ class ZeroTestCase(TestCase):
         # create duplicate competition
         self.assertRaises(IntegrityError, Competition.objects.create, **competition_args)
 
-    def test_contender(self):
+    def test_team_save(self):
+        team_args = {'name': 'Escudería Tec Auto', 'full_name': 'Escudería Tec Auto'}
+        self.assertTrue(Team.objects.create(**team_args))
+        team = Team.objects.get(**team_args)
+        self.assertTrue(str(team), team.name)
+
+    def test_contender_and_seat(self):
         self.set_test_contender()
-        driver = Driver.objects.get(last_name='Driver', first_name='One')
+        driver = Driver.objects.get(last_name='García', first_name='Juan')
         competition = Competition.objects.get(name='Competition A')
         contender_args = {'driver': driver, 'competition': competition}
+        # Contender
         self.assertTrue(Contender.objects.create(**contender_args))
         contender = Contender.objects.get(**contender_args)
         self.assertEquals(contender.teams_verbose, None)
         expected_str = ' in '.join((str(driver), str(competition)))
         self.assertEquals(str(contender), expected_str)
+        # Seat
+        team_args = {'name': 'Team 1', 'full_name': 'Team 123'}
+        self.assertTrue(Team.objects.create(**team_args))
+        team = Team.objects.get(**team_args)
+        seat_args = {'contender': contender, 'team': team}
+        # Team 1 not is a team of Competition A
+        self.assertRaises(ValidationError, Seat.objects.create, **seat_args)
+        # Add Team 1 to Competition A
+        self.assertIsNone(team.competitions.add(competition))
+        # Seat OK
+        self.assertTrue(Seat.objects.create(**seat_args))
+        seat = Seat.objects.get(**seat_args)
+        expected_seat = ' in '.join((str(contender.driver), str(team)))
+        self.assertEquals(str(seat), expected_seat)
+
