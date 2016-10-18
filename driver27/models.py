@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 from django.db import models
@@ -168,6 +168,7 @@ class GrandPrix(models.Model):
         ordering = ['name']
 
 
+@python_2_unicode_compatible
 class Season(models.Model):
     year = models.IntegerField()
     competition = models.ForeignKey(Competition, related_name='seasons')
