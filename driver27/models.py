@@ -132,13 +132,7 @@ def seat_season(sender, instance, action, pk_set, **kwargs):
 
 m2m_changed.connect(seat_season, sender=Seat.seasons.through)
 
-
-
-
-
-
-
-
+@python_2_unicode_compatible
 class Circuit(models.Model):
     name = models.CharField(max_length=30, verbose_name='circuit', unique=True)
     city = models.CharField(max_length=100, null=True, blank=True)
@@ -153,6 +147,7 @@ class Circuit(models.Model):
     class Meta:
         ordering = ['name']
 
+@python_2_unicode_compatible
 class GrandPrix(models.Model):
     name = models.CharField(max_length=30, verbose_name='grand prix', unique=True)
     country = CountryField(null=True, blank=True, default=None)
