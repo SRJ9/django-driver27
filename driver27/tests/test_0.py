@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
+import sys
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from driver27.models import Driver, Competition, Team, Contender, Seat, Season, Circuit, GrandPrix
 
 from slugify import slugify
+
+def encode_pyv(text):
+    if sys.version_info < (3, 0):
+        return text.encode('utf-8')
+    else:
+        return text
 
 class ZeroTestCase(TestCase):
 
@@ -90,7 +97,7 @@ class ZeroTestCase(TestCase):
     def test_driver_unicode(self):
         driver = self.get_test_driver()
         expected_unicode = ', '.join((driver.last_name, driver.first_name))
-        self.assertEquals(str(driver), expected_unicode.encode('utf-8'))
+        self.assertEquals(str(driver), encode_pyv(expected_unicode))
 
     def test_driver_save_exception(self):
         driver = self.get_test_driver()
@@ -100,7 +107,7 @@ class ZeroTestCase(TestCase):
     def test_competition_save(self):
         competition = self.get_test_competition()
         self.assertEquals(competition.slug, slugify(competition.name))
-        self.assertEqual(str(competition), competition.name.encode('utf-8'))
+        self.assertEqual(str(competition), encode_pyv(competition.name))
 
     def test_team_save(self):
         team = self.get_test_team()
@@ -138,15 +145,27 @@ class ZeroTestCase(TestCase):
         self.assertIsNone(seat.seasons.add(season))
         self.assertIn(seat.contender, season.contenders())
 
+        # competition b
+        test_competition_args = {'name': 'Competición B'}
+        self.assertTrue(Competition.objects.create(full_name='Competición BDF', **test_competition_args))
+        competition_b = Competition.objects.get(**test_competition_args)
+        # season b
+        season.pk = None
+        season.competition = competition_b
+        self.assertIsNone(season.save())
+        expected_season = '%s/%s' % (competition_b, season.year)
+        self.assertEquals(str(season), expected_season)
+        self.assertRaises(ValidationError, seat.seasons.add, season)
+
     def test_circuit(self):
         circuit = self.get_test_circuit()
-        self.assertEquals(str(circuit), circuit.name.encode('utf-8'))
+        self.assertEquals(str(circuit), encode_pyv(circuit.name))
 
     def test_grandprix(self):
         grandprix = self.get_test_grandprix()
         competition = self.get_test_competition()
         self.assertIsNone(grandprix.competitions.add(competition))
-        self.assertEquals(str(grandprix), grandprix.name.encode('utf-8'))
+        self.assertEquals(str(grandprix), encode_pyv(grandprix.name))
 
     def test_race(self):
         competition = self.get_test_competition()

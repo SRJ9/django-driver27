@@ -53,6 +53,20 @@ class Competition(models.Model):
 
     class Meta:
         ordering = ['name']
+    name = models.CharField(max_length=30, verbose_name='competition', unique=True)
+    full_name = models.CharField(max_length=100, unique=True)
+    country = CountryField(null=True, blank=True, default=None)
+    slug = models.SlugField(null=True, blank=True, default=None)
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Competition, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
 
 @python_2_unicode_compatible
 class Contender(models.Model):
@@ -116,20 +130,17 @@ class Seat(models.Model):
         unique_together = ('team', 'contender')
         ordering = ['contender__driver__last_name', 'team']
 
-
 def seat_season(sender, instance, action, pk_set, **kwargs):
-    """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition"""
-    contender_competition = instance.contender.competition
-    accepted_seasons = [season.pk for season in contender_competition.seasons.all()]
-    if pk_set and isinstance(pk_set, list):
-        for pk in pk_set:
-            # pk needs int convert in 1.7
+    # """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition"""
+    if action == 'pre_add':
+        seat_competition = instance.contender.competition
+        accepted_seasons = [season.pk for season in seat_competition.seasons.all()]
+        for pk in list(pk_set):
             if int(pk) not in accepted_seasons:
                 pk_season = Season.objects.get(pk=pk)
                 raise ValidationError(
-                    '%s is not a/an %s season' % (pk_season, contender_competition)
+                    '%s is not a/an %s season' % (pk_season, seat_competition)
                 )
-
 m2m_changed.connect(seat_season, sender=Seat.seasons.through)
 
 @python_2_unicode_compatible
