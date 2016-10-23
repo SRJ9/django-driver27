@@ -3,7 +3,7 @@ import sys
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from driver27.models import Driver, Competition, Team, Contender, Seat, Season, Circuit, GrandPrix
+from driver27.models import Driver, Competition, Team, Contender, Seat, Season, Circuit, GrandPrix, Race
 from driver27.models import ContenderSeason
 
 from slugify import slugify
@@ -169,8 +169,33 @@ class ZeroTestCase(TestCase):
         self.assertEquals(str(grandprix), encode_pyv(grandprix.name))
 
     def test_race(self):
-        competition = self.get_test_competition()
-        season = self.get_test_season(exclude_competition_create=True)
+        season = self.get_test_season()
+        grandprix = self.get_test_grandprix()
+        race_args = {
+            'round': 1,
+            'season': season,
+            # 'grand_prix': grandprix,
+            'date': None,
+            # 'circuit': grandprix.default_circuit,
+            'alter_punctuation': None
+        }
+
+        # race without grandprix
+        self.assertTrue(Race.objects.create(**race_args))
+        race = Race.objects.get(season=season, round=1)
+        expected_race = '%s-%s' % (season, race.round)
+        self.assertEquals(str(race), expected_race)
+        # add grandprix without season
+        race.grand_prix = grandprix
+        race.default_circuit = grandprix.default_circuit
+        self.assertRaises(ValidationError, race.save)
+        # add season to competition
+        self.assertIsNone(grandprix.competitions.add(season.competition))
+        self.assertIsNone(race.save())
+        race = Race.objects.get(season=season, round=1)
+        # expected race changes (adding grandprix to str)
+        expected_race = '%s-%s.%s' % (season, race.round, grandprix)
+        self.assertEquals(str(race), expected_race)
 
     def test_contender_season(self):
         contender = None
@@ -182,6 +207,8 @@ class ZeroTestCase(TestCase):
         season = self.get_test_season(exclude_competition_create=True)
         self.assertTrue(ContenderSeason(contender=contender, season=season))
         self.assertIsInstance(contender.get_season(season), ContenderSeason)
+
+
 
 
 

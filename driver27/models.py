@@ -231,6 +231,7 @@ class Season(models.Model):
         unique_together = ('year', 'competition')
         ordering = ['competition__name', 'year']
 
+@python_2_unicode_compatible
 class Race(models.Model):
     ALTER_PUNCTUATION = (
         ('double', 'Double'),
@@ -244,10 +245,11 @@ class Race(models.Model):
     alter_punctuation = models.CharField(choices=ALTER_PUNCTUATION, null=True, blank=True, default=None, max_length=6)
 
     def save(self, *args, **kwargs):
-        if self.season.competition not in self.grand_prix.competitions.all():
-            raise ValidationError(
-                "%s is not a/an %s Grand Prix" % (self.grand_prix, self.season.competition)
-            )
+        if self.season.competition and self.grand_prix:
+            if self.season.competition not in self.grand_prix.competitions.all():
+                raise ValidationError(
+                    "%s is not a/an %s Grand Prix" % (self.grand_prix, self.season.competition)
+                )
         super(Race, self).save(*args, **kwargs)
 
     @property
