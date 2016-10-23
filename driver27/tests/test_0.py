@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from driver27.models import Driver, Competition, Team, Contender, Seat, Season, Circuit, GrandPrix
+from driver27.models import ContenderSeason
 
 from slugify import slugify
 
@@ -170,6 +171,19 @@ class ZeroTestCase(TestCase):
     def test_race(self):
         competition = self.get_test_competition()
         season = self.get_test_season(exclude_competition_create=True)
+
+    def test_contender_season(self):
+        contender = None
+        season = None
+        self.assertRaises(ContenderSeason, **{'contender': Contender, 'season': Season})
+        seat = self.get_test_seat()
+        contender = seat.contender
+        self.assertIsNone(contender.get_season(season))
+        season = self.get_test_season(exclude_competition_create=True)
+        self.assertTrue(ContenderSeason(contender=contender, season=season))
+        self.assertIsInstance(contender.get_season(season), ContenderSeason)
+
+
 
 
 

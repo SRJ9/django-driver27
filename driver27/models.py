@@ -75,8 +75,11 @@ class Contender(models.Model):
     teams = models.ManyToManyField('Team', through='Seat', related_name='contenders')
 
     def get_season(self, season):
-        contender_season = ContenderSeason(self, season)
-        return contender_season
+        try:
+            contender_season = ContenderSeason(self, season)
+            return contender_season
+        except ValidationError:
+            return None
 
     @property
     def teams_verbose(self):
@@ -352,6 +355,8 @@ class ContenderSeason(object):
     teams_verbose = None
 
     def __init__(self, contender, season):
+        if not isinstance(contender, Contender) or not isinstance(season, Season):
+            raise ValidationError('contender is not a Contender or/and season is not a Season')
         self.contender = contender
         self.season = season
         self.seats = Seat.objects.filter(contender__pk=self.contender.pk, seasons__pk=self.season.pk)
