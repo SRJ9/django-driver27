@@ -175,7 +175,7 @@ class ZeroTestCase(TestCase):
     def test_contender_season(self):
         contender = None
         season = None
-        self.assertRaises(ContenderSeason, **{'contender': Contender, 'season': Season})
+        self.assertRaises(ValidationError, ContenderSeason, **{'contender': Contender, 'season': Season})
         seat = self.get_test_seat()
         contender = seat.contender
         self.assertIsNone(contender.get_season(season))
