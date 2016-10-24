@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from driver27.models import Driver, Competition, Team, Contender, Seat, Season, Circuit, GrandPrix, Race
-from driver27.models import ContenderSeason
+from driver27.models import ContenderSeason, TeamSeason
 
 from slugify import slugify
 
@@ -52,6 +52,7 @@ class ZeroTestCase(TestCase):
         team_args = {'name': 'Escudería Tec Auto', 'full_name': 'Escudería Tec Auto'}
         self.assertTrue(Team.objects.create(**team_args))
         team = Team.objects.get(**team_args)
+        self.assertTrue(str(team), team.name)
         return team
 
     def get_test_seat(self):
@@ -112,7 +113,16 @@ class ZeroTestCase(TestCase):
 
     def test_team_save(self):
         team = self.get_test_team()
-        self.assertTrue(str(team), team.name)
+        competition_b = self.get_test_competition_b()
+        self.assertIsNone(team.competitions.add(competition_b))
+
+        # Team is in Competition B / Season is in Competition A
+        season = self.get_test_season()
+        self.assertRaises(ValidationError, TeamSeason.objects.create, **{'team': team, 'season': season})
+
+        # Team is in Competition B + Competition A
+        self.assertIsNone(team.competitions.add(season.competition))
+        self.assertTrue(TeamSeason.objects.create(**{'team': team, 'season': season}))
 
     def test_contender_save(self):
         contender = self.get_test_contender()
@@ -136,6 +146,12 @@ class ZeroTestCase(TestCase):
         # Seat 2 current is False, because Seat 1 is Contender current Seat.
         self.assertFalse(seat2.current)
 
+    def get_test_competition_b(self):
+        test_competition_args = {'name': 'Competición B'}
+        self.assertTrue(Competition.objects.create(full_name='Competición BDF', **test_competition_args))
+        return Competition.objects.get(**test_competition_args)
+
+
     def test_season(self):
         seat = self.get_test_seat()
         season = self.get_test_season(exclude_competition_create=True)
@@ -147,15 +163,14 @@ class ZeroTestCase(TestCase):
         self.assertIn(seat.contender, season.contenders())
 
         # competition b
-        test_competition_args = {'name': 'Competición B'}
-        self.assertTrue(Competition.objects.create(full_name='Competición BDF', **test_competition_args))
-        competition_b = Competition.objects.get(**test_competition_args)
+        competition_b = self.get_test_competition_b()
         # season b
         season.pk = None
         season.competition = competition_b
         self.assertIsNone(season.save())
         expected_season = '%s/%s' % (competition_b, season.year)
         self.assertEquals(str(season), expected_season)
+        # avoid seat/season relation in different competition
         self.assertRaises(ValidationError, seat.seasons.add, season)
 
     def test_circuit(self):
