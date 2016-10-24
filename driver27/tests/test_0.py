@@ -3,7 +3,7 @@ import sys
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from driver27.models import Driver, Competition, Team, Contender, Seat, Season, Circuit, GrandPrix, Race
+from driver27.models import Driver, Competition, Team, Contender, Seat, Season, Circuit, GrandPrix, Race, Result
 from driver27.models import ContenderSeason, TeamSeason
 
 from slugify import slugify
@@ -24,9 +24,15 @@ class ZeroTestCase(TestCase):
         print('Se han cargado todos los fixtures')
 
 
+    ### GET functions ###
     def get_test_driver(self):
         test_driver_args = {'last_name': 'García', 'first_name': 'Juan'}
         self.assertTrue(Driver.objects.create(year_of_birth=1985, **test_driver_args))
+        return Driver.objects.get(**test_driver_args)
+
+    def get_test_driver_b(self):
+        test_driver_args = {'last_name': 'López', 'first_name': 'Jaime'}
+        self.assertTrue(Driver.objects.create(year_of_birth=1982, **test_driver_args))
         return Driver.objects.get(**test_driver_args)
 
     def get_test_competition(self, no_create=False):
@@ -35,6 +41,10 @@ class ZeroTestCase(TestCase):
             self.assertTrue(Competition.objects.create(full_name='Competición ABC', **test_competition_args))
         return Competition.objects.get(**test_competition_args)
 
+    def get_test_competition_b(self):
+        test_competition_args = {'name': 'Competición B'}
+        self.assertTrue(Competition.objects.create(full_name='Competición BDF', **test_competition_args))
+        return Competition.objects.get(**test_competition_args)
 
     def get_test_contender(self):
         driver = self.get_test_driver()
@@ -96,6 +106,39 @@ class ZeroTestCase(TestCase):
             default_circuit=circuit, country='BR', first_held=1972, **grandprix_args))
         return GrandPrix.objects.get(**grandprix_args)
 
+    def get_test_race(self, exclude_competition_create=False):
+        season = self.get_test_season(exclude_competition_create=exclude_competition_create)
+        race_args = {
+            'round': 1,
+            'season': season,
+            'date': None,
+            'alter_punctuation': None
+        }
+        # race without grandprix
+        self.assertTrue(Race.objects.create(**race_args))
+        race = Race.objects.get(season=season, round=1)
+        expected_race = '%s-%s' % (season, race.round)
+        self.assertEquals(str(race), expected_race)
+        return race
+
+    def get_test_result(self):
+        seat = self.get_test_seat()
+        race = self.get_test_race(exclude_competition_create=True)
+        result_args = {
+            'seat': seat,
+            'race': race,
+            'qualifying': None,
+            'finish': None,
+            'fastest_lap': False,
+            'retired': False,
+            'wildcard': False,
+            'comment': None
+        }
+        self.assertTrue(Result.objects.create(**result_args))
+        result = Result.objects.get(**{'seat': seat, 'race': race})
+        return result
+
+    ### TESTS ###
     def test_driver_unicode(self):
         driver = self.get_test_driver()
         expected_unicode = ', '.join((driver.last_name, driver.first_name))
@@ -146,12 +189,6 @@ class ZeroTestCase(TestCase):
         # Seat 2 current is False, because Seat 1 is Contender current Seat.
         self.assertFalse(seat2.current)
 
-    def get_test_competition_b(self):
-        test_competition_args = {'name': 'Competición B'}
-        self.assertTrue(Competition.objects.create(full_name='Competición BDF', **test_competition_args))
-        return Competition.objects.get(**test_competition_args)
-
-
     def test_season(self):
         seat = self.get_test_seat()
         season = self.get_test_season(exclude_competition_create=True)
@@ -183,23 +220,10 @@ class ZeroTestCase(TestCase):
         self.assertIsNone(grandprix.competitions.add(competition))
         self.assertEquals(str(grandprix), encode_pyv(grandprix.name))
 
-    def test_race(self):
-        season = self.get_test_season()
+    def test_race(self, exclude_competition_create=False):
         grandprix = self.get_test_grandprix()
-        race_args = {
-            'round': 1,
-            'season': season,
-            # 'grand_prix': grandprix,
-            'date': None,
-            # 'circuit': grandprix.default_circuit,
-            'alter_punctuation': None
-        }
-
-        # race without grandprix
-        self.assertTrue(Race.objects.create(**race_args))
-        race = Race.objects.get(season=season, round=1)
-        expected_race = '%s-%s' % (season, race.round)
-        self.assertEquals(str(race), expected_race)
+        race = self.get_test_race(exclude_competition_create=exclude_competition_create)
+        season = race.season
         # add grandprix without season
         race.grand_prix = grandprix
         race.default_circuit = grandprix.default_circuit
@@ -222,6 +246,37 @@ class ZeroTestCase(TestCase):
         season = self.get_test_season(exclude_competition_create=True)
         self.assertTrue(ContenderSeason(contender=contender, season=season))
         self.assertIsInstance(contender.get_season(season), ContenderSeason)
+
+    def test_result(self):
+        result = self.get_test_result()
+        result.fastest_lap = True
+        self.assertIsNone(result.save())
+        # get result race to count later
+        race = result.race
+        ### create result b
+        result.pk = None
+        seat_a = result.seat
+        contender_a = seat_a.contender
+        competition_a = contender_a.competition
+        driver_b = self.get_test_driver_b()
+        # create contender b
+        contender_b_args = {'competition': competition_a, 'driver': driver_b}
+        self.assertTrue(Contender.objects.create(**contender_b_args))
+        contender_b = Contender.objects.get(**contender_b_args)
+        # create seat b
+        seat_b_args = {'contender': contender_b, 'team': seat_a.team}
+        self.assertTrue(Seat.objects.create(**seat_b_args))
+        seat_b = Seat.objects.get(**seat_b_args)
+        # result
+        result.seat = seat_b
+        self.assertIsNone(result.save())
+        self.assertEquals(race.results.count(), 2)
+        # only save as fastest_lap first result with fastest_lap=True
+        self.assertNotEquals(race.results.filter(fastest_lap=True).count(), 2)
+
+
+
+
 
 
 
