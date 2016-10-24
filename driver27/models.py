@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.db.models.signals import m2m_changed, pre_save
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.encoding import python_2_unicode_compatible
 from . import punctuation
 from slugify import slugify
@@ -136,14 +136,18 @@ class Seat(models.Model):
 def seat_season(sender, instance, action, pk_set, **kwargs):
     # """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition"""
     if action == 'pre_add':
-        seat_competition = instance.contender.competition
-        accepted_seasons = [season.pk for season in seat_competition.seasons.all()]
+        contender_competition = instance.contender.competition
+        contender_seasons = [season.pk for season in contender_competition.seasons.all()]
+        # team_seasons = [season.pk for season in instance.team.seasons.all()]
         for pk in list(pk_set):
-            if int(pk) not in accepted_seasons:
-                pk_season = Season.objects.get(pk=pk)
+            pk_season = Season.objects.get(pk=pk)
+            if int(pk) not in contender_seasons:
                 raise ValidationError(
-                    '%s is not a/an %s season' % (pk_season, seat_competition)
+                    '%s is not a/an %s season' % (pk_season, contender_competition)
                 )
+            # if int(pk) not in team_seasons:
+            #     raise ValidationError('Seat team is not in Season')
+
 m2m_changed.connect(seat_season, sender=Seat.seasons.through)
 
 @python_2_unicode_compatible
@@ -274,13 +278,17 @@ class Race(models.Model):
         unique_together = ('season', 'round')
         ordering = ['season', 'round']
 
+
+@python_2_unicode_compatible
 class TeamSeason(models.Model):
     season = models.ForeignKey('Season', related_name='teams_season')
     team = models.ForeignKey('Team', related_name='seasons_team')
     sponsor_name = models.CharField(max_length=75, null=True, blank=True, default=None)
 
     def save(self, *args, **kwargs):
-        if self.season.competition not in self.team.competitions.all():
+        team = self.team
+        team_competitions = [competition.pk for competition in team.competitions.all()]
+        if self.season.competition.pk not in team_competitions:
             raise ValidationError(
                 'Team %s doesn\'t participate in %s' % (self.team, self.season.competition)
             )
@@ -292,6 +300,12 @@ class TeamSeason(models.Model):
             .order_by('race__round')
         points_list = [result.points for result in results.all() if result.points is not None]
         return sum(points_list)
+
+    def __str__(self):
+        str_team = str(self.team)
+        if self.sponsor_name:
+            str_team = self.sponsor_name
+        return '%s in %s' % (str_team, self.season)
 
     class Meta:
         unique_together = ('season', 'team')

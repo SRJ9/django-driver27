@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from django.test import TestCase
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import IntegrityError
 from driver27.models import Driver, Competition, Team, Contender, Seat, Season, Circuit, GrandPrix, Race, Result
 from driver27.models import ContenderSeason, TeamSeason
@@ -196,6 +196,9 @@ class ZeroTestCase(TestCase):
         self.assertIsNone(season.save())
         self.assertIsInstance(season.get_scoring(), dict)
         self.assertEqual(season.contenders().count(), 0)
+        # ValidationError. Team is not in Season
+        # self.assertRaises(ValidationError, seat.seasons.add, season)
+        self.assertTrue(TeamSeason.objects.create(**{'team': seat.team, 'season': season}))
         self.assertIsNone(seat.seasons.add(season))
         self.assertIn(seat.contender, season.contenders())
 
@@ -251,6 +254,8 @@ class ZeroTestCase(TestCase):
         result = self.get_test_result()
         result.fastest_lap = True
         self.assertIsNone(result.save())
+        self.assertEquals(result.driver, result.seat.contender.driver)
+        self.assertEquals(result.team, result.seat.team)
         # get result race to count later
         race = result.race
         ### create result b
@@ -273,6 +278,47 @@ class ZeroTestCase(TestCase):
         self.assertEquals(race.results.count(), 2)
         # only save as fastest_lap first result with fastest_lap=True
         self.assertNotEquals(race.results.filter(fastest_lap=True).count(), 2)
+
+    def test_result_points(self):
+        result = self.get_test_result()
+        season = result.race.season
+        season.punctuation = 'F1-25'
+        self.assertIsNone(season.save())
+        # result.finish = None = No points
+        self.assertIsNone(result.points)
+
+        team_season_args = {'team': result.seat.team, 'season': season}
+        # team seat is not in season
+        self.assertRaises(ObjectDoesNotExist, TeamSeason.objects.get,
+                          **team_season_args)
+
+        self.assertTrue(TeamSeason.objects.create(**team_season_args))
+        team_season = TeamSeason.objects.get(**team_season_args)
+        self.assertEquals(team_season.get_points(), 0)
+
+        result.qualifying = 2
+        result.finish = 2
+        self.assertIsNone(result.save())
+
+        # result.finish = 2 = ?? points
+        self.assertGreater(result.points, 0)
+        self.assertGreater(team_season.get_points(), 0)
+        race_points = result.points
+
+
+
+        # change scoring to add fastest_lap point
+        scoring = season.get_scoring()
+        scoring['fastest_lap'] = 1
+        # result + fastest_lap
+        result.fastest_lap = True
+        self.assertIsNone(result.save())
+        # result.points is greater than before
+        self.assertGreater(result.points, race_points)
+
+
+
+
 
 
 
