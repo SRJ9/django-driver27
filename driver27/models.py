@@ -138,15 +138,15 @@ def seat_season(sender, instance, action, pk_set, **kwargs):
     if action == 'pre_add':
         contender_competition = instance.contender.competition
         contender_seasons = [season.pk for season in contender_competition.seasons.all()]
-        # team_seasons = [season.pk for season in instance.team.seasons.all()]
+        team_seasons = [season.pk for season in instance.team.seasons.all()]
         for pk in list(pk_set):
             pk_season = Season.objects.get(pk=pk)
             if int(pk) not in contender_seasons:
                 raise ValidationError(
                     '%s is not a/an %s season' % (pk_season, contender_competition)
                 )
-            # if int(pk) not in team_seasons:
-            #     raise ValidationError('Seat team is not in Season')
+            if int(pk) not in team_seasons:
+                raise ValidationError('%s is not a team of %s' % (instance.team, pk_season))
 
 m2m_changed.connect(seat_season, sender=Seat.seasons.through)
 

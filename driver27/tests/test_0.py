@@ -2,7 +2,7 @@
 import sys
 from django.test import TestCase
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from driver27.models import Driver, Competition, Team, Contender, Seat, Season, Circuit, GrandPrix, Race, Result
 from driver27.models import ContenderSeason, TeamSeason
 
@@ -17,7 +17,7 @@ def encode_pyv(text):
 class ZeroTestCase(TestCase):
 
     fixtures = ['circuits-2016.json', 'competition.json', 'drivers-2016.json', 'grands-prix.json',
-    'seasons-2016.json', 'teams-2016.json', 'driver-competition-2016.json', 'driver-competition-team-2016.json',
+    'seasons-2016.json', 'teams-2016.json', 'teams-season.json', 'driver-competition-2016.json', 'driver-competition-team-2016.json',
     'races-2016.json']
 
     def test_okey(self):
@@ -197,7 +197,8 @@ class ZeroTestCase(TestCase):
         self.assertIsInstance(season.get_scoring(), dict)
         self.assertEqual(season.contenders().count(), 0)
         # ValidationError. Team is not in Season
-        # self.assertRaises(ValidationError, seat.seasons.add, season)
+        with transaction.atomic():
+            self.assertRaises(ValidationError, seat.seasons.add, season)
         self.assertTrue(TeamSeason.objects.create(**{'team': seat.team, 'season': season}))
         self.assertIsNone(seat.seasons.add(season))
         self.assertIn(seat.contender, season.contenders())
@@ -289,8 +290,9 @@ class ZeroTestCase(TestCase):
 
         team_season_args = {'team': result.seat.team, 'season': season}
         # team seat is not in season
-        self.assertRaises(ObjectDoesNotExist, TeamSeason.objects.get,
-                          **team_season_args)
+        with transaction.atomic():
+            self.assertRaises(ObjectDoesNotExist, TeamSeason.objects.get,
+                              **team_season_args)
 
         self.assertTrue(TeamSeason.objects.create(**team_season_args))
         team_season = TeamSeason.objects.get(**team_season_args)
