@@ -220,13 +220,12 @@ class Season(models.Model):
     @property
     def leader(self):
         rank = self.points_rank()
-        return rank[0]
+        return rank.first()
 
     @property
     def team_leader(self):
         rank = self.team_points_rank()
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
-        return rank[0]
+        return rank.first()
 
     def __str__(self):
         return '/'.join((self.competition.name, str(self.year)))
@@ -256,17 +255,21 @@ class Race(models.Model):
                 )
         super(Race, self).save(*args, **kwargs)
 
+    def get_result_seat(self, *args, **kwargs):
+        results = self.results.filter(**kwargs)
+        return results.first().seat if results.count() else None
+
     @property
     def pole(self):
-        return self.results.get(qualifying=1)
+        return self.get_result_seat(qualifying=1)
 
     @property
     def winner(self):
-        return self.results.get(finish=1)
+        return self.get_result_seat(finish=1)
 
     @property
     def fastest(self):
-        return self.results.get(fastest_lap=True)
+        return self.get_result_seat(fastest_lap=True)
 
     def __str__(self):
         race_str = '%s-%s' % (self.season, self.round)
@@ -302,7 +305,7 @@ class TeamSeason(models.Model):
         return sum(points_list)
 
     def __str__(self):
-        str_team = str(self.team)
+        str_team = self.team.name
         if self.sponsor_name:
             str_team = self.sponsor_name
         return '%s in %s' % (str_team, self.season)

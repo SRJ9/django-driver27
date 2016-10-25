@@ -8,9 +8,12 @@ from driver27.models import ContenderSeason, TeamSeason
 
 from slugify import slugify
 
-def encode_pyv(text):
+def retro_encode(text):
     if sys.version_info < (3, 0):
-        return text.encode('utf-8')
+        try:
+            return text.encode('utf-8')
+        except UnicodeDecodeError:
+            return text
     else:
         return text
 
@@ -142,7 +145,7 @@ class ZeroTestCase(TestCase):
     def test_driver_unicode(self):
         driver = self.get_test_driver()
         expected_unicode = ', '.join((driver.last_name, driver.first_name))
-        self.assertEquals(str(driver), encode_pyv(expected_unicode))
+        self.assertEquals(str(driver), retro_encode(expected_unicode))
 
     def test_driver_save_exception(self):
         driver = self.get_test_driver()
@@ -152,7 +155,7 @@ class ZeroTestCase(TestCase):
     def test_competition_save(self):
         competition = self.get_test_competition()
         self.assertEquals(competition.slug, slugify(competition.name))
-        self.assertEqual(str(competition), encode_pyv(competition.name))
+        self.assertEqual(str(competition), retro_encode(competition.name))
 
     def test_team_save(self):
         team = self.get_test_team()
@@ -216,13 +219,13 @@ class ZeroTestCase(TestCase):
 
     def test_circuit(self):
         circuit = self.get_test_circuit()
-        self.assertEquals(str(circuit), encode_pyv(circuit.name))
+        self.assertEquals(str(circuit), retro_encode(circuit.name))
 
     def test_grandprix(self):
         grandprix = self.get_test_grandprix()
         competition = self.get_test_competition()
         self.assertIsNone(grandprix.competitions.add(competition))
-        self.assertEquals(str(grandprix), encode_pyv(grandprix.name))
+        self.assertEquals(str(grandprix), retro_encode(grandprix.name))
 
     def test_race(self, exclude_competition_create=False):
         grandprix = self.get_test_grandprix()
@@ -239,6 +242,9 @@ class ZeroTestCase(TestCase):
         # expected race changes (adding grandprix to str)
         expected_race = '%s-%s.%s' % (season, race.round, grandprix)
         self.assertEquals(str(race), expected_race)
+        self.assertEquals(race.pole, None)
+        self.assertEquals(race.winner, None)
+        self.assertEquals(race.fastest, None)
 
     def test_contender_season(self):
         contender = None
@@ -282,7 +288,8 @@ class ZeroTestCase(TestCase):
 
     def test_result_points(self):
         result = self.get_test_result()
-        season = result.race.season
+        race = result.race
+        season = race.season
         season.punctuation = 'F1-25'
         self.assertIsNone(season.save())
         # result.finish = None = No points
@@ -296,6 +303,14 @@ class ZeroTestCase(TestCase):
 
         self.assertTrue(TeamSeason.objects.create(**team_season_args))
         team_season = TeamSeason.objects.get(**team_season_args)
+        # STR team_season
+        expected_team_season = '%s in %s' % (team_season.team, season)
+        self.assertEquals(str(team_season), retro_encode(expected_team_season))
+        team_season.sponsor_name = 'Sponsored Team'
+        self.assertIsNone(team_season.save())
+
+        expected_team_season = '%s in %s' % (team_season.sponsor_name, season)
+        self.assertEquals(str(team_season), retro_encode(expected_team_season))
         self.assertEquals(team_season.get_points(), 0)
 
         result.qualifying = 2
@@ -317,6 +332,8 @@ class ZeroTestCase(TestCase):
         self.assertIsNone(result.save())
         # result.points is greater than before
         self.assertGreater(result.points, race_points)
+        self.assertEquals(race.fastest, result.seat)
+
 
 
 
