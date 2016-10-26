@@ -220,12 +220,12 @@ class Season(models.Model):
     @property
     def leader(self):
         rank = self.points_rank()
-        return rank.first()
+        return rank[0] if len(rank) else None
 
     @property
     def team_leader(self):
         rank = self.team_points_rank()
-        return rank.first()
+        return rank[0] if len(rank) else None
 
     def __str__(self):
         return '/'.join((self.competition.name, str(self.year)))
@@ -326,6 +326,8 @@ class Result(models.Model):
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
     def save(self, *args, **kwargs):
+        if self.seat.team not in self.race.season.teams.all():
+            raise ValidationError('Invalid Seat in this race. Team is not in current season')
         if self.fastest_lap:
             fastest_count = Result.objects.filter(race=self.race, fastest_lap=True)
             if self.pk:
