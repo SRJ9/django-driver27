@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 from .common import CommonResultTestCase
-from ..models import Result, TeamSeason
+from ..models import Result, Seat, TeamSeason, ContenderSeason
 
 class ResultTestCase(TestCase, CommonResultTestCase):
     def test_result_shorcuts(self):
@@ -53,5 +53,38 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertGreater(result.points, race_points)
         self.assertEquals(race.fastest, result.seat)
 
+    def test_result_seat_exception(self):
+        self.get_test_result(raise_seat_exception=True)
+
     def test_result_team_exception(self):
         self.get_test_result(raise_team_exception=True)
+
+    def test_rank(self):
+        result_a = self.get_test_result(qualifying=2, finish=1)
+        seat_a = result_a.seat
+        race = result_a.race
+        # set season
+        season = race.season
+        season.punctuation = 'F1-25'
+        self.assertIsNone(season.save())
+
+        seat_b = self.get_test_seat_b(seat_a=seat_a)
+        result_b = self.get_test_result(seat=seat_b, race=race, qualifying=1, finish=3)
+
+        # pole
+        self.assertEquals(race.pole, seat_b)
+        # winner
+        self.assertEquals(race.winner, seat_a)
+
+        # season contender = 2
+        self.assertEquals(len(season.contenders()), 2)
+        self.assertEquals(len(season.points_rank()), 2)
+        self.assertEquals(len(season.team_points_rank()), 1) # seat a and seat b is in the same team
+        self.assertEquals(season.leader[1], seat_a.contender.driver) # seat a.driver is the winner, the leader
+        self.assertEquals(season.team_leader[1], seat_a.team)
+
+        # contenderseason.get_points
+        contender_a = seat_a.contender
+        contender_season = ContenderSeason(contender=contender_a, season=season)
+        self.assertGreater(contender_season.get_points(), 0)
+        self.assertGreater(contender_season.get_points(1), 0)

@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from .common import CommonRaceTestCase
+from .common import retro_encode, CommonRaceTestCase
 from ..models import Race
 
 class RaceTestCase(TestCase, CommonRaceTestCase):
+    def test_circuit_unicode(self):
+        circuit = self.get_test_circuit()
+        expected_circuit = circuit.name
+        self.assertEquals(str(circuit), retro_encode(expected_circuit))
+
     def test_race_unicode(self):
         race = self.get_test_race()
         expected_race = '%s-%s' % (race.season, race.round)

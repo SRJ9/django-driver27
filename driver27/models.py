@@ -7,14 +7,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.encoding import python_2_unicode_compatible
 from . import punctuation
 from slugify import slugify
-
-try:
-    from django_countries.fields import CountryField
-except ImportError:
-    raise (
-        'You are using the `driver27` app which requires the `django-countries` module.'
-        'Be sure to add `django_countries` to your INSTALLED_APPS for `driver27` to work properly.'
-    )
+from django_countries.fields import CountryField
 
 @python_2_unicode_compatible
 class Driver(models.Model):
@@ -39,20 +32,6 @@ class Driver(models.Model):
 
 @python_2_unicode_compatible
 class Competition(models.Model):
-    name = models.CharField(max_length=30, verbose_name='competition', unique=True)
-    full_name = models.CharField(max_length=100, unique=True)
-    country = CountryField(null=True, blank=True, default=None)
-    slug = models.SlugField(null=True, blank=True, default=None)
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
-        super(Competition, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['name']
     name = models.CharField(max_length=30, verbose_name='competition', unique=True)
     full_name = models.CharField(max_length=100, unique=True)
     country = CountryField(null=True, blank=True, default=None)
@@ -196,7 +175,8 @@ class Season(models.Model):
         return None
 
     def contenders(self):
-        return Contender.objects.filter(seats__seasons__exact=self).distinct()
+        seats = [seat.pk for seat in self.seats.all()]
+        return Contender.objects.filter(seats__pk__in=seats).distinct()
 
     def points_rank(self):
         contenders = self.contenders()
@@ -326,6 +306,8 @@ class Result(models.Model):
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
     def save(self, *args, **kwargs):
+        if self.seat not in self.race.season.seats.all():
+            raise ValidationError('Invalid Seat in this race. Seat is not in current season')
         if self.seat.team not in self.race.season.teams.all():
             raise ValidationError('Invalid Seat in this race. Team is not in current season')
         if self.fastest_lap:

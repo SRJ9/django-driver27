@@ -134,12 +134,12 @@ class CommonRaceTestCase(CommonSeasonTestCase):
             default_circuit=circuit, country='BR', first_held=1972, **grandprix_args))
         return GrandPrix.objects.get(**grandprix_args)
 
-    def get_test_race(self, competition = None):
+    def get_test_race(self, competition = None, round=1):
         if not competition:
             competition = self.get_test_competition_a()
         season = self.get_test_season(competition=competition)
         race_args = {
-            'round': 1,
+            'round': round,
             'season': season,
             'date': None,
             'alter_punctuation': None
@@ -150,7 +150,8 @@ class CommonRaceTestCase(CommonSeasonTestCase):
         return race
 
 class CommonResultTestCase(CommonSeatTestCase, CommonRaceTestCase):
-    def get_test_result(self, seat=None, race=None, qualifying=None, finish=None, raise_team_exception=False):
+    def get_test_result(self, seat=None, race=None, qualifying=None, finish=None,
+                        raise_seat_exception=False, raise_team_exception=False):
         # when raise_team_exception, the team-season will not be created
         # raise a exception, because the team is invalid in that season
         if not seat:
@@ -162,6 +163,8 @@ class CommonResultTestCase(CommonSeatTestCase, CommonRaceTestCase):
         season = race.season
         if not raise_team_exception and seat.team not in season.teams.all():
             self.assertTrue(TeamSeason.objects.create(team=seat.team, season=season))
+        if not raise_team_exception and not raise_seat_exception and seat not in season.seats.all():
+            self.assertIsNone(seat.seasons.add(season))
         result_args = {
             'seat': seat,
             'race': race,
@@ -172,7 +175,9 @@ class CommonResultTestCase(CommonSeatTestCase, CommonRaceTestCase):
             'wildcard': False,
             'comment': None
         }
-        if raise_team_exception:
+        if raise_seat_exception:
+            self.assertRaises(ValidationError, Result.objects.create, **result_args)
+        elif raise_team_exception:
             self.assertRaises(ValidationError, Result.objects.create, **result_args)
         else:
             self.assertTrue(Result.objects.create(**result_args))
