@@ -306,10 +306,10 @@ class Result(models.Model):
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
     def save(self, *args, **kwargs):
-        if self.seat not in self.race.season.seats.all():
-            raise ValidationError('Invalid Seat in this race. Seat is not in current season')
         if self.seat.team not in self.race.season.teams.all():
             raise ValidationError('Invalid Seat in this race. Team is not in current season')
+        if self.seat not in self.race.season.seats.all():
+            raise ValidationError('Invalid Seat in this race. Seat is not in current season')
         if self.fastest_lap:
             fastest_count = Result.objects.filter(race=self.race, fastest_lap=True)
             if self.pk:
