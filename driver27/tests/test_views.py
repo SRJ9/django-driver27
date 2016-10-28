@@ -1,6 +1,9 @@
 from django.test import TestCase, Client
 # from django.core.urlresolvers import reverse
-from django.urls import reverse
+try:
+    from django.urls import reverse
+except ImportError:
+    from django.core.urlresolvers import reverse
 from ..models import Season, Competition
 
 class ViewTest(TestCase):
