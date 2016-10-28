@@ -1,14 +1,23 @@
 from django.shortcuts import render
 from django.db.models import Count
-from .models import Competition, Season
+from django.http import Http404
+from .models import Competition, Season, Race
 
 
 def get_season(slug, year):
-    return Season.objects.get(year=year, competition__slug=slug)
+    try:
+        season = Season.objects.get(year=year, competition__slug=slug)
+    except Season.DoesNotExist:
+        raise Http404('Season does not exist')
+    return season
 
 def competition_view(request, competition_slug=None):
     if competition_slug is not None:
-        competition_obj = Competition.objects.get(slug=competition_slug)
+        try:
+            competition_obj = Competition.objects.get(slug=competition_slug)
+        except Competition.DoesNotExist:
+            raise Http404('Competition does not exist')
+
         title = '%s' % competition_obj
         context = {'competition': competition_obj, 'title': title}
         tpl = 'driver27/competition-view.html'
@@ -30,7 +39,7 @@ def season_view(request, competition_slug, year):
     return render(request, tpl, context)
 
 
-def driver_view(request, competition_slug, year):
+def driver_rank_view(request, competition_slug, year):
     season = get_season(competition_slug, year)
     rank = season.points_rank()
     title = '%s [DRIVERS]' % season
@@ -39,7 +48,7 @@ def driver_view(request, competition_slug, year):
     return render(request, tpl, context)
 
 
-def team_view(request, competition_slug, year):
+def team_rank_view(request, competition_slug, year):
     season = get_season(competition_slug, year)
     rank = season.team_points_rank()
     title = '%s [TEAMS]' % season
@@ -59,7 +68,10 @@ def race_list(request, competition_slug, year):
 
 def race_view(request, competition_slug, year, race_id=None):
     season = get_season(competition_slug, year)
-    race = season.races.get(round=race_id)
+    try:
+        race = season.races.get(round=race_id)
+    except Race.DoesNotExist:
+        raise Http404('Race does not exist')
     results = race.results.all()\
         .annotate(null_position=Count('finish')).order_by('-null_position', 'finish', 'qualifying')
     title = 'Results of %s' % race

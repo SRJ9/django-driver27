@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_countries',
     'tabbed_admin',
-    'driver27',
+    'driver27'
 ]
 
 MIDDLEWARE = [
@@ -53,7 +53,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'dr27_demo.urls'
+ROOT_URLCONF = 'demo.dr27_demo.urls'
 
 TEMPLATES = [
     {
