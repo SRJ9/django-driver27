@@ -16,8 +16,10 @@ class MockSuperUser(object):
     def has_perm(self, perm):
         return True
 
-request = MockRequest()
-request.user = MockSuperUser()
+def get_request():
+    request = MockRequest()
+    request.user = MockSuperUser()
+    return request
 
 
 def get_fixtures_test():
@@ -119,31 +121,45 @@ class ViewTest(FixturesTest):
 
     def test_season_admin(self):
         ma = SeasonAdmin(Season, self.site)
+        request = get_request()
+        ma.get_changelist(request=request)
         self.assertTrue(ma.get_form(request=None, obj=None))
         season = Season.objects.get(pk=1)
         self.assertTrue(ma.get_form(request=request, obj=season))
 
     def test_driver_admin(self):
         ma = DriverAdmin(Driver, self.site)
+        request = get_request()
+        ma.get_changelist(request=request)
         driver = Driver.objects.get(pk=1)
         self.assertTrue(ma.print_competitions(driver))
 
     def test_team_admin(self):
         ma = TeamAdmin(Team, self.site)
+        request = get_request()
+        ma.get_changelist(request=request)
         team = Team.objects.get(pk=1)
         self.assertTrue(ma.print_competitions(team))
 
     def test_competition_admin(self):
         ma = CompetitionAdmin(Competition, self.site)
+        request = get_request()
+        ma.get_changelist(request=request)
 
     def test_circuit_admin(self):
         ma = CircuitAdmin(Circuit, self.site)
+        request = get_request()
+        ma.get_changelist(request=request)
 
     def test_grandprix_admin(self):
         ma = GrandPrixAdmin(GrandPrix, self.site)
+        request = get_request()
+        ma.get_changelist(request=request)
 
     def test_race_admin(self):
         ma = RaceAdmin(Race, self.site)
+        request = get_request()
+        ma.get_changelist(request=request)
         race = Race.objects.get(pk=1)
         self.assertEquals(ma.print_pole(race), str(race.pole.contender.driver))
         self.assertEquals(ma.print_winner(race), str(race.winner.contender.driver))
@@ -165,6 +181,8 @@ class ViewTest(FixturesTest):
 
     def test_contender_admin(self):
         ma = ContenderAdmin(Contender, self.site)
+        request = get_request()
+        ma.get_changelist(request=request)
         contender = Contender.objects.get(pk=1)
         self.assertIsNotNone(ma.print_current(contender))
 
