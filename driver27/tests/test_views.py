@@ -5,9 +5,9 @@ try:
     from django.urls import reverse
 except ImportError:
     from django.core.urlresolvers import reverse
-from ..models import Season, Driver, Team, Competition, Circuit, GrandPrix, Race, Contender, Result
-from ..admin import SeasonAdmin, DriverAdmin, TeamAdmin, CompetitionAdmin, CircuitAdmin, GrandPrixAdmin, \
-    RaceAdmin, ContenderAdmin, RelatedCompetitionAdmin, RaceInline
+from ..models import Season, Driver, Team, Competition, Circuit, GrandPrix, Race, Contender, Result, Seat, TeamSeason
+from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, TeamAdmin, CompetitionAdmin, CircuitAdmin, GrandPrixAdmin, \
+    RaceAdmin, ContenderAdmin, RelatedCompetitionAdmin, RaceInline, SeatInline, SeatSeasonInline, TeamSeasonInline
 
 class MockRequest(object):
     pass
@@ -125,7 +125,8 @@ class ViewTest(FixturesTest):
         ma.get_changelist(request=request)
         self.assertTrue(ma.get_form(request=None, obj=None))
         season = Season.objects.get(pk=1)
-        self.assertTrue(ma.get_form(request=request, obj=season))
+        season_form = ma.get_form(request=request, obj=season)
+        self.assertIsNotNone(SeasonAdminForm(season_form))
 
     def test_driver_admin(self):
         ma = DriverAdmin(Driver, self.site)
@@ -170,6 +171,15 @@ class ViewTest(FixturesTest):
         request = self.factory.get(reverse("admin:driver27_race_results", args=[race.pk]))
         self.assertTrue(ma.results(request, race.pk))
 
+        race_ma = RaceInline(SeasonAdmin, self.site)
+        self.assertIsNotNone(race_ma.print_results_link(race))
+
+
+        request = get_request()
+        season = race.season
+        request._obj_ = season
+        self.assertIsNotNone(race_ma.formfield_for_foreignkey(Race.grand_prix.field, request=request))
+
         race = Race.objects.get(pk=20) # No results
         self.assertIsNone(ma.print_pole(race))
         self.assertIsNone(ma.print_winner(race))
@@ -185,6 +195,29 @@ class ViewTest(FixturesTest):
         ma.get_changelist(request=request)
         contender = Contender.objects.get(pk=1)
         self.assertIsNotNone(ma.print_current(contender))
+
+    def test_seat_inline_admin(self):
+        seat_ma = SeatInline(ContenderAdmin, self.site)
+        contender = Contender.objects.get(pk=1)
+        request = get_request()
+        request._obj_ = contender
+        self.assertIsNotNone(seat_ma.formfield_for_foreignkey(Seat.team.field, request=request))
+
+    def test_seat_season_inline_admin(self):
+        seat_season_ma = SeatSeasonInline(SeasonAdmin, self.site)
+        season = Season.objects.get(pk=1)
+        request = get_request()
+        request._obj_ = season
+        self.assertIsNotNone(seat_season_ma.formfield_for_foreignkey(Seat.seasons.through.seat.field,
+                                                                     request=request))
+
+    def test_team_season_inline_admin(self):
+        team_season_ma = TeamSeasonInline(SeasonAdmin, self.site)
+        season = Season.objects.get(pk=1)
+        request = get_request()
+        request._obj_ = season
+        self.assertIsNotNone(team_season_ma.formfield_for_foreignkey(TeamSeason.team.field,
+                                                                     request=request))
 
     def test_related_competition_admin(self):
         race = Race.objects.get(pk=1)
