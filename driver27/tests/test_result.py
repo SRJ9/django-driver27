@@ -30,8 +30,8 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         seat = result.seat
         race = result.race
         season = race.season
-        season.punctuation = 'F1-25'
-        self.assertIsNone(season.save())
+        # season.punctuation = 'F1-25'
+        # self.assertIsNone(season.save())
 
         result.qualifying = 2
         result.finish = 2
@@ -65,8 +65,8 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         race = result_a.race
         # set season
         season = race.season
-        season.punctuation = 'F1-25'
-        self.assertIsNone(season.save())
+        # season.punctuation = 'F1-25'
+        # self.assertIsNone(season.save())
 
         seat_b = self.get_test_seat_b(seat_a=seat_a)
         result_b = self.get_test_result(seat=seat_b, race=race, qualifying=1, finish=3)

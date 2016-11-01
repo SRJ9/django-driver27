@@ -19,7 +19,10 @@ lr_intr = lambda l, r: list(set(l).intersection(r))
 class RelatedCompetitionAdmin(object):
     """ Aux class to share print_competitions method between driver and team """
     def print_competitions(self, obj):
-        return ', '.join("%s" % competition for competition in obj.competitions.all())
+        if hasattr(obj, 'competitions'):
+            return ', '.join("%s" % competition for competition in obj.competitions.all())
+        else:
+            return None
     print_competitions.short_description = 'competitions'
 
 class RaceInline(admin.TabularInline):
@@ -164,7 +167,8 @@ class SeasonAdmin(TabbedModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         # just save obj reference for future processing in Inline
-        request._obj_ = obj
+        if request and obj:
+            request._obj_ = obj
         return super(SeasonAdmin, self).get_form(request, obj, **kwargs)
 
 class RaceAdmin(admin.ModelAdmin):
@@ -173,15 +177,18 @@ class RaceAdmin(admin.ModelAdmin):
     readonly_fields = ('print_results_link',)
 
     def print_pole(self, obj):
-        return "%s" % obj.pole.driver
+        pole = obj.pole
+        return "%s" % obj.pole.contender.driver if pole else None
     print_pole.short_description = 'Pole'
 
     def print_winner(self, obj):
-        return "%s" % obj.winner.driver
+        winner = obj.winner
+        return "%s" % winner.contender.driver if winner else None
     print_winner.short_description = 'Winner'
 
     def print_fastest(self, obj):
-        return "%s" % obj.fastest.driver
+        fastest = obj.fastest
+        return "%s" % fastest.contender.driver if fastest else None
     print_fastest.short_description = 'Fastest'
 
     def get_urls(self):
@@ -193,8 +200,11 @@ class RaceAdmin(admin.ModelAdmin):
         return urlpatterns + urls
 
     def print_results_link(self, obj):
-        results_url = reverse("admin:driver27_race_results", args=[obj.pk])
-        return '<a href="%s">%s</a>' % (results_url, 'Results')
+        if obj.pk:
+            results_url = reverse("admin:driver27_race_results", args=[obj.pk])
+            return '<a href="%s">%s</a>' % (results_url, 'Results')
+        else:
+            return None
     print_results_link.allow_tags = True
     print_results_link.short_description = 'link'
 

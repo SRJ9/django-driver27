@@ -9,7 +9,7 @@ from ..models import Season, Competition
 class ViewTest(TestCase):
     fixtures = ['circuits-2016.json', 'competition.json', 'drivers-2016.json', 'grands-prix.json',
     'seasons-2016.json', 'teams-2016.json', 'teams-season.json', 'driver-competition-2016.json', 'driver-competition-team-2016.json',
-    'races-2016.json']
+    'races-2016.json', 'results-2016.json']
     def setUp(self):
         # Every test needs a client.
         self.client = Client()
@@ -62,4 +62,29 @@ class ViewTest(TestCase):
         response = self.client.get(reverse('season-race-view', kwargs={'competition_slug': 'f1', 'year': 2016, 'race_id': 200}))
         # Check that the response is 200 OK.
         self.assertEqual(response.status_code, 404)
+
+    def test_admin(self):
+        response = self.client.get(reverse('admin:driver27_driver_changelist'))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 302)
+
+        response = self.client.get(reverse('admin:driver27_driver_change', args=[1]))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 302)
+
+        response = self.client.get(reverse('admin:driver27_season_changelist'))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 302)
+
+        response = self.client.get(reverse('admin:driver27_season_change', args=[1]))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 302)
+
+        response = self.client.get(reverse('admin:driver27_race_changelist'))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 302)
+
+        response = self.client.get(reverse('admin:driver27_race_change', args=[1]))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 302)
 

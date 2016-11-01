@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.dispatch import receiver
 from django.db.models.signals import m2m_changed, pre_save
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.encoding import python_2_unicode_compatible
@@ -17,11 +18,10 @@ class Driver(models.Model):
     country = CountryField()
     competitions = models.ManyToManyField('Competition', through='Contender', related_name='drivers')
 
-    def save(self, *args, **kwargs):
-        # @todo allow empty year_of_birth
+    def clean(self):
         if self.year_of_birth < 1900 or self.year_of_birth > 2099:
             raise ValidationError('Year_of_birth must be between 1900 and 2099')
-        super(Driver, self).save(*args, **kwargs)
+        super(Driver, self).clean()
 
     def __str__(self):
         return ', '.join((self.last_name, self.first_name))
@@ -92,11 +92,15 @@ class Seat(models.Model):
     current = models.BooleanField(default=False)
     seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None)
 
-    def save(self, *args, **kwargs):
+    def clean(self):
         if self.contender.competition not in self.team.competitions.all():
             raise ValidationError(
                 "%s is not a team of %s" % (self.team, self.contender.competition)
             )
+        super(Seat, self).clean()
+
+    def save(self, *args, **kwargs):
+
         if self.current:
             current_count = Seat.objects.filter(contender=self.contender, current=True)
             if self.pk:
@@ -227,13 +231,17 @@ class Race(models.Model):
     date = models.DateField(blank=True, null=True, default=None)
     alter_punctuation = models.CharField(choices=ALTER_PUNCTUATION, null=True, blank=True, default=None, max_length=6)
 
-    def save(self, *args, **kwargs):
-        if self.season.competition and self.grand_prix:
-            if self.season.competition not in self.grand_prix.competitions.all():
-                raise ValidationError(
-                    "%s is not a/an %s Grand Prix" % (self.grand_prix, self.season.competition)
-                )
-        super(Race, self).save(*args, **kwargs)
+    def clean(self, *args, **kwargs):
+        errors = {}
+        if getattr(self, 'season', None):
+            if self.round > self.season.rounds:
+                errors['round'] = 'Max rounds in this season: %d' % self.season.rounds
+            if self.season.competition and self.grand_prix:
+                if self.season.competition not in self.grand_prix.competitions.all():
+                    errors['grand_prix'] = "%s is not a/an %s Grand Prix" % (self.grand_prix, self.season.competition)
+        if errors:
+            raise ValidationError(errors)
+        super(Race, self).clean(*args, **kwargs)
 
     def get_result_seat(self, *args, **kwargs):
         results = self.results.filter(**kwargs)
@@ -268,14 +276,14 @@ class TeamSeason(models.Model):
     team = models.ForeignKey('Team', related_name='seasons_team')
     sponsor_name = models.CharField(max_length=75, null=True, blank=True, default=None)
 
-    def save(self, *args, **kwargs):
+    def clean(self, *args, **kwargs):
         team = self.team
         team_competitions = [competition.pk for competition in team.competitions.all()]
         if self.season.competition.pk not in team_competitions:
             raise ValidationError(
                 'Team %s doesn\'t participate in %s' % (self.team, self.season.competition)
             )
-        super(TeamSeason, self).save(*args, **kwargs)
+        super(TeamSeason, self).clean(*args, **kwargs)
 
     def get_points(self):
         results = Result.objects.filter(race__season=self.season, seat__team=self.team) \
@@ -305,7 +313,7 @@ class Result(models.Model):
     wildcard = models.BooleanField(default=False)
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
-    def save(self, *args, **kwargs):
+    def clean(self, *args, **kwargs):
         if self.seat.team not in self.race.season.teams.all():
             raise ValidationError('Invalid Seat in this race. Team is not in current season')
         if self.seat not in self.race.season.seats.all():
@@ -316,7 +324,7 @@ class Result(models.Model):
                 fastest_count = fastest_count.exclude(pk=self.pk)
             if fastest_count.count():
                 self.fastest_lap = False
-        super(Result, self).save(*args, **kwargs)
+        super(Result, self).clean(*args, **kwargs)
 
     @property
     def driver(self):
@@ -374,3 +382,7 @@ class ContenderSeason(object):
             results = results[:limit_races]
         points_list = [result.points for result in results.all() if result.points is not None]
         return sum(points_list)
+
+@receiver(pre_save)
+def pre_save_handler(sender, instance, *args, **kwargs):
+    instance.full_clean()

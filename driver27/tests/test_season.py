@@ -15,10 +15,10 @@ class SeasonTestCase(TestCase, CommonSeasonTestCase, CommonSeatTestCase):
     def test_season_scoring(self):
         competition = self.get_test_competition_a()
         season = self.get_test_season(competition)
-        self.assertIsNone(season.get_scoring())
-        season.punctuation = 'F1-25'
-        self.assertIsNone(season.save())
         self.assertIsInstance(season.get_scoring(), dict)
+        # season.punctuation = 'F1-25'
+        # self.assertIsNone(season.save())
+        # self.assertIsInstance(season.get_scoring(), dict)
 
     def test_season_contenders(self):
         seat_a = self.get_test_seat()

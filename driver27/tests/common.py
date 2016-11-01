@@ -16,7 +16,7 @@ def retro_encode(text):
 
 class CommonDriverTestCase(object):
     def set_test_driver(self, **kwargs):
-        self.assertTrue(Driver.objects.create(year_of_birth=1985, **kwargs))
+        self.assertTrue(Driver.objects.create(year_of_birth=1985, country='ES', **kwargs))
         return Driver.objects.get(**kwargs)
 
     def get_test_driver_a(self):
@@ -46,11 +46,11 @@ class CommonTeamTestCase(object):
         return Team.objects.get(**kwargs)
 
     def get_test_team(self):
-        team_args = {'name': 'Escudería Tec Auto', 'full_name': 'Escudería Tec Auto'}
+        team_args = {'name': 'Escudería Tec Auto', 'full_name': 'Escudería Tec Auto', 'country': 'ES'}
         return self.set_test_team(**team_args)
 
     def get_test_team_b(self):
-        team_args = {'name': 'D27R', 'full_name': 'Driver 27 Racing Team'}
+        team_args = {'name': 'D27R', 'full_name': 'Driver 27 Racing Team', 'country': 'ES'}
         return self.set_test_team(**team_args)
 
 class CommonContenderTestCase(CommonDriverTestCase, CommonCompetitionTestCase):
@@ -77,7 +77,7 @@ class CommonSeasonTestCase(CommonCompetitionTestCase):
         return Season.objects.get(**kwargs)
 
     def get_test_season(self, competition):
-        season_args = {'year': '2016', 'competition': competition}
+        season_args = {'year': '2016', 'competition': competition, 'punctuation': 'F1-25', 'rounds': 10}
         return self.set_test_season(**season_args)
 
 class CommonTeamSeasonTestCase(CommonTeamTestCase, CommonSeasonTestCase):
