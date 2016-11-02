@@ -122,14 +122,18 @@ def seat_season(sender, instance, action, pk_set, **kwargs):
         contender_competition = instance.contender.competition
         contender_seasons = [season.pk for season in contender_competition.seasons.all()]
         team_seasons = [season.pk for season in instance.team.seasons.all()]
+        errors = []
         for pk in list(pk_set):
             pk_season = Season.objects.get(pk=pk)
             if int(pk) not in contender_seasons:
-                raise ValidationError(
+                errors.append(
                     '%s is not a/an %s season' % (pk_season, contender_competition)
                 )
             if int(pk) not in team_seasons:
-                raise ValidationError('%s is not a team of %s' % (instance.team, pk_season))
+                errors.append(
+                    '%s is not a team of %s' % (instance.team, pk_season)
+                )
+        raise ValidationError(errors)
 
 m2m_changed.connect(seat_season, sender=Seat.seasons.through)
 
@@ -314,10 +318,13 @@ class Result(models.Model):
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
     def clean(self, *args, **kwargs):
+        seat_errors = []
         if self.seat.team not in self.race.season.teams.all():
-            raise ValidationError('Invalid Seat in this race. Team is not in current season')
+            seat_errors.append('Team is not in current season')
         if self.seat not in self.race.season.seats.all():
-            raise ValidationError('Invalid Seat in this race. Seat is not in current season')
+            seat_errors.append('Seat is not in current season')
+        if seat_errors:
+            raise ValidationError('Invalid Seat in this race. '+'\n'.join(seat_errors))
         if self.fastest_lap:
             fastest_count = Result.objects.filter(race=self.race, fastest_lap=True)
             if self.pk:
@@ -376,13 +383,14 @@ class ContenderSeason(object):
 
 
     def get_points(self, limit_races=None):
-        results = Result.objects.filter(race__season=self.season, seat__contender=self.contender)\
-            .order_by('race__round')
+        results = Result.objects.filter(race__season=self.season, seat__contender=self.contender)
         if isinstance(limit_races, int):
-            results = results[:limit_races]
+            results = results.filter(race__round__lte=limit_races)
+        results = results.order_by('race__round')
         points_list = [result.points for result in results.all() if result.points is not None]
         return sum(points_list)
 
 @receiver(pre_save)
 def pre_save_handler(sender, instance, *args, **kwargs):
-    instance.full_clean()
+    if isinstance(instance, (Driver, Team, Competition, Contender, Seat, Circuit, GrandPrix, Race, Season, Result)):
+        raise Exception('save handler')
