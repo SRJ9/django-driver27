@@ -36,11 +36,7 @@ class CompetitionFilterInline(admin.TabularInline):
                 kwargs['queryset'] = Seat.objects.filter(contender__competition__exact=request._obj_.competition)
         return super(CompetitionFilterInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
-class RaceInline(CompetitionFilterInline):
-    model = Race
-    extra = 1
-    readonly_fields = ('print_results_link', )
-
+class CommonRaceAdmin(object):
     def print_results_link(self, obj):
         if obj.pk:
             results_url = reverse("admin:driver27_race_results", args=[obj.pk])
@@ -48,7 +44,12 @@ class RaceInline(CompetitionFilterInline):
         else:
             return None
     print_results_link.allow_tags = True
-    print_results_link.short_description = 'Results link'
+    print_results_link.short_description = 'link'
+
+class RaceInline(CommonRaceAdmin, CompetitionFilterInline):
+    model = Race
+    extra = 1
+    readonly_fields = ('print_results_link', )
 
 class SeatInline(CompetitionFilterInline):
     model = Seat
@@ -156,7 +157,8 @@ class SeasonAdmin(TabbedModelAdmin):
             request._obj_ = obj
         return super(SeasonAdmin, self).get_form(request, obj, **kwargs)
 
-class RaceAdmin(admin.ModelAdmin):
+
+class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
     list_display = ('__unicode__', 'season', 'print_pole', 'print_winner', 'print_fastest')
     list_filter = ('season',)
     readonly_fields = ('print_results_link',)
@@ -183,15 +185,6 @@ class RaceAdmin(admin.ModelAdmin):
         ]
 
         return urlpatterns + urls
-
-    def print_results_link(self, obj):
-        if obj.pk:
-            results_url = reverse("admin:driver27_race_results", args=[obj.pk])
-            return '<a href="%s">%s</a>' % (results_url, 'Results')
-        else:
-            return None
-    print_results_link.allow_tags = True
-    print_results_link.short_description = 'link'
 
     def add_result_entries(self, request, entries, race):
         for entry in entries:
