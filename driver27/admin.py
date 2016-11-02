@@ -159,7 +159,7 @@ class SeasonAdmin(TabbedModelAdmin):
 
 
 class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
-    list_display = ('__unicode__', 'season', 'print_pole', 'print_winner', 'print_fastest')
+    list_display = ('__unicode__', 'season', 'print_pole', 'print_winner', 'print_fastest', 'print_results_link',)
     list_filter = ('season',)
     readonly_fields = ('print_results_link',)
 
@@ -186,49 +186,49 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
 
         return urlpatterns + urls
 
-    def add_result_entries(self, request, entries, race):
+    def edit_result_entries(self, request, entries, race, action='update'):
         for entry in entries:
-            field_prefix = '%s-%s-' % ('seat-', str(entry))
+            field_prefix = '%s-%s-' % ('seat', str(entry))
             qualifying = request.POST.get(field_prefix + 'qualifying', None)
             finish = request.POST.get(field_prefix + 'finish', None)
-            fastest_lap = request.POST.get(field_prefix + 'fastest-lap', None)
-            retired = request.POST.get(field_prefix + 'retired', None)
-            wildcard = request.POST.get(field_prefix + 'wildcard', None)
-            Result.objects.create(
-                race=race,
-                seat_id=entry,
-                qualifying=qualifying if qualifying else None,
-                finish=finish if finish else None,
-                fastest_lap=fastest_lap if fastest_lap else False,
-                retired = retired if retired else False,
-                wildcard = wildcard if wildcard else False
-            )
+            fastest_lap = request.POST.get(field_prefix + 'fastest-lap', False)
+            retired = request.POST.get(field_prefix + 'retired', False)
+            wildcard = request.POST.get(field_prefix + 'wildcard', False)
+
+            try:
+                qualifying = int(qualifying)
+            except ValueError:
+                qualifying = None
+
+            try:
+                finish = int(finish)
+            except ValueError:
+                finish = None
+
+            dict_to_save = {
+                'qualifying': qualifying,
+                'finish': finish,
+                'fastest_lap': fastest_lap,
+                'retired': retired,
+                'wildcard': wildcard
+            }
+            if action == 'update':
+                # filter allows update
+                result = Result.objects.filter(race=race, seat_id=entry)
+                result.update(**dict_to_save)
+            elif action == 'add':
+                Result.objects.create(
+                    race=race,
+                    seat_id=entry,
+                    **dict_to_save
+                )
+
+
+    def add_result_entries(self, request, entries, race):
+        self.edit_result_entries(request, entries, race, action='add')
 
     def update_result_entries(self, request, entries, race):
-        for entry in entries:
-            field_prefix = '%s-%s-' % ('seat', entry)
-            # raise Exception('field_prefix')
-            qualifying = request.POST.get(field_prefix + 'qualifying', None)
-            finish = request.POST.get(field_prefix + 'finish', None)
-            fastest_lap = request.POST.get(field_prefix + 'fastest-lap', None)
-            retired = request.POST.get(field_prefix + 'retired', None)
-            wildcard = request.POST.get(field_prefix + 'wildcard', None)
-            result = Result.objects.get(race=race, seat_id=entry)
-            update_needed = False
-            if qualifying != result.qualifying:
-                result.qualifying = qualifying if qualifying else None
-                update_needed = True
-            if finish != result.finish:
-                result.finish = finish if finish else None
-                update_needed = True
-            if fastest_lap != result.fastest_lap:
-                result.fastest_lap = fastest_lap if fastest_lap else False
-            if retired != result.retired:
-                result.retired = retired if retired else False
-            if wildcard != result.wildcard:
-                result.wildcard = wildcard if wildcard else False
-            if update_needed:
-                result.save()
+        self.edit_result_entries(request, entries, race, action='update')
 
     def del_result_entries(self, request, entries, race):
         for entry in entries:
@@ -248,6 +248,21 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
 
         if entries_to_del:
             self.del_result_entries(request, entries_to_del, race)
+
+    def order_entries(self, entries, seats_len):
+        if seats_len:
+            entries = sorted(entries, key=lambda x: (
+                -x['checked'],
+                -x['finished'],
+                x['finish'],
+                -x['qualified'],
+                x['qualifying'],
+                -x['season_points']
+            ))
+        else:
+            entries = sorted(entries, key=lambda x: -x['season_points'])
+        return entries
+
 
     def results(self, request, race_id):
         race = self.model.objects.get(pk=race_id)
@@ -290,9 +305,9 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
                 'team': seat.team.name,
                 'checked': is_race_seat,
                 'qualifying': qualifying,
-                'qualified': True if qualifying else False,
+                'qualified': bool(qualifying),
                 'finish': finish,
-                'finished': True if finish else False,
+                'finished': bool(finish),
                 'fastest_lap': fastest_lap,
                 'retired': retired,
                 'wildcard': wildcard,
@@ -301,17 +316,7 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
             }
             entries.append(entry)
 
-        if race_seats:
-            entries = sorted(entries, key=lambda x: (
-                -x['checked'],
-                -x['finished'],
-                x['finish'],
-                -x['qualified'],
-                x['qualifying'],
-                -x['season_points']
-            ))
-        else:
-            entries = sorted(entries, key=lambda x: -x['season_points'])
+        entries = self.order_entries(entries, len(race_seats))
 
         context = {
             'race': race, 'season': season, 'entries': entries, 'title': title,
