@@ -197,26 +197,26 @@ class ViewTest(FixturesTest):
         self.assertIsNotNone(ma.print_current(contender))
 
     def test_seat_inline_admin(self):
-        seat_ma = SeatInline(ContenderAdmin, self.site)
+        ma = SeatInline(ContenderAdmin, self.site)
         contender = Contender.objects.get(pk=1)
         request = get_request()
         request._obj_ = contender
-        self.assertIsNotNone(seat_ma.formfield_for_foreignkey(Seat.team.field, request=request))
+        self.assertIsNotNone(ma.formfield_for_foreignkey(Seat.team.field, request=request))
 
     def test_seat_season_inline_admin(self):
-        seat_season_ma = SeatSeasonInline(SeasonAdmin, self.site)
+        ma = SeatSeasonInline(SeasonAdmin, self.site)
         season = Season.objects.get(pk=1)
         request = get_request()
         request._obj_ = season
-        self.assertIsNotNone(seat_season_ma.formfield_for_foreignkey(Seat.seasons.through.seat.field,
+        self.assertIsNotNone(ma.formfield_for_foreignkey(Seat.seasons.through.seat.field,
                                                                      request=request))
 
     def test_team_season_inline_admin(self):
-        team_season_ma = TeamSeasonInline(SeasonAdmin, self.site)
+        ma = TeamSeasonInline(SeasonAdmin, self.site)
         season = Season.objects.get(pk=1)
         request = get_request()
         request._obj_ = season
-        self.assertIsNotNone(team_season_ma.formfield_for_foreignkey(TeamSeason.team.field,
+        self.assertIsNotNone(ma.formfield_for_foreignkey(TeamSeason.team.field,
                                                                      request=request))
 
     def test_related_competition_admin(self):

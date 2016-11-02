@@ -25,6 +25,13 @@ class RelatedCompetitionAdmin(object):
             return None
     print_competitions.short_description = 'competitions'
 
+class CompetitionTeamInline(admin.TabularInline):
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == 'team':
+            if request._obj_ is not None:
+                kwargs['queryset'] = Team.objects.filter(competitions__exact=request._obj_.competition)
+        return super(CompetitionTeamInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
 class RaceInline(admin.TabularInline):
     model = Race
     extra = 1
@@ -45,15 +52,9 @@ class RaceInline(admin.TabularInline):
                 kwargs['queryset'] = GrandPrix.objects.filter(competitions__exact=request._obj_.competition)
         return super(RaceInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
-class SeatInline(admin.TabularInline):
+class SeatInline(CompetitionTeamInline):
     model = Seat
     extra = 3
-
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == 'team':
-            if request._obj_ is not None:
-                kwargs['queryset'] = Team.objects.filter(competitions__exact=request._obj_.competition)
-        return super(SeatInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 class SeatSeasonInline(admin.TabularInline):
     model = Seat.seasons.through
@@ -72,15 +73,9 @@ class ContenderInline(admin.TabularInline):
     model = Contender
     extra = 1
 
-class TeamSeasonInline(admin.TabularInline):
+class TeamSeasonInline(CompetitionTeamInline):
     model = TeamSeason
     extra = 1
-
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == 'team':
-            if request._obj_ is not None:
-                kwargs['queryset'] = Team.objects.filter(competitions__exact=request._obj_.competition)
-        return super(TeamSeasonInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 class TeamInline(admin.TabularInline):
     model = Team
