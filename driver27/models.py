@@ -205,16 +205,21 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
+    def get_leader(self, team=False):
+        if team:
+            rank = self.team_points_rank()
+        else:
+            rank = self.points_rank()
+        return rank[0] if len(rank) else None
+
 
     @property
     def leader(self):
-        rank = self.points_rank()
-        return rank[0] if len(rank) else None
+        return self.get_leader()
 
     @property
     def team_leader(self):
-        rank = self.team_points_rank()
-        return rank[0] if len(rank) else None
+        return self.get_leader(team=True)
 
     def __str__(self):
         return '/'.join((self.competition.name, str(self.year)))
@@ -236,14 +241,21 @@ class Race(models.Model):
     date = models.DateField(blank=True, null=True, default=None)
     alter_punctuation = models.CharField(choices=ALTER_PUNCTUATION, null=True, blank=True, default=None, max_length=6)
 
+    def _grandprix_exception(self):
+        competition = self.season.competition
+        if competition and self.grand_prix and competition not in self.grand_prix.competitions.all():
+            return True
+        else:
+            return False
+
     def clean(self, *args, **kwargs):
         errors = {}
-        if getattr(self, 'season', None):
+        season = getattr(self, 'season', None)
+        if season:
             if self.round > self.season.rounds:
                 errors['round'] = 'Max rounds in this season: %d' % self.season.rounds
-            if self.season.competition and self.grand_prix:
-                if self.season.competition not in self.grand_prix.competitions.all():
-                    errors['grand_prix'] = "%s is not a/an %s Grand Prix" % (self.grand_prix, self.season.competition)
+            if self._grandprix_exception():
+                errors['grand_prix'] = "%s is not a/an %s Grand Prix" % (self.grand_prix, self.season.competition)
         if errors:
             raise ValidationError(errors)
         super(Race, self).clean(*args, **kwargs)
@@ -318,6 +330,14 @@ class Result(models.Model):
     wildcard = models.BooleanField(default=False)
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
 
+    def __check_fastest_lap(self):
+        if self.fastest_lap:
+            fastest_count = Result.objects.filter(race=self.race, fastest_lap=True)
+            if self.pk:
+                fastest_count = fastest_count.exclude(pk=self.pk)
+            if fastest_count.count():
+                self.fastest_lap = False
+
     def clean(self, *args, **kwargs):
         seat_errors = []
         if self.seat.team not in self.race.season.teams.all():
@@ -326,12 +346,7 @@ class Result(models.Model):
             seat_errors.append('Seat is not in current season')
         if seat_errors:
             raise ValidationError('Invalid Seat in this race. '+'\n'.join(seat_errors))
-        if self.fastest_lap:
-            fastest_count = Result.objects.filter(race=self.race, fastest_lap=True)
-            if self.pk:
-                fastest_count = fastest_count.exclude(pk=self.pk)
-            if fastest_count.count():
-                self.fastest_lap = False
+        self.__check_fastest_lap()
         super(Result, self).clean(*args, **kwargs)
 
     @property
@@ -342,22 +357,31 @@ class Result(models.Model):
     def team(self):
         return self.seat.team
 
+    def _get_fastest_lap_points(self, scoring):
+        if 'fastest_lap' in scoring and self.fastest_lap:
+            return scoring['fastest_lap']
+        else:
+            return 0
+
+    def _get_race_points(self, scoring):
+        race = self.race
+        points_factor = {'double': 2, 'half': 0.5}
+        factor = points_factor[race.alter_punctuation] if race.alter_punctuation in points_factor else 1
+        points_scoring = sorted(scoring['finish'], reverse=True)
+        if self.finish:
+            scoring_len = len(points_scoring)
+            if self.finish <= scoring_len:
+                return points_scoring[self.finish - 1] * factor
+        return 0
+
     @property
     def points(self):
-        race = self.race
+        # @todo allow scoring simulate in future
         scoring = self.race.season.get_scoring()
         points = 0
         if scoring:
-            if 'fastest_lap' in scoring and self.fastest_lap:
-                points += scoring['fastest_lap']
-
-            points_factor = {'double': 2, 'half': 0.5}
-            factor = points_factor[race.alter_punctuation] if race.alter_punctuation in points_factor else 1
-            points_scoring = sorted(scoring['finish'], reverse=True)
-            if self.finish:
-                scoring_len = len(points_scoring)
-                if self.finish <= scoring_len:
-                    points += points_scoring[self.finish-1]*factor
+            points += self._get_fastest_lap_points(scoring)
+            points += self._get_race_points(scoring)
         return points if points > 0 else None
 
 
