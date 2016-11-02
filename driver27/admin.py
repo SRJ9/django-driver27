@@ -25,14 +25,18 @@ class RelatedCompetitionAdmin(object):
             return None
     print_competitions.short_description = 'competitions'
 
-class CompetitionTeamInline(admin.TabularInline):
+class CompetitionFilterInline(admin.TabularInline):
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == 'team':
-            if request._obj_ is not None:
+        if request._obj_ is not None:
+            if db_field.name == 'team':
                 kwargs['queryset'] = Team.objects.filter(competitions__exact=request._obj_.competition)
-        return super(CompetitionTeamInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+            elif db_field.name == 'grand_prix':
+                kwargs['queryset'] = GrandPrix.objects.filter(competitions__exact=request._obj_.competition)
+            elif db_field.name == 'seat':
+                kwargs['queryset'] = Seat.objects.filter(contender__competition__exact=request._obj_.competition)
+        return super(CompetitionFilterInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
-class RaceInline(admin.TabularInline):
+class RaceInline(CompetitionFilterInline):
     model = Race
     extra = 1
     readonly_fields = ('print_results_link', )
@@ -46,34 +50,20 @@ class RaceInline(admin.TabularInline):
     print_results_link.allow_tags = True
     print_results_link.short_description = 'Results link'
 
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == 'grand_prix':
-            if request._obj_ is not None:
-                kwargs['queryset'] = GrandPrix.objects.filter(competitions__exact=request._obj_.competition)
-        return super(RaceInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
-
-class SeatInline(CompetitionTeamInline):
+class SeatInline(CompetitionFilterInline):
     model = Seat
     extra = 3
 
-class SeatSeasonInline(admin.TabularInline):
+class SeatSeasonInline(CompetitionFilterInline):
     model = Seat.seasons.through
     extra = 3
     ordering = ('seat',)
-
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == 'seat':
-            if request._obj_ is not None:
-                kwargs['queryset'] = Seat.objects.filter(
-                    contender__competition__exact=request._obj_.competition)
-        return super(SeatSeasonInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
-
 
 class ContenderInline(admin.TabularInline):
     model = Contender
     extra = 1
 
-class TeamSeasonInline(CompetitionTeamInline):
+class TeamSeasonInline(CompetitionFilterInline):
     model = TeamSeason
     extra = 1
 
