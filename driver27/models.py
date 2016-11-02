@@ -92,22 +92,20 @@ class Seat(models.Model):
     current = models.BooleanField(default=False)
     seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None)
 
+    def _check_current(self):
+        if self.current:
+            pk = self.pk if self.pk else None
+            current_count = Seat.objects.filter(contender=self.contender, current=True).exclude(pk=pk).count()
+            if current_count:
+                self.current = False
+
     def clean(self):
         if self.contender.competition not in self.team.competitions.all():
             raise ValidationError(
                 "%s is not a team of %s" % (self.team, self.contender.competition)
             )
+        self._check_current()
         super(Seat, self).clean()
-
-    def save(self, *args, **kwargs):
-
-        if self.current:
-            current_count = Seat.objects.filter(contender=self.contender, current=True)
-            if self.pk:
-                current_count = current_count.exclude(pk=self.pk)
-            if current_count.count():
-                self.current = False
-        super(Seat, self).save(*args, **kwargs)
 
     def __str__(self):
         return '%s in %s' % (self.contender.driver, self.team)
@@ -332,10 +330,9 @@ class Result(models.Model):
 
     def __check_fastest_lap(self):
         if self.fastest_lap:
-            fastest_count = Result.objects.filter(race=self.race, fastest_lap=True)
-            if self.pk:
-                fastest_count = fastest_count.exclude(pk=self.pk)
-            if fastest_count.count():
+            pk = self.pk if self.pk else None
+            fastest_count = Result.objects.filter(race=self.race, fastest_lap=True).exclude(pk=pk).count()
+            if fastest_count:
                 self.fastest_lap = False
 
     def clean(self, *args, **kwargs):
