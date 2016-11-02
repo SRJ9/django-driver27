@@ -133,7 +133,8 @@ def seat_season(sender, instance, action, pk_set, **kwargs):
                 errors.append(
                     '%s is not a team of %s' % (instance.team, pk_season)
                 )
-        raise ValidationError(errors)
+        if errors:
+            raise ValidationError(errors)
 
 m2m_changed.connect(seat_season, sender=Seat.seasons.through)
 
@@ -392,5 +393,6 @@ class ContenderSeason(object):
 
 @receiver(pre_save)
 def pre_save_handler(sender, instance, *args, **kwargs):
-    if isinstance(instance, (Driver, Team, Competition, Contender, Seat, Circuit, GrandPrix, Race, Season, Result)):
-        raise Exception('save handler')
+    model_list = (Driver, Team, Competition, Contender, Seat, Circuit, GrandPrix, Race, Season, Result, TeamSeason)
+    if isinstance(instance, model_list):
+        instance.full_clean()
