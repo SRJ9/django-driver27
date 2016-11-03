@@ -3,3 +3,4 @@ django-countries
 django-tabbed-admin
 python-slugify
 tox
+django-exclusivebooleanfield

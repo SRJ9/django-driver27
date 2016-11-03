@@ -9,6 +9,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from . import punctuation
 from slugify import slugify
 from django_countries.fields import CountryField
+from exclusivebooleanfield.fields import ExclusiveBooleanField
 
 @python_2_unicode_compatible
 class Driver(models.Model):
@@ -89,7 +90,7 @@ class Team(models.Model):
 class Seat(models.Model):
     team = models.ForeignKey('Team', related_name='seats')
     contender = models.ForeignKey('Contender', related_name='seats')
-    current = models.BooleanField(default=False)
+    current = ExclusiveBooleanField(on='contender', default=False)
     seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None)
 
     def _check_current(self):
@@ -323,17 +324,10 @@ class Result(models.Model):
     seat = models.ForeignKey(Seat, related_name='results')
     qualifying = models.IntegerField(blank=True, null=True, default=None)
     finish = models.IntegerField(blank=True, null=True, default=None)
-    fastest_lap = models.BooleanField(default=False)
+    fastest_lap = ExclusiveBooleanField(on='race', default=False)
     retired = models.BooleanField(default=False)
     wildcard = models.BooleanField(default=False)
     comment = models.CharField(max_length=250, blank=True, null=True, default=None)
-
-    def __check_fastest_lap(self):
-        if self.fastest_lap:
-            pk = self.pk if self.pk else None
-            fastest_count = Result.objects.filter(race=self.race, fastest_lap=True).exclude(pk=pk).count()
-            if fastest_count:
-                self.fastest_lap = False
 
     def clean(self, *args, **kwargs):
         seat_errors = []
@@ -343,7 +337,6 @@ class Result(models.Model):
             seat_errors.append('Seat is not in current season')
         if seat_errors:
             raise ValidationError('Invalid Seat in this race. '+'\n'.join(seat_errors))
-        self.__check_fastest_lap()
         super(Result, self).clean(*args, **kwargs)
 
     @property

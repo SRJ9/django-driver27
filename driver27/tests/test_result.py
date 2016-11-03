@@ -15,15 +15,16 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertIsNone(result.save())
         seat_a = result.seat
         race = result.race
+        self.assertEquals(Result.objects.get(race=race, seat=seat_a).fastest_lap, True)
         # create result_b
         seat_b = self.get_test_seat_b(seat_a=seat_a)
         result_b = self.get_test_result(seat=seat_b, race=race)
         result_b.fastest_lap = True
         self.assertIsNone(result_b.save())
-        # Although both results have fastest_lap=True, only the first is saved.
+        # Although both results have fastest_lap=True, only the last is saved.
         self.assertEquals(Result.objects.filter(race=race, fastest_lap=True).count(), 1)
-        self.assertEquals(Result.objects.get(race=race, seat=seat_a).fastest_lap, True)
-        self.assertEquals(Result.objects.get(race=race, seat=seat_b).fastest_lap, False)
+        self.assertEquals(Result.objects.get(race=race, seat=seat_a).fastest_lap, False)
+        self.assertEquals(Result.objects.get(race=race, seat=seat_b).fastest_lap, True)
 
     def test_result_points(self):
         result = self.get_test_result()
