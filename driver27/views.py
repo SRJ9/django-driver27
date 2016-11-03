@@ -38,23 +38,29 @@ def season_view(request, competition_slug, year):
     tpl = 'driver27/season-view.html'
     return render(request, tpl, context)
 
+def _rank_view(request, competition_slug, year, type='driver'):
+    season = get_season(competition_slug, year)
+    if type == 'driver':
+        rank = season.points_rank()
+        rank_title = 'DRIVERS'
+        tpl = 'driver27/driver-list.html'
+    elif type == 'team':
+        rank = season.team_points_rank()
+        rank_title = 'TEAMS'
+        tpl = 'driver27/team-list.html'
+    else:
+        raise Http404('Impossible rank')
+    title = '%s [%s]' % (season, rank_title)
+
+    context = {'rank': rank, 'season': season, 'title': title}
+    return render(request, tpl, context)
 
 def driver_rank_view(request, competition_slug, year):
-    season = get_season(competition_slug, year)
-    rank = season.points_rank()
-    title = '%s [DRIVERS]' % season
-    context = {'rank': rank, 'season': season, 'title': title}
-    tpl = 'driver27/driver-list.html'
-    return render(request, tpl, context)
+    return _rank_view(request, competition_slug, year, type='driver')
 
 
 def team_rank_view(request, competition_slug, year):
-    season = get_season(competition_slug, year)
-    rank = season.team_points_rank()
-    title = '%s [TEAMS]' % season
-    context = {'rank': rank, 'season': season, 'title': title}
-    tpl = 'driver27/team-list.html'
-    return render(request, tpl, context)
+    return _rank_view(request, competition_slug, year, type='team')
 
 
 def race_list(request, competition_slug, year):

@@ -163,21 +163,6 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
     list_filter = ('season',)
     readonly_fields = ('print_results_link',)
 
-    def print_pole(self, obj):
-        pole = obj.pole
-        return "%s" % obj.pole.contender.driver if pole else None
-    print_pole.short_description = 'Pole'
-
-    def print_winner(self, obj):
-        winner = obj.winner
-        return "%s" % winner.contender.driver if winner else None
-    print_winner.short_description = 'Winner'
-
-    def print_fastest(self, obj):
-        fastest = obj.fastest
-        return "%s" % fastest.contender.driver if fastest else None
-    print_fastest.short_description = 'Fastest'
-
     def get_urls(self):
         urls = super(RaceAdmin, self).get_urls()
         urlpatterns = [
@@ -185,6 +170,35 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
         ]
 
         return urlpatterns + urls
+
+    def print_seat(self, seat):
+        return "%s" % seat.contender.driver if seat else None
+
+    def print_pole(self, obj):
+        return self.print_seat(obj.pole)
+    print_pole.short_description = 'Pole'
+
+    def print_winner(self, obj):
+        return self.print_seat(obj.winner)
+    print_winner.short_description = 'Winner'
+
+    def print_fastest(self, obj):
+        return self.print_seat(obj.fastest)
+    print_fastest.short_description = 'Fastest'
+
+    def clean_qualifying(self, qualifying):
+        try:
+            qualifying = int(qualifying)
+        except ValueError:
+            qualifying = None
+        return qualifying
+
+    def clean_finish(self, finish):
+        try:
+            finish = int(finish)
+        except ValueError:
+            finish = None
+        return finish
 
     def edit_result_entries(self, request, entries, race, action='update'):
         for entry in entries:
@@ -195,15 +209,8 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
             retired = request.POST.get(field_prefix + 'retired', False)
             wildcard = request.POST.get(field_prefix + 'wildcard', False)
 
-            try:
-                qualifying = int(qualifying)
-            except ValueError:
-                qualifying = None
-
-            try:
-                finish = int(finish)
-            except ValueError:
-                finish = None
+            qualifying = self.clean_qualifying(qualifying)
+            finish = self.clean_finish(finish)
 
             dict_to_save = {
                 'qualifying': qualifying,

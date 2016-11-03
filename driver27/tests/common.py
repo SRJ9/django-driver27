@@ -14,6 +14,12 @@ def retro_encode(text):
     else:
         return text
 
+class CommonCreateTestCase(object):
+    def set_test_create(self, model, **kwargs):
+        self.assertTrue(model.objects.create(**kwargs))
+        return model.objects.get(**kwargs)
+
+
 class CommonDriverTestCase(object):
     def set_test_driver(self, **kwargs):
         self.assertTrue(Driver.objects.create(year_of_birth=1985, country='ES', **kwargs))
@@ -27,10 +33,10 @@ class CommonDriverTestCase(object):
         test_driver_args = {'last_name': 'López', 'first_name': 'Jaime'}
         return self.set_test_driver(**test_driver_args)
 
-class CommonCompetitionTestCase(object):
+
+class CommonCompetitionTestCase(CommonCreateTestCase):
     def set_test_competition(self, **kwargs):
-        self.assertTrue(Competition.objects.create(**kwargs))
-        return Competition.objects.get(**kwargs)
+        return self.set_test_create(model=Competition, **kwargs)
 
     def get_test_competition_a(self):
         test_competition_args = {'name': 'Competición A', 'full_name': 'Competición ABC'}
@@ -40,10 +46,9 @@ class CommonCompetitionTestCase(object):
         test_competition_args = {'name': 'Competición B', 'full_name': 'Competición BDF'}
         return self.set_test_competition(**test_competition_args)
 
-class CommonTeamTestCase(object):
+class CommonTeamTestCase(CommonCreateTestCase):
     def set_test_team(self, **kwargs):
-        self.assertTrue(Team.objects.create(**kwargs))
-        return Team.objects.get(**kwargs)
+        return self.set_test_create(model=Team, **kwargs)
 
     def get_test_team(self):
         team_args = {'name': 'Escudería Tec Auto', 'full_name': 'Escudería Tec Auto', 'country': 'ES'}
@@ -73,8 +78,7 @@ class CommonContenderTestCase(CommonDriverTestCase, CommonCompetitionTestCase):
 
 class CommonSeasonTestCase(CommonCompetitionTestCase):
     def set_test_season(self, **kwargs):
-        self.assertTrue(Season.objects.create(**kwargs))
-        return Season.objects.get(**kwargs)
+        return self.set_test_create(model=Season, **kwargs)
 
     def get_test_season(self, competition):
         season_args = {'year': '2016', 'competition': competition, 'punctuation': 'F1-25', 'rounds': 10}
@@ -150,21 +154,29 @@ class CommonRaceTestCase(CommonSeasonTestCase):
         return race
 
 class CommonResultTestCase(CommonSeatTestCase, CommonRaceTestCase):
+    def set_test_result(self, *args, **kwargs):
+        self.assertTrue(Result.objects.create(**kwargs))
+        result = Result.objects.get(**{'seat': kwargs['seat'], 'race': kwargs['race']})
+        return result
+
+    def get_result_seat(self, seat):
+        if not seat:
+            seat = self.get_test_seat()
+        return seat
+
+    def get_result_race(self, race, competition):
+        if not race:
+            race = self.get_test_race(competition=competition)
+        return race
+
+
     def get_test_result(self, seat=None, race=None, qualifying=None, finish=None,
                         raise_seat_exception=False, raise_team_exception=False):
         # when raise_team_exception, the team-season will not be created
         # raise a exception, because the team is invalid in that season
-        if not seat:
-            seat = self.get_test_seat()
+        seat = self.get_result_seat(seat) # if seat is None, get default seat
         competition = seat.contender.competition
-        if not race:
-            race = self.get_test_race(competition=competition)
-
-        season = race.season
-        if not raise_team_exception and seat.team not in season.teams.all():
-            self.assertTrue(TeamSeason.objects.create(team=seat.team, season=season))
-        if not raise_team_exception and not raise_seat_exception and seat not in season.seats.all():
-            self.assertIsNone(seat.seasons.add(season))
+        race = self.get_result_race(race=race, competition=competition) # If Race is None, get default race
         result_args = {
             'seat': seat,
             'race': race,
@@ -175,11 +187,14 @@ class CommonResultTestCase(CommonSeatTestCase, CommonRaceTestCase):
             'wildcard': False,
             'comment': None
         }
-        if raise_seat_exception:
-            self.assertRaises(ValidationError, Result.objects.create, **result_args)
-        elif raise_team_exception:
+        season = race.season
+        if not raise_team_exception:
+            if seat.team not in season.teams.all():
+                self.assertTrue(TeamSeason.objects.create(team=seat.team, season=season))
+            if not raise_seat_exception and seat not in season.seats.all():
+                self.assertIsNone(seat.seasons.add(season))
+
+        if raise_seat_exception or raise_team_exception:
             self.assertRaises(ValidationError, Result.objects.create, **result_args)
         else:
-            self.assertTrue(Result.objects.create(**result_args))
-            result = Result.objects.get(**{'seat': seat, 'race': race})
-            return result
+            return self.set_test_result(**result_args)
