@@ -93,19 +93,11 @@ class Seat(models.Model):
     current = ExclusiveBooleanField(on='contender', default=False)
     seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None)
 
-    def _check_current(self):
-        if self.current:
-            pk = self.pk if self.pk else None
-            current_count = Seat.objects.filter(contender=self.contender, current=True).exclude(pk=pk).count()
-            if current_count:
-                self.current = False
-
     def clean(self):
         if self.contender.competition not in self.team.competitions.all():
             raise ValidationError(
                 "%s is not a team of %s" % (self.team, self.contender.competition)
             )
-        self._check_current()
         super(Seat, self).clean()
 
     def __str__(self):

@@ -166,7 +166,10 @@ class ViewTest(FixturesTest):
         self.assertEquals(ma.print_winner(race), str(race.winner.contender.driver))
         self.assertEquals(ma.print_fastest(race), str(race.fastest.contender.driver))
         self.assertIsNotNone(ma.print_results_link(race))
-
+        self.assertEquals(ma.clean_qualifying('1'), 1)
+        self.assertIsNone(ma.clean_qualifying(''))
+        self.assertEquals(ma.clean_finish('1'), 1)
+        self.assertIsNone(ma.clean_finish(''))
 
         request = self.factory.get(reverse("admin:driver27_race_results", args=[race.pk]))
         self.assertTrue(ma.results(request, race.pk))
@@ -194,6 +197,8 @@ class ViewTest(FixturesTest):
         self._check_get_changelist(ma)
         contender = Contender.objects.get(pk=1)
         self.assertIsNotNone(ma.print_current(contender))
+        request = get_request()
+        self.assertTrue(ma.get_form(request=request, obj=contender))
 
     def _check_formfield_for_foreignkey(self, ma, request_obj, dbfield):
         request = get_request()

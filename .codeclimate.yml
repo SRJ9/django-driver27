@@ -26,3 +26,4 @@ ratings:
   - "**.rb"
 exclude_paths:
  - "driver27/migrations/"
+ - "driver27/tests/"

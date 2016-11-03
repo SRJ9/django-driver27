@@ -123,3 +123,14 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 TABBED_ADMIN_USE_JQUERY_UI = True
+
+# Append punctuation to tests
+DRIVER27_PUNCTUATION = [
+    {
+        'code': 'EURO',
+        'type': 'full',
+        'finish': [12, 10, 8, 7, 6, 5, 4, 3, 2, 1],
+        'fastest_lap': 0,
+        'label': 'EUROVISION'
+    },
+]

@@ -30,3 +30,8 @@ class RaceTestCase(TestCase, CommonRaceTestCase):
         # expected race changes (adding grandprix to str)
         expected_race = '%s-%s.%s' % (season, race.round, grandprix)
         self.assertEquals(str(race), expected_race)
+
+    def test_race_round_exception(self):
+        race = self.get_test_race()
+        race.round = 999
+        self.assertRaises(ValidationError, race.save)
