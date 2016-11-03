@@ -119,48 +119,48 @@ class ViewTest(FixturesTest):
     #     # Check that the response is 200 OK.
     #     self.assertEqual(response.status_code, 302)
 
+    def _check_get_changelist(self, ma):
+        request = get_request()
+        self.assertTrue(ma.get_changelist(request=request))
+
+
     def test_season_admin(self):
         ma = SeasonAdmin(Season, self.site)
-        request = get_request()
-        ma.get_changelist(request=request)
+        self._check_get_changelist(ma)
         self.assertTrue(ma.get_form(request=None, obj=None))
+
+        request = get_request()
         season = Season.objects.get(pk=1)
         season_form = ma.get_form(request=request, obj=season)
         self.assertIsNotNone(SeasonAdminForm(season_form))
 
     def test_driver_admin(self):
         ma = DriverAdmin(Driver, self.site)
-        request = get_request()
-        ma.get_changelist(request=request)
+        self._check_get_changelist(ma)
         driver = Driver.objects.get(pk=1)
         self.assertTrue(ma.print_competitions(driver))
 
     def test_team_admin(self):
         ma = TeamAdmin(Team, self.site)
-        request = get_request()
-        ma.get_changelist(request=request)
+        self._check_get_changelist(ma)
         team = Team.objects.get(pk=1)
         self.assertTrue(ma.print_competitions(team))
 
     def test_competition_admin(self):
         ma = CompetitionAdmin(Competition, self.site)
-        request = get_request()
-        ma.get_changelist(request=request)
+        self._check_get_changelist(ma)
 
     def test_circuit_admin(self):
         ma = CircuitAdmin(Circuit, self.site)
-        request = get_request()
-        ma.get_changelist(request=request)
+        self._check_get_changelist(ma)
 
     def test_grandprix_admin(self):
         ma = GrandPrixAdmin(GrandPrix, self.site)
-        request = get_request()
-        ma.get_changelist(request=request)
+        self._check_get_changelist(ma)
 
     def test_race_admin(self):
         ma = RaceAdmin(Race, self.site)
-        request = get_request()
-        ma.get_changelist(request=request)
+        self._check_get_changelist(ma)
         race = Race.objects.get(pk=1)
         self.assertEquals(ma.print_pole(race), str(race.pole.contender.driver))
         self.assertEquals(ma.print_winner(race), str(race.winner.contender.driver))
@@ -191,33 +191,30 @@ class ViewTest(FixturesTest):
 
     def test_contender_admin(self):
         ma = ContenderAdmin(Contender, self.site)
-        request = get_request()
-        ma.get_changelist(request=request)
+        self._check_get_changelist(ma)
         contender = Contender.objects.get(pk=1)
         self.assertIsNotNone(ma.print_current(contender))
+
+    def _check_formfield_for_foreignkey(self, ma, request_obj, dbfield):
+        request = get_request()
+        request._obj_ = request_obj
+        self.assertIsNotNone(ma.formfield_for_foreignkey(dbfield, request=request))
+
 
     def test_seat_inline_admin(self):
         ma = SeatInline(ContenderAdmin, self.site)
         contender = Contender.objects.get(pk=1)
-        request = get_request()
-        request._obj_ = contender
-        self.assertIsNotNone(ma.formfield_for_foreignkey(Seat.team.field, request=request))
+        self._check_formfield_for_foreignkey(ma, request_obj=contender, dbfield=Seat.team.field)
 
     def test_seat_season_inline_admin(self):
         ma = SeatSeasonInline(SeasonAdmin, self.site)
         season = Season.objects.get(pk=1)
-        request = get_request()
-        request._obj_ = season
-        self.assertIsNotNone(ma.formfield_for_foreignkey(Seat.seasons.through.seat.field,
-                                                                     request=request))
+        self._check_formfield_for_foreignkey(ma, request_obj=season, dbfield=Seat.seasons.through.seat.field)
 
     def test_team_season_inline_admin(self):
         ma = TeamSeasonInline(SeasonAdmin, self.site)
         season = Season.objects.get(pk=1)
-        request = get_request()
-        request._obj_ = season
-        self.assertIsNotNone(ma.formfield_for_foreignkey(TeamSeason.team.field,
-                                                                     request=request))
+        self._check_formfield_for_foreignkey(ma, request_obj=season, dbfield=TeamSeason.team.field)
 
     def test_related_competition_admin(self):
         race = Race.objects.get(pk=1)
