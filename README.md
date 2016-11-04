@@ -40,6 +40,7 @@ Demo
 $ git clone https://github.com/SRJ9/django-driver27
 $ cd django-driver27 # or name of destiny folder
 $ python demo/manage.py runserver
+$ # login /admin: admin:pass
 ```
 
 Todo
