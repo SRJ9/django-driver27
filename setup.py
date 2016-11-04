@@ -9,7 +9,7 @@ readme.close()
 
 setup(
     name='driver27',
-    version='0.14-ALO',
+    version='0.14',
     packages=['driver27', 'driver27.tests', 'driver27.migrations'],
     url='https://github.com/SRJ9/django-driver27.git',
     download_url='https://github.com/SRJ9/django-driver27/archive/master.zip',
