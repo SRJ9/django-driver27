@@ -8,6 +8,21 @@ Racing competition manager in Django where you can manage different
 motor competitions with its own punctuation rules, races, drivers, teams
 which, at the same time, can be part of multiple competitions.
 
+Modify your settings.py
+=======================
+```
+INSTALLED_APPS = [
+    'bootstrap3',
+...
+    'django_countries',
+    'tabbed_admin',
+    'driver27'
+]
+
+
+TABBED_ADMIN_USE_JQUERY_UI = True
+```
+
 Versions
 ========
 - 0.14-ALO (Fernando Alonso 14)
