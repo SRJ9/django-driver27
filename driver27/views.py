@@ -41,29 +41,58 @@ def season_view(request, competition_slug, year):
 
 def _rank_view(request, competition_slug, year, type='driver'):
     season = get_season(competition_slug, year)
+    access_to_road = False
+    has_champion = False
     scoring = [(punctuation['label'], punctuation['code']) for punctuation in DRIVER27_PUNCTUATION]
     scoring_code = request.POST.get('scoring', season.punctuation)
     if type == 'driver':
         rank = season.points_rank(scoring_code=scoring_code)
         rank_title = 'DRIVERS'
         tpl = 'driver27/driver-list.html'
+        has_champion = season.has_champion()
+        access_to_road = (not has_champion and season.pending_races() <= 5)
     elif type == 'team':
         rank = season.team_points_rank()
         rank_title = 'TEAMS'
         tpl = 'driver27/team-list.html'
     else:
         raise Http404('Impossible rank')
+
     title = '%s [%s]' % (season, rank_title)
 
     context = {'rank': rank,
                'season': season,
                'title': title,
+               'access_to_road': access_to_road,
+               'has_champion': has_champion,
                'scoring': scoring,
                'scoring_code': scoring_code}
     return render(request, tpl, context)
 
 def driver_rank_view(request, competition_slug, year):
     return _rank_view(request, competition_slug, year, type='driver')
+
+def driver_road_view(request, competition_slug, year):
+    season = get_season(competition_slug, year)
+    if not season.has_champion():
+        pending_races = season.pending_races()
+        pending_points = season.pending_points()
+        rank = season.points_rank()
+        minimum_points_to_road = season.leader[0] - pending_points
+        road_rank = [position for position in rank if minimum_points_to_road <= position[0]]
+        scoring = season.get_scoring()
+        title = '%s - Road to the championship' % season
+        tpl = 'driver27/driver-list.html'
+
+        context = {'rank': road_rank,
+                   'season': season,
+                   'title': title,
+                   'scoring': scoring['finish'],
+                   'pending_races': range(1, pending_races+1),
+                   'road_to_championship': True}
+    else:
+        raise Http404('%s is the Champions!' % season.leader[1])
+    return render(request, tpl, context)
 
 
 def team_rank_view(request, competition_slug, year):
