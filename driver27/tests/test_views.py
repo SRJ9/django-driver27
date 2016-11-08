@@ -49,8 +49,8 @@ class ViewTest(FixturesTest):
         # Issue a GET request.
         response = self.client.get(reverse('competition-list'))
 
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
+        # Check that the response is 302 OK.
+        self.assertEqual(response.status_code, 302)
 
     def test_competition_view(self):
         # Issue a GET request.
