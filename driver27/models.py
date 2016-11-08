@@ -168,9 +168,11 @@ class Season(models.Model):
     teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeason')
     punctuation = models.CharField(max_length=20, null=True, default=None)
 
-    def get_scoring(self):
+    def get_scoring(self, code=None):
+        if not code:
+            code = self.punctuation
         for scoring in punctuation.DRIVER27_PUNCTUATION:
-            if scoring['code'] == self.punctuation:
+            if scoring['code'] == code:
                 return scoring
         return None
 
@@ -178,12 +180,13 @@ class Season(models.Model):
         seats = [seat.pk for seat in self.seats.all()]
         return Contender.objects.filter(seats__pk__in=seats).distinct()
 
-    def points_rank(self):
+    def points_rank(self, scoring_code=None):
         contenders = self.contenders()
+        scoring = self.get_scoring(scoring_code)
         rank = []
         for contender in contenders:
             contender_season = contender.get_season(self)
-            rank.append((contender_season.get_points(), contender.driver, contender_season.teams_verbose))
+            rank.append((contender_season.get_points(scoring=scoring), contender.driver, contender_season.teams_verbose))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
@@ -356,15 +359,18 @@ class Result(models.Model):
                 return points_scoring[self.finish - 1] * factor
         return 0
 
+    def points_calculator(self, scoring):
+        points = 0
+        if not scoring:
+            scoring = self.race.season.get_scoring()
+        points += self._get_fastest_lap_points(scoring)
+        points += self._get_race_points(scoring)
+        return points if points > 0 else None
+
     @property
     def points(self):
-        # @todo allow scoring simulate in future
         scoring = self.race.season.get_scoring()
-        points = 0
-        if scoring:
-            points += self._get_fastest_lap_points(scoring)
-            points += self._get_race_points(scoring)
-        return points if points > 0 else None
+        return self.points_calculator(scoring)
 
 
     class Meta:
@@ -389,12 +395,16 @@ class ContenderSeason(object):
         self.teams_verbose = ', '.join([team.name for team in self.teams])
 
 
-    def get_points(self, limit_races=None):
+    def get_points(self, limit_races=None, scoring=None):
         results = Result.objects.filter(race__season=self.season, seat__contender=self.contender)
         if isinstance(limit_races, int):
             results = results.filter(race__round__lte=limit_races)
         results = results.order_by('race__round')
-        points_list = [result.points for result in results.all() if result.points is not None]
+        points_list = []
+        for result in results.all():
+            result_points = result.points_calculator(scoring)
+            if result_points:
+                points_list.append(result_points)
         return sum(points_list)
 
 @receiver(pre_save)

@@ -28,6 +28,27 @@ DRIVER27_PUNCTUATION = [
         'finish': [25,20,16,13,11,10,9,8,7,6,5,4,3,2,1],
         'fastest_lap': 0,
         'label': 'Moto GP'
+    },
+    {
+        'code': 'MotoGP-92',
+        'type': 'full',
+        'finish': [20,15,12,10,8,6,4,3,2,1],
+        'fastest_lap': 0,
+        'label': 'Moto GP (only 1992)'
+    },
+    {
+        'code': 'MotoGP-88-91',
+        'type': 'full',
+        'finish': [20,17,15,13,11,10,9,8,7,6,5,4,3,2,1],
+        'fastest_lap': 0,
+        'label': 'Moto GP (1988-91)'
+    },
+    {
+        'code': 'MotoGP-77-87',
+        'type': 'full',
+        'finish': [15,12,10,8,6,6,5,3,2,1],
+        'fastest_lap': 0,
+        'label': 'Moto GP (1977-87)'
     }
 ]
 

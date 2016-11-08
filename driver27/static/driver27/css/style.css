@@ -30,4 +30,8 @@
 tr:not(.points) {
   font-size: 0.9em; }
 
+select[name='scoring'] {
+  display: inline-table;
+  max-width: 300px; }
+
 /*# sourceMappingURL=style.css.map */

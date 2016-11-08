@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.db.models import Count
 from django.http import Http404
 from .models import Competition, Season, Race
+from .punctuation import DRIVER27_PUNCTUATION
 
 
 def get_season(slug, year):
@@ -40,8 +41,10 @@ def season_view(request, competition_slug, year):
 
 def _rank_view(request, competition_slug, year, type='driver'):
     season = get_season(competition_slug, year)
+    scoring = [(punctuation['label'], punctuation['code']) for punctuation in DRIVER27_PUNCTUATION]
+    scoring_code = request.POST.get('scoring', season.punctuation)
     if type == 'driver':
-        rank = season.points_rank()
+        rank = season.points_rank(scoring_code=scoring_code)
         rank_title = 'DRIVERS'
         tpl = 'driver27/driver-list.html'
     elif type == 'team':
@@ -52,7 +55,11 @@ def _rank_view(request, competition_slug, year, type='driver'):
         raise Http404('Impossible rank')
     title = '%s [%s]' % (season, rank_title)
 
-    context = {'rank': rank, 'season': season, 'title': title}
+    context = {'rank': rank,
+               'season': season,
+               'title': title,
+               'scoring': scoring,
+               'scoring_code': scoring_code}
     return render(request, tpl, context)
 
 def driver_rank_view(request, competition_slug, year):
