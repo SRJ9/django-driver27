@@ -30,6 +30,12 @@
 tr:not(.points) {
   font-size: 0.9em; }
 
+.result_error {
+  background-color: #E34A3E; }
+
+.champion_points {
+  font-size: 1.3em; }
+
 select[name='scoring'] {
   display: inline-table;
   max-width: 300px; }

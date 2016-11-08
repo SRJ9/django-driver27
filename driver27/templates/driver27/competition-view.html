@@ -1,5 +1,5 @@
 {% extends 'driver27/base.html' %}
-{% load bootstrap3 %}
+{% load bootstrap3 champion_tag %}
 
 {% block dr27_menu %}
     {{ block.super }}
@@ -23,6 +23,7 @@
                 </a>
             </td>
             <td>
+                {% champion_tag season.pk as champion %} {{ champion|safe }}
                 {{ season.leader.0 }} {{ season.leader.1 }} ({{ season.leader.2 }})
             </td>
             <td>
