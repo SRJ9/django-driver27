@@ -176,6 +176,24 @@ class Season(models.Model):
                 return scoring
         return None
 
+    def pending_races(self):
+        past_races = Race.objects.filter(season=self, results__pk__isnull=False).distinct().count()
+        pending_races = (self.rounds - past_races)
+        return pending_races
+
+    def pending_points(self):
+        scoring = self.get_scoring()
+        max_score_by_race = sorted(scoring['finish'], reverse=True)[0]
+        pending_races = self.pending_races()
+        return pending_races * max_score_by_race
+
+    def has_champion(self):
+        leader_points = self.leader[0] if self.leader else 0
+        runner_up_points = self.runner_up[0] if self.runner_up else 0
+        pending_points = self.pending_points()
+        leader_distance = leader_points - runner_up_points
+        return leader_distance >= pending_points
+
     def contenders(self):
         seats = [seat.pk for seat in self.seats.all()]
         return Contender.objects.filter(seats__pk__in=seats).distinct()
@@ -210,6 +228,11 @@ class Season(models.Model):
     @property
     def leader(self):
         return self.get_leader()
+
+    @property
+    def runner_up(self):
+        rank = self.points_rank()
+        return rank[1] if len(rank) > 1 else None
 
     @property
     def team_leader(self):

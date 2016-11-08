@@ -20,6 +20,21 @@ class SeasonTestCase(TestCase, CommonSeasonTestCase, CommonSeatTestCase):
         self.assertIsNone(season.save())
         self.assertIsNone(season.get_scoring())
 
+    def test_season_has_champion(self):
+        competition = self.get_test_competition_a()
+        season = self.get_test_season(competition)
+        self.assertFalse(season.has_champion())
+
+    def test_season_pending_races(self):
+        competition = self.get_test_competition_a()
+        season = self.get_test_season(competition)
+        self.assertIsInstance(season.pending_races(), int)
+
+    def test_season_pending_points(self):
+        competition = self.get_test_competition_a()
+        season = self.get_test_season(competition)
+        self.assertIsInstance(season.pending_points(), (int, float))
+
     def test_season_contenders(self):
         seat_a = self.get_test_seat()
         team_a = seat_a.team
