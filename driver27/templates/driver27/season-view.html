@@ -5,32 +5,12 @@
 {% endblock %}
 {% block dr27_content %}
     {{ block.super }}
-     <table class="table">
-    <tr>
-        <th>Points</th>
-        <th>Driver</th>
-        <th>Team</th>
-    </tr>
-    {% for points,driver,teams in driver_rank %}
-        <tr>
-        <td>{{ points }}</td>
-        <td>{{ driver }}</td>
-        <td>{{ teams }}</td>
 
-        </tr>
-    {% endfor %}
-     </table>
+    {% with rank=driver_rank %}
+        {% include 'driver27/driver-list-table.html' %}
+    {% endwith %}
 
-     <table class="table">
-    <tr>
-        <th>Points</th>
-        <th>Team</th>
-    </tr>
-    {% for points,team in team_rank %}
-        <tr>
-        <td>{{ points }}</td>
-        <td>{{ team }}</td>
-        </tr>
-    {% endfor %}
-     </table>
+    {% with rank=team_link %}
+        {% include 'driver27/team-list-table.html' %}
+    {% endwith %}
 {% endblock %}

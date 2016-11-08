@@ -8,17 +8,5 @@
 {% endblock %}
 {% block dr27_content %}
     {{ block.super }}
-    <table class="table">
-    <tr>
-        <th>Points</th>
-        <th>{{ model | capfirst }}</th>
-    </tr>
-    {% for points,team in rank %}
-        <tr>
-        <td>{{ points }}</td>
-        <td>{{ team }}</td>
-        </tr>
-    {% endfor %}
-
-    </table>
+    {% include 'driver27/team-list-table.html' %}
 {% endblock %}

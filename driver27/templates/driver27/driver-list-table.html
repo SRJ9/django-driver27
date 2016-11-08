@@ -1,0 +1,15 @@
+    <table class="table">
+    <tr>
+        <th>Points</th>
+        <th>Driver</th>
+        <th>Team</th>
+    </tr>
+    {% for points,driver,team in rank %}
+        <tr>
+        <td>{{ points }}</td>
+        <td>{{ driver }}</td>
+        <td>{{ team }}</td>
+        </tr>
+    {% endfor %}
+
+    </table>
