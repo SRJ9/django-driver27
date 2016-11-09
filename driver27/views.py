@@ -72,6 +72,9 @@ def _rank_view(request, competition_slug, year, type='driver'):
 def driver_rank_view(request, competition_slug, year):
     return _rank_view(request, competition_slug, year, type='driver')
 
+def driver_medal_view(request, competition_slug, year):
+    pass
+
 def driver_road_view(request, competition_slug, year):
     season = get_season(competition_slug, year)
     if not season.has_champion():
