@@ -417,18 +417,35 @@ class ContenderSeason(object):
         self.teams = Team.objects.filter(seats__in=self.seats)
         self.teams_verbose = ', '.join([team.name for team in self.teams])
 
-
-    def get_points(self, limit_races=None, scoring=None):
+    def get_results(self, limit_races=None):
         results = Result.objects.filter(race__season=self.season, seat__contender=self.contender)
         if isinstance(limit_races, int):
             results = results.filter(race__round__lte=limit_races)
         results = results.order_by('race__round')
+        return results
+
+    def get_points(self, limit_races=None, scoring=None):
+        results = self.get_results(limit_races=limit_races)
         points_list = []
         for result in results.all():
             result_points = result.points_calculator(scoring)
             if result_points:
                 points_list.append(result_points)
         return sum(points_list)
+        
+    def get_positions_count(self, limit_races=None):
+        results = self.get_results(limit_races=limit_races)
+        last_position=30
+        positions = []
+        for x in range(1, last_position):
+            position_count = results.filter(finish=x).count()
+            positions.append(position_count)
+        return positions
+
+    def get_positions_count_str(self, limit_races=None):
+        positions = self.get_positions_count(limit_races=limit_races)
+        positions_str = ''.join([str(x).zfill(3) for x in positions])
+        return positions_str
 
 @receiver(pre_save)
 def pre_save_handler(sender, instance, *args, **kwargs):
