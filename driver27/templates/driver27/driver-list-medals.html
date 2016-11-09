@@ -1,0 +1,20 @@
+{% load champion_filter %}
+<table class="table">
+    <tr>
+        <th>Driver</th>
+        <th>Team</th>
+        {% for position in positions %}
+            <th>{{ position }}</th>
+        {% endfor %}
+    </tr>
+    {% for medals_str,driver,team, medals_list in rank %}
+        <tr>
+        <td>{{ driver }}</td>
+        <td>{{ team }}</td>
+        {% for medal in medals_list %}
+            <td>{{ medal }}</td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+
+    </table>

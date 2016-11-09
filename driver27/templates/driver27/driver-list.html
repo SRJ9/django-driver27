@@ -4,6 +4,9 @@
     <li class="nav-item">
         <a class="nav-link" href="{% url 'season-driver' season.competition.slug season.year %}">Drivers</a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-driver-medals' season.competition.slug season.year %}">Medals</a>
+    </li>
     {% if access_to_road %}
         <li class="nav-item">
             <a class="nav-link"
@@ -14,7 +17,11 @@
 {% block dr27_content %}
     {{ block.super }}
     {% include 'driver27/driver-list-scoring-form.html' %}
-    {% include 'driver27/driver-list-table.html' %}
+    {% if medals %}
+        {% include 'driver27/driver-list-medals.html' %}
+    {% else %}
+        {% include 'driver27/driver-list-table.html' %}
+    {% endif %}
 {% endblock %}
 
 {% block bootstrap3_extra_script %}

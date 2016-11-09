@@ -208,6 +208,21 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
+    def olympic_rank(self):
+        contenders = self.contenders()
+        rank = []
+        for contender in contenders:
+            contender_season = contender.get_season(self)
+            position_list = contender_season.get_positions_list()
+            position_str = contender_season.get_positions_str(position_list=position_list)
+            rank.append((position_str,
+                         contender.driver,
+                         contender_season.teams_verbose,
+                         position_list))
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        return rank
+
+
     def team_points_rank(self):
         teams = self.teams.all()
         rank = []
@@ -433,18 +448,19 @@ class ContenderSeason(object):
                 points_list.append(result_points)
         return sum(points_list)
         
-    def get_positions_count(self, limit_races=None):
+    def get_positions_list(self, limit_races=None):
         results = self.get_results(limit_races=limit_races)
-        last_position=30
+        last_position=20
         positions = []
-        for x in range(1, last_position):
+        for x in range(1, last_position+1):
             position_count = results.filter(finish=x).count()
             positions.append(position_count)
         return positions
 
-    def get_positions_count_str(self, limit_races=None):
-        positions = self.get_positions_count(limit_races=limit_races)
-        positions_str = ''.join([str(x).zfill(3) for x in positions])
+    def get_positions_str(self, position_list=None, limit_races=None):
+        if not position_list:
+            position_list = self.get_positions_list(limit_races=limit_races)
+        positions_str = ''.join([str(x).zfill(3) for x in position_list])
         return positions_str
 
 @receiver(pre_save)
