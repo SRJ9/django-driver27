@@ -1,4 +1,4 @@
-{% load champion_tag %}
+{% load champion_filter %}
 <table class="table">
     <tr>
         <th>Points</th>
@@ -16,7 +16,7 @@
         <td id="points_{{ forloop.counter }}">{{ points }}</td>
         <td>{{ driver }}
             {% if forloop.counter == 1%}
-                {% champion_tag season.pk as champion %} {{ champion|safe }}
+                {{ season.pk | champion_filter }}
             {% endif %}
         </td>
         <td>{{ team }}</td>
