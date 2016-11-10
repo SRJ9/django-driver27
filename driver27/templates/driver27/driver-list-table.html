@@ -27,7 +27,9 @@
                    min="1" max="99" data-contender="{{ forloop.parentloop.counter }}"
         /></td>
         {% endfor %}
-        <td id="total_{{ forloop.counter }}" class="total_points">{{ points }} </td>
+        <input type="hidden" id="pos_{{forloop.counter}}" value="{{ positions }}">
+        <input type="hidden" id="update_pos_{{forloop.counter}}" value="{{ positions }}">
+        <td id="total_{{ forloop.counter }}" class="total_points" data-contender="{{ forloop.counter }}">{{ points }} </td>
         {% endif %}
         </tr>
     {% endfor %}

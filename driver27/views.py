@@ -65,7 +65,7 @@ def _rank_view(request, competition_slug, year, type='driver'):
                'title': title,
                'access_to_road': access_to_road,
                'has_champion': has_champion,
-               'scoring': scoring,
+               'scoring_list': scoring,
                'scoring_code': scoring_code}
     return render(request, tpl, context)
 
