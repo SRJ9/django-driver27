@@ -204,8 +204,8 @@ class Season(models.Model):
         rank = []
         for contender in contenders:
             contender_season = contender.get_season(self)
-            rank.append((contender_season.get_points(scoring=scoring), contender.driver, contender_season.teams_verbose))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+            rank.append((contender_season.get_points(scoring=scoring), contender.driver, contender_season.teams_verbose, contender_season.get_positions_str()))
+        rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
         return rank
 
     def olympic_rank(self):

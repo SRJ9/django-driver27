@@ -11,7 +11,7 @@
         <th>Total</th>
         {% endif %}
     </tr>
-    {% for points,driver,team in rank %}
+    {% for points,driver,team, positions in rank %}
         <tr>
         <td id="points_{{ forloop.counter }}">{{ points }}</td>
         <td>{{ driver }}
