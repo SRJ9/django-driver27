@@ -1,9 +1,9 @@
-    {% if not road_to_championship %}
+    {% if scoring_list %}
         <div class="change_punctuation">
             <form method="POST" action="{% url 'season-driver' season.competition.slug season.year %}">
             {% csrf_token %}
                 <select name="scoring" class="form-control" >
-                    {% for sc_label, sc_code in scoring %}
+                    {% for sc_label, sc_code in scoring_list %}
                     <option value="{{ sc_code }}" {% if sc_code == scoring_code %}selected{% endif %}>{{ sc_label }}</option>
                     {% endfor %}
                 </select>

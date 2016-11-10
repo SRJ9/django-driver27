@@ -16,7 +16,7 @@
         <td id="points_{{ forloop.counter }}">{{ points }}</td>
         <td>{{ driver }}
             {% if forloop.counter == 1%}
-                {{ season.pk | champion_filter }}
+                {{ season.pk | champion_filter | safe}}
             {% endif %}
         </td>
         <td>{{ team }}</td>
