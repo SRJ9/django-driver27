@@ -43,8 +43,9 @@ tr:not(.points){
   background-color: #E34A3E;
 }
 
-.champion_points{
+.champion_points, .champion_tag{
     font-size:1.3em;
+    font-weight: bolder;
 }
 
 select[name='scoring']{
