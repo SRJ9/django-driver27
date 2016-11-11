@@ -23,7 +23,7 @@
                 </a>
             </td>
             <td>
-                {{ season.pk | champion_filter }}
+                {{ season.pk | champion_filter | safe}}
                 {{ season.leader.0 }} {{ season.leader.1 }} ({{ season.leader.2 }})
             </td>
             <td>
