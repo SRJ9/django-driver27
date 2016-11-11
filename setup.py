@@ -3,13 +3,13 @@ from setuptools import setup, find_packages
 with open('requirements.txt') as f:
      requirements = f.read().splitlines()
 
-readme = open('README.md', 'r')
+readme = open('README.rst', 'r')
 README_TEXT = readme.read()
 readme.close()
 
 setup(
     name='django-driver27',
-    version='0.16b',
+    version='0.16c',
     include_package_data=True,
     packages=find_packages(),
     url='https://github.com/SRJ9/django-driver27.git',
