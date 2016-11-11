@@ -72,6 +72,9 @@ class ViewTest(FixturesTest):
         # Check that the response is 200 OK.
         self.assertEqual(response.status_code, 200)
 
+        response = self.client.get(reverse('season-driver-olympic', kwargs={'competition_slug': 'f1', 'year': 2016}))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
 
         response = self.client.get(reverse('season-driver-road', kwargs={'competition_slug': 'f1', 'year': 2016}))
         # Check that the response is 200 OK.

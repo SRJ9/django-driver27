@@ -1,0 +1,92 @@
+
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script type="text/javascript">
+
+        var scoring = {{ scoring }};
+
+        function change_results_contender(contender){
+            var points_error = false;
+            var points = 0;
+            var positions = [];
+
+            $('.contender_'+contender).each(function(result){
+                var position = $(this).val();
+                if(position){
+                    if($(this).hasClass('result_error')){
+                        $('#total_'+contender).text('-');
+                        points_error = true;
+                        return false;
+                    }
+                    if(scoring.length >= position){
+                        points += scoring[position-1];
+                    }
+                    positions.push(position);
+                }
+
+            });
+
+            if(!points_error){
+                var positions_str = '';
+                for(var i=1;i<=20;i++){
+                    var default_str = '000';
+                    var position_count = 0;
+                    for(x=0;x<=positions.length;x++){
+                        if(positions[x] == i){
+                            position_count++;
+                        }
+                    }
+                    if(position_count > 0){
+                        positions_str += (default_str + position_count).slice(-default_str.length);
+                    } else {
+                        positions_str += '000';
+                    }
+
+                }
+                var upd_positions = parseInt($('#pos_'+contender).val()) + parseInt(positions_str);
+                $('#update_pos_'+contender).val(upd_positions);
+                var current_points = parseFloat($('#points_'+contender).text());
+                $('#total_'+contender).text(points + current_points);
+            }
+
+        }
+        function change_results(race){
+
+
+            var position_race = [];
+            $('.race_'+race).each(function(result){
+
+                var position = $(this).val();
+                if(position){
+                    contender = $(this).attr('data-contender');
+                    $('#total_'+contender).text('\u27F3');
+                    if(position_race.indexOf(position)>-1){
+                        $(this).addClass('result_error');
+                    } else {
+                        $(this).removeClass('result_error');
+                        position_race.push(position);
+                    }
+                    change_results_contender(contender);
+                }
+
+            });
+
+            var champion = null;
+            var champion_points = 0;
+            var champion_positions_str = null;
+
+            $('.total_points').each(function(total){
+                $(this).removeClass('champion_points');
+                var points = $(this).text();
+                contender = $(this).attr('data-contender');
+                var positions_str = $('#update_pos_'+contender).val();
+                if((points > champion_points) || (points == champion_points && positions_str > champion_positions_str))
+{
+                    champion = $(this);
+                    champion_points = points;
+                    champion_positions_str = positions_str;
+                }
+            });
+
+            $(champion).addClass('champion_points');
+        }
+    </script>

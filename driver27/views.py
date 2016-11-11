@@ -69,14 +69,15 @@ def _rank_view(request, competition_slug, year, type='driver'):
                'scoring_code': scoring_code}
     return render(request, tpl, context)
 
+
 def driver_rank_view(request, competition_slug, year):
     return _rank_view(request, competition_slug, year, type='driver')
 
-def driver_medal_view(request, competition_slug, year):
 
+def driver_olympic_view(request, competition_slug, year):
     season = get_season(competition_slug, year)
     rank = season.olympic_rank()
-    rank_title = 'DRIVERS rank by medal'
+    rank_title = 'DRIVERS rank by olympic mode'
     tpl = 'driver27/driver-list.html'
 
     title = '%s [%s]' % (season, rank_title)
@@ -85,7 +86,7 @@ def driver_medal_view(request, competition_slug, year):
                'season': season,
                'title': title,
                'positions': range(1, 21),
-               'medals': True}
+               'olympic': True}
     return render(request, tpl, context)
 
 def driver_road_view(request, competition_slug, year):

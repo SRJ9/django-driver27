@@ -80,6 +80,7 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         # season contender = 2
         self.assertEquals(len(season.contenders()), 2)
         self.assertEquals(len(season.points_rank()), 2)
+        self.assertEquals(len(season.olympic_rank()), 2)
         self.assertEquals(len(season.team_points_rank()), 1) # seat a and seat b is in the same team
         self.assertEquals(season.leader[1], seat_a.contender.driver) # seat a.driver is the winner, the leader
         self.assertEquals(season.team_leader[1], seat_a.team)
