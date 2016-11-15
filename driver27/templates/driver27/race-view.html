@@ -1,5 +1,5 @@
 {% extends 'driver27/base.html' %}
-{% load static %}
+{% load static i18n %}
 {% block dr27_menu %}
     {% include 'driver27/season-menu-pre.html' %}
     <li class="nav-item">
@@ -13,10 +13,10 @@
     {{ block.super }}
     <table class="table">
     <tr>
-        <th>Position</th>
-        <th>Driver</th>
-        <th>Team</th>
-        <th>Start</th>
+        <th>{%  trans 'Position' %}</th>
+        <th>{%  trans 'Driver' %}</th>
+        <th>{%  trans 'Team' %}</th>
+        <th>{%  trans 'Start' %}</th>
         <th>&nbsp;</th>
     </tr>
     {% for result in results %}
@@ -39,10 +39,10 @@
         </td>
         <td>
             {% if result.wildcard %}
-                <span class="result wildcard">Wildcard</span>
+                <span class="result wildcard">{%  trans 'Wildcard' %}</span>
             {% endif %}
             {% if result.fastest_lap %}
-                <span class="result fastest">Fastest lap</span>
+                <span class="result fastest">{%  trans 'Fastest lap' %}</span>
             {% endif %}
         </td>
         </tr>

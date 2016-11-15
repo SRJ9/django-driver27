@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from django.db.models.signals import m2m_changed, pre_save
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.translation import ugettext as _
 from . import punctuation
 from slugify import slugify
 from django_countries.fields import CountryField
@@ -13,15 +14,16 @@ from exclusivebooleanfield.fields import ExclusiveBooleanField
 
 @python_2_unicode_compatible
 class Driver(models.Model):
-    last_name = models.CharField(max_length=50)
-    first_name = models.CharField(max_length=25)
-    year_of_birth = models.IntegerField()
-    country = CountryField()
-    competitions = models.ManyToManyField('Competition', through='Contender', related_name='drivers')
+    last_name = models.CharField(max_length=50, verbose_name=_('last name'))
+    first_name = models.CharField(max_length=25, verbose_name=_('first name'))
+    year_of_birth = models.IntegerField(verbose_name=_('year of birth'))
+    country = CountryField(verbose_name=_('country'))
+    competitions = models.ManyToManyField('Competition', through='Contender', related_name='drivers',
+                                          verbose_name=_('competitions'))
 
     def clean(self):
         if self.year_of_birth < 1900 or self.year_of_birth > 2099:
-            raise ValidationError('Year_of_birth must be between 1900 and 2099')
+            raise ValidationError(_('Year_of_birth must be between 1900 and 2099'))
         super(Driver, self).clean()
 
     def __str__(self):
@@ -30,12 +32,15 @@ class Driver(models.Model):
     class Meta:
         unique_together = ('last_name', 'first_name')
         ordering = ['last_name', 'first_name']
+        verbose_name = _('Driver')
+        verbose_name_plural = _('Drivers')
+
 
 @python_2_unicode_compatible
 class Competition(models.Model):
-    name = models.CharField(max_length=30, verbose_name='competition', unique=True)
-    full_name = models.CharField(max_length=100, unique=True)
-    country = CountryField(null=True, blank=True, default=None)
+    name = models.CharField(max_length=30, verbose_name=_('competition'), unique=True)
+    full_name = models.CharField(max_length=100, unique=True, verbose_name=_('full name'))
+    country = CountryField(null=True, blank=True, default=None, verbose_name=_('country'))
     slug = models.SlugField(null=True, blank=True, default=None)
 
     def save(self, *args, **kwargs):
@@ -47,12 +52,16 @@ class Competition(models.Model):
 
     class Meta:
         ordering = ['name']
+        verbose_name = _('Competition')
+        verbose_name_plural = _('Competitions')
+
 
 @python_2_unicode_compatible
 class Contender(models.Model):
-    driver = models.ForeignKey(Driver, related_name='career')
-    competition = models.ForeignKey('Competition', related_name='contenders')
-    teams = models.ManyToManyField('Team', through='Seat', related_name='contenders')
+    driver = models.ForeignKey(Driver, related_name='career', verbose_name=_('driver'))
+    competition = models.ForeignKey('Competition', related_name='contenders', verbose_name=_('competition'))
+    teams = models.ManyToManyField('Team', through='Seat', related_name='contenders',
+                                   verbose_name=_('teams'))
 
     def get_season(self, season):
         try:
@@ -67,45 +76,55 @@ class Contender(models.Model):
         return ', '.join([team.name for team in teams.all()]) if teams.count() else None
 
     def __str__(self):
-        return '%s in %s' % (self.driver, self.competition)
+        return _('%(driver)s in %(competition)s') % {'driver': self.driver, 'competition': self.competition}
 
     class Meta:
         unique_together = ('driver', 'competition')
         ordering = ['competition__name', 'driver__last_name', 'driver__first_name']
+        verbose_name = _('Contender')
+        verbose_name_plural = _('Contenders')
+
 
 @python_2_unicode_compatible
 class Team(models.Model):
-    name = models.CharField(max_length=75, verbose_name='team', unique=True)
-    full_name = models.CharField(max_length=200, unique=True)
-    competitions = models.ManyToManyField('Competition', related_name='teams')
-    country = CountryField()
+    name = models.CharField(max_length=75, verbose_name=_('team'), unique=True)
+    full_name = models.CharField(max_length=200, unique=True, verbose_name=_('full name'))
+    competitions = models.ManyToManyField('Competition', related_name='teams', verbose_name=_('competitions'))
+    country = CountryField(verbose_name=_('country'))
 
     def __str__(self):
         return self.name
 
     class Meta:
         ordering = ['name']
+        verbose_name = _('Team')
+        verbose_name_plural = _('Teams')
+
 
 @python_2_unicode_compatible
 class Seat(models.Model):
-    team = models.ForeignKey('Team', related_name='seats')
-    contender = models.ForeignKey('Contender', related_name='seats')
-    current = ExclusiveBooleanField(on='contender', default=False)
-    seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None)
+    team = models.ForeignKey('Team', related_name='seats', verbose_name=_('team'))
+    contender = models.ForeignKey('Contender', related_name='seats', verbose_name=_('contender'))
+    current = ExclusiveBooleanField(on='contender', default=False, verbose_name=_('current team'))
+    seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None, verbose_name=_('seasons'))
 
     def clean(self):
         if self.contender.competition not in self.team.competitions.all():
             raise ValidationError(
-                "%s is not a team of %s" % (self.team, self.contender.competition)
+                _("%(team)s is not a team of %(competition)s") %
+                {'team': self.team, 'competition': self.contender.competition}
             )
         super(Seat, self).clean()
 
     def __str__(self):
-        return '%s in %s' % (self.contender.driver, self.team)
+        return _('%(driver)s in %(team)s') % {'driver': self.contender.driver, 'team': self.team}
 
     class Meta:
         unique_together = ('team', 'contender')
         ordering = ['contender__driver__last_name', 'team']
+        verbose_name = _('Seat')
+        verbose_name_plural = _('Seats')
+
 
 def seat_season(sender, instance, action, pk_set, **kwargs):
     # """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition"""
@@ -118,23 +137,25 @@ def seat_season(sender, instance, action, pk_set, **kwargs):
             pk_season = Season.objects.get(pk=pk)
             if int(pk) not in contender_seasons:
                 errors.append(
-                    '%s is not a/an %s season' % (pk_season, contender_competition)
+                    _('%(season)s is not a/an %(competition)s season')
+                    % {'season': pk_season, 'competition': contender_competition}
                 )
             if int(pk) not in team_seasons:
                 errors.append(
-                    '%s is not a team of %s' % (instance.team, pk_season)
+                    _('%(team)s is not a team of %(season)s') % {'team': instance.team, 'season': pk_season}
                 )
         if errors:
             raise ValidationError(errors)
 
 m2m_changed.connect(seat_season, sender=Seat.seasons.through)
 
+
 @python_2_unicode_compatible
 class Circuit(models.Model):
-    name = models.CharField(max_length=30, verbose_name='circuit', unique=True)
-    city = models.CharField(max_length=100, null=True, blank=True)
-    country = CountryField()
-    opened_in = models.IntegerField()
+    name = models.CharField(max_length=30, verbose_name=_('circuit'), unique=True)
+    city = models.CharField(max_length=100, null=True, blank=True, verbose_name=_('city'))
+    country = CountryField(verbose_name=_('country'))
+    opened_in = models.IntegerField(verbose_name=_('opened in'))
 
     # @todo Add Clockwise and length
     def __str__(self):
@@ -143,30 +164,37 @@ class Circuit(models.Model):
 
     class Meta:
         ordering = ['name']
+        verbose_name = _('Circuit')
+        verbose_name_plural = _('Circuits')
+
 
 @python_2_unicode_compatible
 class GrandPrix(models.Model):
-    name = models.CharField(max_length=30, verbose_name='grand prix', unique=True)
-    country = CountryField(null=True, blank=True, default=None)
-    first_held = models.IntegerField(null=True, blank=True)
-    default_circuit = models.ForeignKey(Circuit, related_name='default_to_grands_prix', null=True, blank=True, default=None)
-    competitions = models.ManyToManyField('Competition', related_name='grands_prix', default=None)
+    name = models.CharField(max_length=30, verbose_name=_('grand prix'), unique=True)
+    country = CountryField(null=True, blank=True, default=None, verbose_name=_('country'))
+    first_held = models.IntegerField(null=True, blank=True, verbose_name=_('first held'))
+    default_circuit = models.ForeignKey(Circuit, related_name='default_to_grands_prix', null=True,
+                                        blank=True, default=None, verbose_name=_('default circuit'))
+    competitions = models.ManyToManyField('Competition', related_name='grands_prix', default=None,
+                                          verbose_name=_('competitions'))
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name_plural = 'grands prix'
         ordering = ['name']
+        verbose_name = _('Grand Prix')
+        verbose_name_plural = _('Grands Prix')
 
 
 @python_2_unicode_compatible
 class Season(models.Model):
-    year = models.IntegerField()
-    competition = models.ForeignKey(Competition, related_name='seasons')
-    rounds = models.IntegerField(blank=True, null=True, default=None)
-    teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeason')
-    punctuation = models.CharField(max_length=20, null=True, default=None)
+    year = models.IntegerField(verbose_name=_('year'))
+    competition = models.ForeignKey(Competition, related_name='seasons', verbose_name=_('competition'))
+    rounds = models.IntegerField(blank=True, null=True, default=None, verbose_name=_('rounds'))
+    teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeason',
+                                   verbose_name=_('teams'))
+    punctuation = models.CharField(max_length=20, null=True, default=None, verbose_name=_('punctuation'))
 
     def get_scoring(self, code=None):
         if not code:
@@ -222,7 +250,6 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
-
     def team_points_rank(self):
         teams = self.teams.all()
         rank = []
@@ -238,7 +265,6 @@ class Season(models.Model):
         else:
             rank = self.points_rank()
         return rank[0] if len(rank) else None
-
 
     @property
     def leader(self):
@@ -259,19 +285,25 @@ class Season(models.Model):
     class Meta:
         unique_together = ('year', 'competition')
         ordering = ['competition__name', 'year']
+        verbose_name = _('Season')
+        verbose_name_plural = _('Seasons')
+
 
 @python_2_unicode_compatible
 class Race(models.Model):
     ALTER_PUNCTUATION = (
-        ('double', 'Double'),
-        ('half', 'Half')
+        ('double', _('Double')),
+        ('half', _('Half'))
     )
-    season = models.ForeignKey(Season, related_name='races')
-    round = models.IntegerField()
-    grand_prix = models.ForeignKey(GrandPrix, related_name='races', blank=True, null=True, default=None)
-    circuit = models.ForeignKey(Circuit, related_name='races', blank=True, null=True, default=None)
-    date = models.DateField(blank=True, null=True, default=None)
-    alter_punctuation = models.CharField(choices=ALTER_PUNCTUATION, null=True, blank=True, default=None, max_length=6)
+    season = models.ForeignKey(Season, related_name='races', verbose_name=_('season'))
+    round = models.IntegerField(verbose_name=_('round'))
+    grand_prix = models.ForeignKey(GrandPrix, related_name='races', blank=True, null=True,
+                                   default=None, verbose_name=_('grand prix'))
+    circuit = models.ForeignKey(Circuit, related_name='races', blank=True, null=True,
+                                default=None, verbose_name=_('circuit'))
+    date = models.DateField(blank=True, null=True, default=None, verbose_name=_('date'))
+    alter_punctuation = models.CharField(choices=ALTER_PUNCTUATION, null=True, blank=True,
+                                         default=None, max_length=6, verbose_name=_('alter punctuation'))
 
     def _grandprix_exception(self):
         competition = self.season.competition
@@ -285,9 +317,10 @@ class Race(models.Model):
         season = getattr(self, 'season', None)
         if season:
             if self.round > self.season.rounds:
-                errors['round'] = 'Max rounds in this season: %d' % self.season.rounds
+                errors['round'] = _('Max rounds in this season: %(rounds)d') % {'rounds': self.season.rounds}
             if self._grandprix_exception():
-                errors['grand_prix'] = "%s is not a/an %s Grand Prix" % (self.grand_prix, self.season.competition)
+                errors['grand_prix'] = _("%(grand_prix)s is not a/an %(competition)s Grand Prix") \
+                                       % {'grand_prix': self.grand_prix, 'competition': self.season.competition}
         if errors:
             raise ValidationError(errors)
         super(Race, self).clean(*args, **kwargs)
@@ -317,20 +350,24 @@ class Race(models.Model):
     class Meta:
         unique_together = ('season', 'round')
         ordering = ['season', 'round']
+        verbose_name = _('Race')
+        verbose_name_plural = _('Races')
 
 
 @python_2_unicode_compatible
 class TeamSeason(models.Model):
-    season = models.ForeignKey('Season', related_name='teams_season')
-    team = models.ForeignKey('Team', related_name='seasons_team')
-    sponsor_name = models.CharField(max_length=75, null=True, blank=True, default=None)
+    season = models.ForeignKey('Season', related_name='teams_season', verbose_name=_('season'))
+    team = models.ForeignKey('Team', related_name='seasons_team', verbose_name=_('team'))
+    sponsor_name = models.CharField(max_length=75, null=True, blank=True, default=None,
+                                    verbose_name=_('sponsor name'))
 
     def clean(self, *args, **kwargs):
         team = self.team
         team_competitions = [competition.pk for competition in team.competitions.all()]
         if self.season.competition.pk not in team_competitions:
             raise ValidationError(
-                'Team %s doesn\'t participate in %s' % (self.team, self.season.competition)
+                _('Team %(team)s doesn\'t participate in %(competition)s')
+                % {'team': self.team, 'competition': self.season.competition}
             )
         super(TeamSeason, self).clean(*args, **kwargs)
 
@@ -349,27 +386,28 @@ class TeamSeason(models.Model):
 
     class Meta:
         unique_together = ('season', 'team')
-        verbose_name = 'Team Season'
-        verbose_name_plural = 'Teams Season'
+        verbose_name = _('Team Season')
+        verbose_name_plural = _('Teams Season')
+
 
 class Result(models.Model):
-    race = models.ForeignKey(Race, related_name='results')
-    seat = models.ForeignKey(Seat, related_name='results')
-    qualifying = models.IntegerField(blank=True, null=True, default=None)
-    finish = models.IntegerField(blank=True, null=True, default=None)
-    fastest_lap = ExclusiveBooleanField(on='race', default=False)
-    retired = models.BooleanField(default=False)
-    wildcard = models.BooleanField(default=False)
-    comment = models.CharField(max_length=250, blank=True, null=True, default=None)
+    race = models.ForeignKey(Race, related_name='results', verbose_name=_('race'))
+    seat = models.ForeignKey(Seat, related_name='results', verbose_name=_('seat'))
+    qualifying = models.IntegerField(blank=True, null=True, default=None, verbose_name=_('qualifying'))
+    finish = models.IntegerField(blank=True, null=True, default=None, verbose_name=_('finish'))
+    fastest_lap = ExclusiveBooleanField(on='race', default=False, verbose_name=_('fastest lap'))
+    retired = models.BooleanField(default=False, verbose_name=_('retired'))
+    wildcard = models.BooleanField(default=False, verbose_name=_('wildcard'))
+    comment = models.CharField(max_length=250, blank=True, null=True, default=None, verbose_name=_('comment'))
 
     def clean(self, *args, **kwargs):
         seat_errors = []
         if self.seat.team not in self.race.season.teams.all():
-            seat_errors.append('Team is not in current season')
+            seat_errors.append(_('Team is not in current season'))
         if self.seat not in self.race.season.seats.all():
-            seat_errors.append('Seat is not in current season')
+            seat_errors.append(_('Seat is not in current season'))
         if seat_errors:
-            raise ValidationError('Invalid Seat in this race. '+'\n'.join(seat_errors))
+            raise ValidationError(_('Invalid Seat in this race. ')+'\n'.join(seat_errors))
         super(Result, self).clean(*args, **kwargs)
 
     @property
@@ -410,10 +448,11 @@ class Result(models.Model):
         scoring = self.race.season.get_scoring()
         return self.points_calculator(scoring)
 
-
     class Meta:
         unique_together = [('race', 'seat'), ('race', 'qualifying'), ('race', 'finish')]
         ordering = ['race__season', 'race__round', 'finish', 'qualifying']
+        verbose_name = _('Result')
+        verbose_name_plural = _('Results')
 
 
 class ContenderSeason(object):
@@ -425,7 +464,7 @@ class ContenderSeason(object):
 
     def __init__(self, contender, season):
         if not isinstance(contender, Contender) or not isinstance(season, Season):
-            raise ValidationError('contender is not a Contender or/and season is not a Season')
+            raise ValidationError(_('contender is not a Contender or/and season is not a Season'))
         self.contender = contender
         self.season = season
         self.seats = Seat.objects.filter(contender__pk=self.contender.pk, seasons__pk=self.season.pk)

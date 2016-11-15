@@ -1,14 +1,14 @@
-{% load champion_filter %}
+{% load champion_filter i18n %}
 <table class="table">
     <tr>
-        <th>Points</th>
-        <th>Driver</th>
-        <th>Team</th>
+        <th>{%  trans 'Points' %}</th>
+        <th>{%  trans 'Driver' %}</th>
+        <th>{%  trans 'Team' %}</th>
         {% if pending_races %}
         {% for pending_race in pending_races %}
         <th>{{ pending_race }}</th>
         {% endfor %}
-        <th>Total</th>
+        <th>{%  trans 'Total' %}</th>
         {% endif %}
     </tr>
     {% for points,driver,team, positions in rank %}

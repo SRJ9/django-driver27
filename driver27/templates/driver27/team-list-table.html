@@ -1,7 +1,8 @@
+{% load i18n %}
     <table class="table">
     <tr>
-        <th>Points</th>
-        <th>Team</th>
+        <th>{%  trans 'Points' %}</th>
+        <th>{%  trans 'Team' %}</th>
     </tr>
     {% for points,team in rank %}
         <tr>

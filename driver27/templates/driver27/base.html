@@ -1,5 +1,5 @@
 {% extends 'bootstrap3/bootstrap3.html' %}
-{% load bootstrap3 static %}
+{% load bootstrap3 static i18n %}
 
 {% block bootstrap3_title %}{{ title }} :: DR27{% endblock %}
 
@@ -10,7 +10,7 @@
         <nav>
           <ul class="nav nav-pills pull-xs-right">
             <li class="nav-item">
-              <a class="nav-link active" href="/">Home <span class="sr-only">(current)</span></a>
+              <a class="nav-link active" href="/">{% trans 'Home' %} <span class="sr-only">(current)</span></a>
             </li>
 
               {% block dr27_menu %}

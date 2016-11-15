@@ -1,0 +1,479 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.17\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-11-16 00:00+0100\n"
+"PO-Revision-Date: 2016-11-15 15:43+0100\n"
+"Last-Translator: Jose E.R <srj9es@gmail.com>\n"
+"Language-Team: Jose E.R <srj9es@gmail.com>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: driver27/admin.py:27 driver27/models.py:22 driver27/models.py:92
+#: driver27/models.py:179
+msgid "competitions"
+msgstr "Competiciones"
+
+#: driver27/admin.py:46 driver27/models.py:455
+msgid "Results"
+msgstr "Resultados"
+
+#: driver27/admin.py:50
+msgid "link"
+msgstr "Enlace"
+
+#: driver27/admin.py:192
+msgid "Pole"
+msgstr "Pole"
+
+#: driver27/admin.py:196 driver27/templates/driver27/race-list.html:17
+msgid "Winner"
+msgstr "Ganador"
+
+#: driver27/admin.py:200
+msgid "Fastest"
+msgstr "Vuelta rápida"
+
+#: driver27/admin.py:372 driver27/models.py:108
+msgid "current team"
+msgstr "equipo actual"
+
+#: driver27/models.py:17
+msgid "last name"
+msgstr "apellido"
+
+#: driver27/models.py:18
+msgid "first name"
+msgstr "Nombre"
+
+#: driver27/models.py:19
+msgid "year of birth"
+msgstr "año de nacimiento"
+
+#: driver27/models.py:20 driver27/models.py:43 driver27/models.py:93
+#: driver27/models.py:157 driver27/models.py:174
+msgid "country"
+msgstr "país"
+
+#: driver27/models.py:26
+msgid "Year_of_birth must be between 1900 and 2099"
+msgstr "El año de nacimiento debe estar entre 1900 y 2099"
+
+#: driver27/models.py:35 driver27/templates/driver27/admin/results.html:26
+#: driver27/templates/driver27/driver-list-olympic.html:4
+#: driver27/templates/driver27/driver-list-table.html:5
+#: driver27/templates/driver27/race-view.html:17
+msgid "Driver"
+msgstr "Piloto"
+
+#: driver27/models.py:36 driver27/templates/driver27/driver-list.html:6
+#: driver27/templates/driver27/season-menu.html:6
+msgid "Drivers"
+msgstr "Pilotos"
+
+#: driver27/models.py:41 driver27/models.py:62 driver27/models.py:193
+msgid "competition"
+msgstr "Competiciones"
+
+#: driver27/models.py:42 driver27/models.py:91
+msgid "full name"
+msgstr "nombre completo"
+
+#: driver27/models.py:55 driver27/templates/driver27/competition-list.html:8
+msgid "Competition"
+msgstr "Competición"
+
+#: driver27/models.py:56 driver27/views.py:28
+msgid "Competitions"
+msgstr "Competiciones"
+
+#: driver27/models.py:61
+msgid "driver"
+msgstr "piloto"
+
+#: driver27/models.py:64 driver27/models.py:196
+msgid "teams"
+msgstr "equipos"
+
+#: driver27/models.py:79
+#, python-format
+msgid "%(driver)s in %(competition)s"
+msgstr "%(driver)s en %(competition)s"
+
+#: driver27/models.py:84
+msgid "Contender"
+msgstr "Competidores"
+
+#: driver27/models.py:85
+msgid "Contenders"
+msgstr "Competidores"
+
+#: driver27/models.py:90 driver27/models.py:106 driver27/models.py:360
+msgid "team"
+msgstr "equipo"
+
+#: driver27/models.py:100 driver27/templates/driver27/admin/results.html:27
+#: driver27/templates/driver27/driver-list-olympic.html:5
+#: driver27/templates/driver27/driver-list-table.html:6
+#: driver27/templates/driver27/race-view.html:18
+#: driver27/templates/driver27/team-list-table.html:5
+msgid "Team"
+msgstr "Equipo"
+
+#: driver27/models.py:101 driver27/templates/driver27/season-menu.html:9
+#: driver27/templates/driver27/team-list.html:7
+msgid "Teams"
+msgstr "Equipos"
+
+#: driver27/models.py:107
+msgid "contender"
+msgstr "competidores"
+
+#: driver27/models.py:109
+msgid "seasons"
+msgstr "temporadas"
+
+#: driver27/models.py:114
+#, python-format
+msgid "%(team)s is not a team of %(competition)s"
+msgstr "%(team)s no es un equipo de %(competition)s"
+
+#: driver27/models.py:120
+#, python-format
+msgid "%(driver)s in %(team)s"
+msgstr "%(driver)s en %(team)s"
+
+#: driver27/models.py:125
+msgid "Seat"
+msgstr "Asiento"
+
+#: driver27/models.py:126
+msgid "Seats"
+msgstr "Asientos"
+
+#: driver27/models.py:140
+#, python-format
+msgid "%(season)s is not a/an %(competition)s season"
+msgstr "%(season)s no es una temporada de %(competition)s"
+
+#: driver27/models.py:145
+#, python-format
+msgid "%(team)s is not a team of %(season)s"
+msgstr "%(team)s no es un equipo de %(season)s"
+
+#: driver27/models.py:155 driver27/models.py:303
+msgid "circuit"
+msgstr "circuito"
+
+#: driver27/models.py:156
+msgid "city"
+msgstr "ciudad"
+
+#: driver27/models.py:158
+msgid "opened in"
+msgstr "abierto desde"
+
+#: driver27/models.py:167 driver27/templates/driver27/race-list.html:16
+msgid "Circuit"
+msgstr "Circuito"
+
+#: driver27/models.py:168
+msgid "Circuits"
+msgstr "Circuitos"
+
+#: driver27/models.py:173 driver27/models.py:301
+msgid "grand prix"
+msgstr "gran premio"
+
+#: driver27/models.py:175
+msgid "first held"
+msgstr "primera carrera"
+
+#: driver27/models.py:177
+msgid "default circuit"
+msgstr "circuito por defecto"
+
+#: driver27/models.py:186 driver27/templates/driver27/race-list.html:15
+msgid "Grand Prix"
+msgstr "Gran Premio"
+
+#: driver27/models.py:187
+msgid "Grands Prix"
+msgstr "GPs"
+
+#: driver27/models.py:192
+msgid "year"
+msgstr "año"
+
+#: driver27/models.py:194
+msgid "rounds"
+msgstr "carreras"
+
+#: driver27/models.py:197
+msgid "punctuation"
+msgstr "puntuación"
+
+#: driver27/models.py:288 driver27/templates/driver27/competition-view.html:15
+msgid "Season"
+msgstr "Temporada"
+
+#: driver27/models.py:289 driver27/templates/driver27/competition-list.html:9
+msgid "Seasons"
+msgstr "Temporadas"
+
+#: driver27/models.py:295
+msgid "Double"
+msgstr "Doble"
+
+#: driver27/models.py:296
+msgid "Half"
+msgstr "Mitad"
+
+#: driver27/models.py:298 driver27/models.py:359
+msgid "season"
+msgstr "Temporada"
+
+#: driver27/models.py:299
+msgid "round"
+msgstr "número"
+
+#: driver27/models.py:304
+msgid "date"
+msgstr "fecha"
+
+#: driver27/models.py:306
+msgid "alter punctuation"
+msgstr "alterar puntuación"
+
+#: driver27/models.py:320
+#, python-format
+msgid "Max rounds in this season: %(rounds)d"
+msgstr "Carreras esta temporada: %(rounds)d"
+
+#: driver27/models.py:322
+#, python-format
+msgid "%(grand_prix)s is not a/an %(competition)s Grand Prix"
+msgstr "%(grand_prix)s no es un GP de %(competition)s"
+
+#: driver27/models.py:353
+msgid "Race"
+msgstr "Carrera"
+
+#: driver27/models.py:354 driver27/templates/driver27/race-list.html:6
+#: driver27/templates/driver27/season-menu.html:12
+msgid "Races"
+msgstr "Carreras"
+
+#: driver27/models.py:362
+msgid "sponsor name"
+msgstr "nombre patrocinado"
+
+#: driver27/models.py:369
+#, python-format
+msgid "Team %(team)s doesn't participate in %(competition)s"
+msgstr "%(team)s no participa en %(competition)s"
+
+#: driver27/models.py:389
+msgid "Team Season"
+msgstr "Temporada por equipo"
+
+#: driver27/models.py:390
+msgid "Teams Season"
+msgstr "Temporadas por equipos"
+
+#: driver27/models.py:394
+msgid "race"
+msgstr "carrera"
+
+#: driver27/models.py:395
+msgid "seat"
+msgstr "asiento"
+
+#: driver27/models.py:396
+msgid "qualifying"
+msgstr "en la pole"
+
+#: driver27/models.py:397
+msgid "finish"
+msgstr "en carrera"
+
+#: driver27/models.py:398
+msgid "fastest lap"
+msgstr "vuelta rápida"
+
+#: driver27/models.py:399
+msgid "retired"
+msgstr "abandona"
+
+#: driver27/models.py:400
+msgid "wildcard"
+msgstr "invitado"
+
+#: driver27/models.py:401
+msgid "comment"
+msgstr "comentario"
+
+#: driver27/models.py:406
+msgid "Team is not in current season"
+msgstr "El equipo no es de esta temporada"
+
+#: driver27/models.py:408
+msgid "Seat is not in current season"
+msgstr "El asiento no es de esta temporada"
+
+#: driver27/models.py:410
+msgid "Invalid Seat in this race. "
+msgstr "Asiento no disponible en esta carrera"
+
+#: driver27/models.py:454
+msgid "Result"
+msgstr "Resultado"
+
+#: driver27/models.py:467
+msgid "contender is not a Contender or/and season is not a Season"
+msgstr "El contendiente y/o la temporada no son válidos"
+
+#: driver27/templates/driver27/admin/results.html:7
+#: driver27/templates/driver27/base.html:13
+msgid "Home"
+msgstr "Inicio"
+
+#: driver27/templates/driver27/admin/results.html:18
+msgid "Select all"
+msgstr "Seleccionar todos"
+
+#: driver27/templates/driver27/admin/results.html:25
+msgid "Entry"
+msgstr "Entrada"
+
+#: driver27/templates/driver27/admin/results.html:28
+msgid "Qualifying"
+msgstr "En la pole"
+
+#: driver27/templates/driver27/admin/results.html:29
+msgid "Finish"
+msgstr "En carrera"
+
+#: driver27/templates/driver27/admin/results.html:30
+#: driver27/templates/driver27/race-view.html:45
+msgid "Fastest lap"
+msgstr "Vuelta rápida"
+
+#: driver27/templates/driver27/admin/results.html:31
+msgid "Retired"
+msgstr "Abandona"
+
+#: driver27/templates/driver27/admin/results.html:32
+#: driver27/templates/driver27/race-view.html:42
+msgid "Wildcard"
+msgstr "Invitado"
+
+#: driver27/templates/driver27/admin/results.html:33
+#: driver27/templates/driver27/driver-list-table.html:4
+#: driver27/templates/driver27/team-list-table.html:4
+msgid "Points"
+msgstr "Puntos"
+
+#: driver27/templates/driver27/admin/results.html:34
+msgid "Season points"
+msgstr "Puntos (temporada)"
+
+#: driver27/templates/driver27/admin/results.html:51
+msgid "Send entries"
+msgstr "Actualizar resultados"
+
+#: driver27/templates/driver27/competition-view.html:16
+msgid "Driver leader"
+msgstr "Lider"
+
+#: driver27/templates/driver27/competition-view.html:17
+msgid "Team leader"
+msgstr "Equipo lider"
+
+#: driver27/templates/driver27/driver-list-table.html:11
+msgid "Total"
+msgstr "Total"
+
+#: driver27/templates/driver27/driver-list.html:12
+msgid "Olympic"
+msgstr "Ranking olímpico"
+
+#: driver27/templates/driver27/driver-list.html:17
+msgid "Road to championship"
+msgstr "Lucha por el mundial"
+
+#: driver27/templates/driver27/race-list.html:13
+msgid "Round"
+msgstr "Carrera"
+
+#: driver27/templates/driver27/race-list.html:14
+msgid "Date"
+msgstr "Fecha"
+
+#: driver27/templates/driver27/race-list.html:18
+msgid "Winner team"
+msgstr "Equipo del ganador"
+
+#: driver27/templates/driver27/race-view.html:16
+msgid "Position"
+msgstr "Posición"
+
+#: driver27/templates/driver27/race-view.html:19
+msgid "Start"
+msgstr "Salida"
+
+#: driver27/views.py:13
+msgid "Season does not exist"
+msgstr "La temporada no existe"
+
+#: driver27/views.py:21
+msgid "Competition does not exist"
+msgstr "La competición no existe"
+
+#: driver27/views.py:52
+msgid "DRIVERS"
+msgstr "PILOTOS"
+
+#: driver27/views.py:58
+msgid "TEAMS"
+msgstr "EQUIPOS"
+
+#: driver27/views.py:61
+msgid "Impossible rank"
+msgstr "Ranking imposible"
+
+#: driver27/views.py:82
+msgid "DRIVERS rank by olympic mode"
+msgstr "PILOTOS, ranking olímpico"
+
+#: driver27/views.py:104
+#, python-format
+msgid "%(season)s - Road to the championship"
+msgstr "%(season)s - Lucha por el mundial"
+
+#: driver27/views.py:114
+#, python-format
+msgid "%(leader)s is the Champion!"
+msgstr "%(leader)s es el campeón"
+
+#: driver27/views.py:125
+#, python-format
+msgid "%(season)s [RACES]"
+msgstr "%(season)s [CARRERAS]"
+
+#: driver27/views.py:136
+msgid "Race does not exist"
+msgstr "La carrera no existe"
+
+#: driver27/views.py:139
+#, python-format
+msgid "Results of %(race)s"
+msgstr "Resultados de %(race)s"

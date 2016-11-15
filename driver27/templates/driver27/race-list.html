@@ -1,20 +1,21 @@
 {% extends 'driver27/base.html' %}
+{% load i18n %}
 {% block dr27_menu %}
     {% include 'driver27/season-menu-pre.html' %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'season-race-list' season.competition.slug season.year %}">Races</a>
+        <a class="nav-link" href="{% url 'season-race-list' season.competition.slug season.year %}">{%  trans 'Races' %}</a>
     </li>
 {% endblock %}
 {% block dr27_content %}
     {{ block.super }}
     <table class="table">
     <tr>
-        <th>Round</th>
-        <th>Date</th>
-        <th>Grand Prix</th>
-        <th>Circuit</th>
-        <th>Winner</th>
-        <th>Winner team</th>
+        <th>{%  trans 'Round' %}</th>
+        <th>{%  trans 'Date' %}</th>
+        <th>{%  trans 'Grand Prix' %}</th>
+        <th>{%  trans 'Circuit' %}</th>
+        <th>{%  trans 'Winner' %}</th>
+        <th>{%  trans 'Winner team' %}</th>
     </tr>
     {% for race in races %}
         <tr>

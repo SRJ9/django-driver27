@@ -3,6 +3,7 @@ from django import forms
 from django.conf.urls import url
 from django.shortcuts import render
 from django.db.models.fields import BLANK_CHOICE_DASH
+from django.utils.translation import ugettext as _
 
 from django.core.urlresolvers import reverse
 
@@ -23,7 +24,8 @@ class RelatedCompetitionAdmin(object):
             return ', '.join("%s" % competition for competition in obj.competitions.all())
         else:
             return None
-    print_competitions.short_description = 'competitions'
+    print_competitions.short_description = _('competitions')
+
 
 class CompetitionFilterInline(admin.TabularInline):
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
@@ -36,41 +38,49 @@ class CompetitionFilterInline(admin.TabularInline):
                 kwargs['queryset'] = Seat.objects.filter(contender__competition__exact=request._obj_.competition)
         return super(CompetitionFilterInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
+
 class CommonRaceAdmin(object):
     def print_results_link(self, obj):
         if obj.pk:
             results_url = reverse("admin:driver27_race_results", args=[obj.pk])
-            return '<a href="%s">%s</a>' % (results_url, 'Results')
+            return '<a href="%s">%s</a>' % (results_url, _('Results'))
         else:
             return None
     print_results_link.allow_tags = True
-    print_results_link.short_description = 'link'
+    print_results_link.short_description = _('link')
+
 
 class RaceInline(CommonRaceAdmin, CompetitionFilterInline):
     model = Race
     extra = 1
     readonly_fields = ('print_results_link', )
 
+
 class SeatInline(CompetitionFilterInline):
     model = Seat
     extra = 3
+
 
 class SeatSeasonInline(CompetitionFilterInline):
     model = Seat.seasons.through
     extra = 3
     ordering = ('seat',)
 
+
 class ContenderInline(admin.TabularInline):
     model = Contender
     extra = 1
+
 
 class TeamSeasonInline(CompetitionFilterInline):
     model = TeamSeason
     extra = 1
 
+
 class TeamInline(admin.TabularInline):
     model = Team
     extra = 1
+
 
 class DriverAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
     list_display = ('__unicode__', 'country', 'print_competitions')
@@ -88,8 +98,10 @@ class DriverAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
         ('Competitions', tab_competitions)
     ]
 
+
 class TeamAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_display = ('__unicode__', 'country', 'print_competitions')
+
 
 class CompetitionAdmin(TabbedModelAdmin):
     model = Competition
@@ -107,11 +119,14 @@ class CompetitionAdmin(TabbedModelAdmin):
         ('Drivers', tab_drivers)
     ]
 
+
 class CircuitAdmin(admin.ModelAdmin):
     list_display = ('name', 'city', 'country', 'opened_in')
 
+
 class GrandPrixAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_display = ('name', 'country', 'default_circuit', 'print_competitions')
+
 
 class SeasonAdminForm(forms.ModelForm):
 
@@ -125,6 +140,7 @@ class SeasonAdminForm(forms.ModelForm):
         model = Season
         fields = ('year', 'competition', 'rounds', 'punctuation')
 
+
 class SeasonAdmin(TabbedModelAdmin):
     form = SeasonAdminForm
     tab_overview = (
@@ -136,9 +152,6 @@ class SeasonAdmin(TabbedModelAdmin):
         TeamSeasonInline,
     )
     tab_drivers = (
-        # (None, {
-        #     'fields': ('team_contenders',)
-        # }),
         SeatSeasonInline,
     )
     tab_races = (
@@ -176,15 +189,16 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
 
     def print_pole(self, obj):
         return self.print_seat(obj.pole)
-    print_pole.short_description = 'Pole'
+    print_pole.short_description = _('Pole')
 
     def print_winner(self, obj):
         return self.print_seat(obj.winner)
-    print_winner.short_description = 'Winner'
+    print_winner.short_description = _('Winner')
 
     def print_fastest(self, obj):
         return self.print_seat(obj.fastest)
-    print_fastest.short_description = 'Fastest'
+    print_fastest.short_description = _('Fastest')
+
 
     def clean_qualifying(self, qualifying):
         try:
@@ -230,7 +244,6 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
                     **dict_to_save
                 )
 
-
     def add_result_entries(self, request, entries, race):
         self.edit_result_entries(request, entries, race, action='add')
 
@@ -269,7 +282,6 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
         else:
             entries = sorted(entries, key=lambda x: -x['season_points'])
         return entries
-
 
     def results(self, request, race_id):
         race = self.model.objects.get(pk=race_id)
@@ -334,6 +346,7 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
         tpl = 'driver27/admin/results.html'
         return render(request, tpl, context)
 
+
 class ContenderAdmin(TabbedModelAdmin):
     list_display = ('__unicode__', 'competition', 'teams_verbose', 'print_current')
     list_filter = ('competition',)
@@ -356,7 +369,7 @@ class ContenderAdmin(TabbedModelAdmin):
             contender__competition=obj.competition,
             current=True)
         return filter_current[0].team if filter_current.count() else None
-    print_current.short_description = 'current team'
+    print_current.short_description = _('current team')
 
     def get_form(self, request, obj=None, **kwargs):
         # just save obj reference for future processing in Inline

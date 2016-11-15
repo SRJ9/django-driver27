@@ -1,8 +1,8 @@
-{% load champion_filter %}
+{% load champion_filter i18n %}
 <table class="table">
     <tr>
-        <th>Driver</th>
-        <th>Team</th>
+        <th>{%  trans 'Driver' %}</th>
+        <th>{%  trans 'Team' %}</th>
         {% for position in positions %}
             <th>{{ position }}</th>
         {% endfor %}

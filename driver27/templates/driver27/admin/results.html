@@ -15,23 +15,23 @@
 {% block content %}
 
     <h3>{{ race.circuit }}</h3>
-    <label for="select-all">Select all</label>
+    <label for="select-all">{% trans 'Select all' %}</label>
     <input type="checkbox" id="select-all" value="1"/>
 
     <form method="POST">
     {% csrf_token %}
         <table>
             <tr>
-                <th>Entry</th>
-                <th>Name</th>
-                <th>Team</th>
-                <th>Qualifying</th>
-                <th>Finish</th>
-                <th>Fastest lap</th>
-                <th>Retired</th>
-                <th>Wildcard</th>
-                <th>Points</th>
-                <th>Season points*</th>
+                <th>{% trans 'Entry' %}</th>
+                <th>{% trans 'Driver' %}</th>
+                <th>{% trans 'Team' %}</th>
+                <th>{% trans 'Qualifying' %}</th>
+                <th>{% trans 'Finish' %}</th>
+                <th>{% trans 'Fastest lap' %}</th>
+                <th>{% trans 'Retired' %}</th>
+                <th>{% trans 'Wildcard' %}</th>
+                <th>{% trans 'Points' %}</th>
+                <th>{% trans 'Season points' %}*</th>
             </tr>
             {% for entry in entries %}
             <tr>
@@ -48,7 +48,7 @@
             </tr>
        {% endfor %}
     </table>
-    <input type="submit" value="Send entries"/>
+    <input type="submit" value="{% trans 'Send entries' %}"/>
     </form>
 
 

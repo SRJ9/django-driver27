@@ -1,12 +1,12 @@
 {% extends 'driver27/base.html' %}
-{% load bootstrap3 %}
+{% load bootstrap3 i18n %}
 
 {% block dr27_content %}
 {{ block.super }}
             <table class="table">
                 <tr>
-                    <th>Name</th>
-                    <th>Seasons</th>
+                    <th>{% trans 'Competition' %}</th>
+                    <th>{% trans 'Seasons' %}</th>
                 </tr>
                 {% for competition in competitions %}
                 <tr>

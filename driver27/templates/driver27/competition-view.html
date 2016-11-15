@@ -1,5 +1,5 @@
 {% extends 'driver27/base.html' %}
-{% load bootstrap3 champion_filter %}
+{% load bootstrap3 champion_filter i18n %}
 
 {% block dr27_menu %}
     {{ block.super }}
@@ -12,9 +12,9 @@
     {{ block.super }}
     <table class="table">
         <tr>
-            <th>Season</th>
-            <th>Driver leader</th>
-            <th>Team leader</th>
+            <th>{%  trans 'Season' %}</th>
+            <th>{%  trans 'Driver leader' %}</th>
+            <th>{%  trans 'Team leader' %}</th>
         </tr>
         {% for season in competition.seasons.all %}
             <td>

@@ -1,19 +1,20 @@
 {% extends 'driver27/base.html' %}
+{% load i18n %}
 {% block dr27_menu %}
     {% include 'driver27/season-menu-pre.html' %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'season-driver' season.competition.slug season.year %}">Drivers</a>
+        <a class="nav-link" href="{% url 'season-driver' season.competition.slug season.year %}">{%  trans 'Drivers' %}</a>
     </li>
     <li class="nav-item">
         <a>>></a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'season-driver-olympic' season.competition.slug season.year %}">Olympic</a>
+        <a class="nav-link" href="{% url 'season-driver-olympic' season.competition.slug season.year %}">{%  trans 'Olympic' %}</a>
     </li>
     {% if access_to_road %}
         <li class="nav-item">
             <a class="nav-link"
-               href="{% url 'season-driver-road' season.competition.slug season.year %}">Road to championship</a>
+               href="{% url 'season-driver-road' season.competition.slug season.year %}">{%  trans 'Road to championship' %}</a>
         </li>
     {% endif %}
 {% endblock %}
