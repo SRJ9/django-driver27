@@ -45,7 +45,7 @@ class CommonRaceAdmin(object):
             results_url = reverse("admin:driver27_race_results", args=[obj.pk])
             return '<a href="%s">%s</a>' % (results_url, _('Results'))
         else:
-            return None
+            return ''
     print_results_link.allow_tags = True
     print_results_link.short_description = _('link')
 
@@ -58,7 +58,7 @@ class RaceInline(CommonRaceAdmin, CompetitionFilterInline):
 
 class SeatInline(CompetitionFilterInline):
     model = Seat
-    extra = 3
+    extra = 1
 
 
 class SeatSeasonInline(CompetitionFilterInline):

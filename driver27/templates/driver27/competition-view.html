@@ -17,6 +17,7 @@
             <th>{%  trans 'Team leader' %}</th>
         </tr>
         {% for season in competition.seasons.all %}
+            <tr>
             <td>
                 <a href="{% url 'season-view' competition.slug season.year %}">
                     {{ season }}
@@ -29,6 +30,7 @@
             <td>
                 {{ season.team_leader.0 }} {{ season.team_leader.1 }}
             </td>
+            </tr>
         {% endfor %}
     </table>
 
