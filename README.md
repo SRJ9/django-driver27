@@ -27,7 +27,12 @@ Versions
 ========
 - 0.14c (Fernando Alonso 14)
 - 0.16c (Race to Championship '16)
+- 0.17x
 - 0.27-VIL (Gilles Villeneuve 27)
+
+0.17x (in process)
+==================
+Spanish translation
 
 0.16
 ====
