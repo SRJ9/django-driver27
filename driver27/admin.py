@@ -17,6 +17,7 @@ from . import punctuation
 lr_diff = lambda l, r: list(set(l).difference(r))
 lr_intr = lambda l, r: list(set(l).intersection(r))
 
+
 class RelatedCompetitionAdmin(object):
     """ Aux class to share print_competitions method between driver and team """
     def print_competitions(self, obj):
@@ -28,6 +29,11 @@ class RelatedCompetitionAdmin(object):
 
 
 class CompetitionFilterInline(admin.TabularInline):
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super(CompetitionFilterInline, self).get_formset(request, obj, **kwargs)
+        formset.request = request
+        return formset
+
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if getattr(request, '_obj_', None):
             if db_field.name == 'team':
@@ -50,10 +56,33 @@ class CommonRaceAdmin(object):
     print_results_link.short_description = _('link')
 
 
+class RaceFormSet(forms.models.BaseInlineFormSet):
+    model = Race
+
+    def __init__(self, *args, **kwargs):
+        super(RaceFormSet, self).__init__(*args, **kwargs)
+        request = self.request
+        copy_id = request.GET.get('copy', None)
+        if not self.initial and copy_id:
+            races = Race.objects.filter(season__pk=copy_id)
+            initial = []
+            for race in races:
+                initial.append(
+                    {
+                        'round': race.round,
+                        'circuit': race.circuit,
+                        #'grand_prix': race.grand_prix
+                    }
+                )
+            self.initial = initial
+
+
 class RaceInline(CommonRaceAdmin, CompetitionFilterInline):
     model = Race
+    # @fixme Extra when add_view contains copy_id param.
     extra = 1
     readonly_fields = ('print_results_link', )
+    formset = RaceFormSet
 
 
 class SeatInline(CompetitionFilterInline):
@@ -61,10 +90,29 @@ class SeatInline(CompetitionFilterInline):
     extra = 1
 
 
+class SeatSeasonFormSet(forms.models.BaseInlineFormSet):
+    model = Seat.seasons.through
+
+    def __init__(self, *args, **kwargs):
+        super(SeatSeasonFormSet, self).__init__(*args, **kwargs)
+        request = self.request
+        copy_id = request.GET.get('copy', None)
+        if not self.initial and copy_id:
+            seats_season = Seat.objects.filter(seasons__pk=copy_id)
+            self.initial = []
+            for seat_season in seats_season:
+                self.initial.append(
+                    {
+                        'seat': seat_season.pk,
+                    }
+                )
+
+
 class SeatSeasonInline(CompetitionFilterInline):
     model = Seat.seasons.through
     extra = 3
     ordering = ('seat',)
+    formset = SeatSeasonFormSet
 
 
 class ContenderInline(admin.TabularInline):
@@ -72,9 +120,29 @@ class ContenderInline(admin.TabularInline):
     extra = 1
 
 
+class TeamSeasonFormSet(forms.models.BaseInlineFormSet):
+    model = TeamSeason
+
+    def __init__(self, *args, **kwargs):
+        super(TeamSeasonFormSet, self).__init__(*args, **kwargs)
+        request = self.request
+        copy_id = request.GET.get('copy', None)
+        if not self.initial and copy_id:
+            teams_season = TeamSeason.objects.filter(season__pk=copy_id)
+            self.initial = []
+            for team_season in teams_season:
+                self.initial.append(
+                    {
+                        'team': team_season.team,
+                        'sponsor_name': team_season.sponsor_name,
+                    }
+                )
+
+
 class TeamSeasonInline(CompetitionFilterInline):
     model = TeamSeason
     extra = 1
+    formset = TeamSeasonFormSet
 
 
 class TeamInline(admin.TabularInline):
@@ -163,6 +231,18 @@ class SeasonAdmin(TabbedModelAdmin):
         ('Drivers', tab_drivers),
         ('Races', tab_races),
     ]
+    readonly_fields = ('print_copy_season',)
+    list_display = ('__unicode__', 'print_copy_season')
+
+    def print_copy_season(self, obj):
+        if obj.pk:
+            copy_link = reverse("admin:driver27_season_add")
+            get_copy_id = '?copy=%d' % obj.pk
+            return "<a href='%s%s'>%s</a>" % (copy_link, get_copy_id, _('Copy'))
+        else:
+            return ''
+    print_copy_season.short_description = _('copy season')
+    print_copy_season.allow_tags = True
 
     def get_form(self, request, obj=None, **kwargs):
         # just save obj reference for future processing in Inline
