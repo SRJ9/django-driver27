@@ -17,6 +17,16 @@ from . import punctuation
 lr_diff = lambda l, r: list(set(l).difference(r))
 lr_intr = lambda l, r: list(set(l).intersection(r))
 
+# http://stackoverflow.com/a/34567383
+class AlwaysChangedModelForm(forms.ModelForm):
+    def has_changed(self, *args, **kwargs):
+        """ Should returns True if data differs from initial. 
+        By always returning true even unchanged inlines will get validated and saved."""
+        initial = self.initial
+        # @fixme, fail when new data is empty
+        if initial:
+            return True
+
 
 class RelatedCompetitionAdmin(object):
     """ Aux class to share print_competitions method between driver and team """
@@ -59,30 +69,34 @@ class CommonRaceAdmin(object):
 class RaceFormSet(forms.models.BaseInlineFormSet):
     model = Race
 
+    def get_copy_race(self, copy_id):
+        races = Race.objects.filter(season__pk=copy_id)
+        initial = []
+        for race in races:
+            initial.append(
+                {
+                    'round': race.round,
+                    'circuit': race.circuit,
+                    'grand_prix': race.grand_prix
+                }
+            )
+        return initial
+
     def __init__(self, *args, **kwargs):
         super(RaceFormSet, self).__init__(*args, **kwargs)
         request = self.request
         copy_id = request.GET.get('copy', None)
         if not self.initial and copy_id:
-            races = Race.objects.filter(season__pk=copy_id)
-            initial = []
-            for race in races:
-                initial.append(
-                    {
-                        'round': race.round,
-                        'circuit': race.circuit,
-                        #'grand_prix': race.grand_prix
-                    }
-                )
-            self.initial = initial
+            self.initial = self.get_copy_race(copy_id)
+            self.extra += len(self.initial)
 
 
 class RaceInline(CommonRaceAdmin, CompetitionFilterInline):
     model = Race
-    # @fixme Extra when add_view contains copy_id param.
     extra = 1
     readonly_fields = ('print_results_link', )
     formset = RaceFormSet
+    form = AlwaysChangedModelForm
 
 
 class SeatInline(CompetitionFilterInline):
@@ -93,19 +107,25 @@ class SeatInline(CompetitionFilterInline):
 class SeatSeasonFormSet(forms.models.BaseInlineFormSet):
     model = Seat.seasons.through
 
+    def get_seat_copy(self, copy_id):
+        seats_season = Seat.objects.filter(seasons__pk=copy_id)
+        initial = []
+        for seat_season in seats_season:
+            initial.append(
+                {
+                    'seat': seat_season.pk,
+                }
+            )
+        return initial
+
+
     def __init__(self, *args, **kwargs):
         super(SeatSeasonFormSet, self).__init__(*args, **kwargs)
         request = self.request
         copy_id = request.GET.get('copy', None)
         if not self.initial and copy_id:
-            seats_season = Seat.objects.filter(seasons__pk=copy_id)
-            self.initial = []
-            for seat_season in seats_season:
-                self.initial.append(
-                    {
-                        'seat': seat_season.pk,
-                    }
-                )
+            self.initial = self.get_seat_copy(copy_id)
+            self.extra += len(self.initial)
 
 
 class SeatSeasonInline(CompetitionFilterInline):
@@ -113,6 +133,7 @@ class SeatSeasonInline(CompetitionFilterInline):
     extra = 3
     ordering = ('seat',)
     formset = SeatSeasonFormSet
+    form = AlwaysChangedModelForm
 
 
 class ContenderInline(admin.TabularInline):
@@ -123,26 +144,33 @@ class ContenderInline(admin.TabularInline):
 class TeamSeasonFormSet(forms.models.BaseInlineFormSet):
     model = TeamSeason
 
+    def get_team_copy(self, copy_id):
+        teams_season = TeamSeason.objects.filter(season__pk=copy_id)
+        initial = []
+        for team_season in teams_season:
+            initial.append(
+                {
+                    'team': team_season.team,
+                    'sponsor_name': team_season.sponsor_name,
+                }
+            )
+        return initial
+
+
     def __init__(self, *args, **kwargs):
         super(TeamSeasonFormSet, self).__init__(*args, **kwargs)
         request = self.request
         copy_id = request.GET.get('copy', None)
         if not self.initial and copy_id:
-            teams_season = TeamSeason.objects.filter(season__pk=copy_id)
-            self.initial = []
-            for team_season in teams_season:
-                self.initial.append(
-                    {
-                        'team': team_season.team,
-                        'sponsor_name': team_season.sponsor_name,
-                    }
-                )
+            self.initial = self.get_team_copy(copy_id)
+            self.extra += len(self.initial)
 
 
 class TeamSeasonInline(CompetitionFilterInline):
     model = TeamSeason
     extra = 1
     formset = TeamSeasonFormSet
+    form = AlwaysChangedModelForm
 
 
 class TeamInline(admin.TabularInline):
@@ -196,7 +224,7 @@ class GrandPrixAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_display = ('name', 'country', 'default_circuit', 'print_competitions')
 
 
-class SeasonAdminForm(forms.ModelForm):
+class SeasonAdminForm(AlwaysChangedModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SeasonAdminForm, self).__init__(*args, **kwargs)
@@ -234,6 +262,23 @@ class SeasonAdmin(TabbedModelAdmin):
     readonly_fields = ('print_copy_season',)
     list_display = ('__unicode__', 'print_copy_season')
 
+    def get_season_copy(self, copy_id):
+        seasons = Season.objects.filter(pk=copy_id)
+        if seasons.count():
+            season = seasons.first()
+            return {
+                #'year': season.year+1,
+                'competition': season.competition,
+                'rounds': season.rounds,
+                'punctuation': season.punctuation
+            }
+        return {}
+
+    def get_changeform_initial_data(self, request, *args, **kwargs):
+        copy_id = request.GET.get('copy', None)
+        if copy_id:
+            return self.get_season_copy(copy_id)
+ 
     def print_copy_season(self, obj):
         if obj.pk:
             copy_link = reverse("admin:driver27_season_add")
@@ -248,7 +293,7 @@ class SeasonAdmin(TabbedModelAdmin):
         # just save obj reference for future processing in Inline
         if request and obj:
             request._obj_ = obj
-        return super(SeasonAdmin, self).get_form(request, obj, **kwargs)
+        return super(SeasonAdmin, self).get_form(request=request, obj=obj, **kwargs)
 
 
 class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
