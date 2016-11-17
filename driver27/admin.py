@@ -19,13 +19,25 @@ lr_intr = lambda l, r: list(set(l).intersection(r))
 
 # http://stackoverflow.com/a/34567383
 class AlwaysChangedModelForm(forms.ModelForm):
+    def is_empty_form(self, *args, **kwargs):
+        empty_form = True
+        for name, field in self.fields.items():
+            prefixed_name = self.add_prefix(name)
+            data_value = field.widget.value_from_datadict(self.data, self.files, prefixed_name)
+            if data_value:
+                empty_form = False
+                break
+        return empty_form
+
     def has_changed(self, *args, **kwargs):
         """ Should returns True if data differs from initial. 
         By always returning true even unchanged inlines will get validated and saved."""
-        initial = self.initial
-        # @fixme, fail when new data is empty
-        if initial:
-            return True
+        if self.instance.pk is None and self.initial:
+            if not self.changed_data:
+                return True
+            if self.is_empty_form():
+                return False
+        return super(AlwaysChangedModelForm, self).has_changed(*args, **kwargs)
 
 
 class RelatedCompetitionAdmin(object):

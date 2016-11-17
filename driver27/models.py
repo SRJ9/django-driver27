@@ -362,13 +362,14 @@ class TeamSeason(models.Model):
                                     verbose_name=_('sponsor name'))
 
     def clean(self, *args, **kwargs):
-        team = self.team
-        team_competitions = [competition.pk for competition in team.competitions.all()]
-        if self.season.competition.pk not in team_competitions:
-            raise ValidationError(
-                _('Team %(team)s doesn\'t participate in %(competition)s')
-                % {'team': self.team, 'competition': self.season.competition}
-            )
+        if hasattr(self, 'team') and hasattr(self, 'season'):
+            team = self.team
+            team_competitions = [competition.pk for competition in team.competitions.all()]
+            if self.season.competition.pk not in team_competitions:
+                raise ValidationError(
+                    _('Team %(team)s doesn\'t participate in %(competition)s')
+                    % {'team': self.team, 'competition': self.season.competition}
+                )
         super(TeamSeason, self).clean(*args, **kwargs)
 
     def get_points(self):
