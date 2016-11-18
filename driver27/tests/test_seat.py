@@ -8,7 +8,7 @@ class SeatTestCase(TestCase, CommonSeatTestCase):
         seat = self.get_test_seat()
         contender = seat.contender
         team = seat.team
-        expected_seat = ' in '.join((str(contender.driver), str(team)))
+        expected_seat = '%s in %s/%s' % (str(contender.driver), str(team), str(contender.competition))
         self.assertEquals(str(seat), expected_seat)
 
     def test_seat_current_unique(self):

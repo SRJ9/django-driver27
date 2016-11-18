@@ -153,6 +153,11 @@ class ContenderInline(admin.TabularInline):
     extra = 1
 
 
+class CompetitionTeamInline(admin.TabularInline):
+    model = Team.competitions.through
+    extra = 1
+
+
 class TeamSeasonFormSet(forms.models.BaseInlineFormSet):
     model = TeamSeason
 
@@ -167,7 +172,6 @@ class TeamSeasonFormSet(forms.models.BaseInlineFormSet):
                 }
             )
         return initial
-
 
     def __init__(self, *args, **kwargs):
         super(TeamSeasonFormSet, self).__init__(*args, **kwargs)
@@ -207,8 +211,27 @@ class DriverAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
     ]
 
 
-class TeamAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
+class TeamAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
+    model = Team
     list_display = ('__unicode__', 'country', 'print_competitions')
+    tab_overview = (
+        (None, {
+        'fields': ('name', 'full_name', 'country')
+        }),
+    )
+    tab_competitions = (
+        (None, {
+            'fields': ('competitions',)
+        }),
+    )
+    tab_seats = (
+        SeatInline,
+    )
+    tabs = [
+        ('Overview', tab_overview),
+        ('Competitions', tab_competitions),
+        ('Seats', tab_seats),
+    ]
 
 
 class CompetitionAdmin(TabbedModelAdmin):
@@ -219,12 +242,16 @@ class CompetitionAdmin(TabbedModelAdmin):
         'fields': ('name', 'full_name', 'country', 'slug')
         }),
     )
+    tab_team = (
+        CompetitionTeamInline,
+    )
     tab_drivers = (
         ContenderInline,
     )
     tabs = [
         ('Overview', tab_overview),
-        ('Drivers', tab_drivers)
+        ('Team', tab_team),
+        ('Drivers', tab_drivers),
     ]
 
 
@@ -234,6 +261,7 @@ class CircuitAdmin(admin.ModelAdmin):
 
 class GrandPrixAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_display = ('name', 'country', 'default_circuit', 'print_competitions')
+    list_filter = ('competitions',)
 
 
 class SeasonAdminForm(AlwaysChangedModelForm):
@@ -273,6 +301,7 @@ class SeasonAdmin(TabbedModelAdmin):
     ]
     readonly_fields = ('print_copy_season',)
     list_display = ('__unicode__', 'print_copy_season')
+    list_filter = ('competition',)
 
     def get_season_copy(self, copy_id):
         seasons = Season.objects.filter(pk=copy_id)
@@ -310,7 +339,7 @@ class SeasonAdmin(TabbedModelAdmin):
 
 class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
     list_display = ('__unicode__', 'season', 'print_pole', 'print_winner', 'print_fastest', 'print_results_link',)
-    list_filter = ('season',)
+    list_filter = ('season', 'season__competition',)
     readonly_fields = ('print_results_link',)
 
     def get_urls(self):

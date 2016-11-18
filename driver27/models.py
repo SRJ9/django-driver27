@@ -117,7 +117,9 @@ class Seat(models.Model):
         super(Seat, self).clean()
 
     def __str__(self):
-        return _('%(driver)s in %(team)s') % {'driver': self.contender.driver, 'team': self.team}
+        return _('%(driver)s in %(team)s/%(competition)s') \
+               % {'driver': self.contender.driver, 'team': self.team,
+                  'competition': self.contender.competition}
 
     class Meta:
         unique_together = ('team', 'contender')
