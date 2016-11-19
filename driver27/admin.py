@@ -1,18 +1,17 @@
-from django.contrib import admin
 from django import forms
 from django.conf.urls import url
-from django.shortcuts import render
-from django.db.models.fields import BLANK_CHOICE_DASH
-from django.utils.translation import ugettext as _
-
+from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-
+from django.db.models.fields import BLANK_CHOICE_DASH
+from django.shortcuts import render
+from django.utils.translation import ugettext as _
 from tabbed_admin import TabbedModelAdmin
 
-from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
-from .models import Contender, Seat, TeamSeason
-from .models import ContenderSeason
 from . import punctuation
+from .models import Contender, Seat, TeamSeason, SeatSeason
+from .models import ContenderSeason
+from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
 
 lr_diff = lambda l, r: list(set(l).difference(r))
 lr_intr = lambda l, r: list(set(l).intersection(r))
@@ -117,7 +116,7 @@ class SeatInline(CompetitionFilterInline):
 
 
 class SeatSeasonFormSet(forms.models.BaseInlineFormSet):
-    model = Seat.seasons.through
+    model = SeatSeason
 
     def get_seat_copy(self, copy_id):
         seats_season = Seat.objects.filter(seasons__pk=copy_id)
@@ -130,7 +129,6 @@ class SeatSeasonFormSet(forms.models.BaseInlineFormSet):
             )
         return initial
 
-
     def __init__(self, *args, **kwargs):
         super(SeatSeasonFormSet, self).__init__(*args, **kwargs)
         request = self.request
@@ -142,7 +140,6 @@ class SeatSeasonFormSet(forms.models.BaseInlineFormSet):
 
 class SeatSeasonInline(CompetitionFilterInline):
     model = Seat.seasons.through
-    extra = 3
     ordering = ('seat',)
     formset = SeatSeasonFormSet
     form = AlwaysChangedModelForm

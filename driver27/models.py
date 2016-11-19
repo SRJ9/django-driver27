@@ -106,7 +106,8 @@ class Seat(models.Model):
     team = models.ForeignKey('Team', related_name='seats', verbose_name=_('team'))
     contender = models.ForeignKey('Contender', related_name='seats', verbose_name=_('contender'))
     current = ExclusiveBooleanField(on='contender', default=False, verbose_name=_('current team'))
-    seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None, verbose_name=_('seasons'))
+    seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None,
+                                     verbose_name=_('seasons'), through='SeatSeason')
 
     def clean(self):
         if self.contender.competition not in self.team.competitions.all():
@@ -128,28 +129,6 @@ class Seat(models.Model):
         verbose_name_plural = _('Seats')
 
 
-def seat_season(sender, instance, action, pk_set, **kwargs):
-    # """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition"""
-    if action == 'pre_add':
-        contender_competition = instance.contender.competition
-        contender_seasons = [season.pk for season in contender_competition.seasons.all()]
-        team_seasons = [season.pk for season in instance.team.seasons.all()]
-        errors = []
-        for pk in list(pk_set):
-            pk_season = Season.objects.get(pk=pk)
-            if int(pk) not in contender_seasons:
-                errors.append(
-                    _('%(season)s is not a/an %(competition)s season')
-                    % {'season': pk_season, 'competition': contender_competition}
-                )
-            if int(pk) not in team_seasons:
-                errors.append(
-                    _('%(team)s is not a team of %(season)s') % {'team': instance.team, 'season': pk_season}
-                )
-        if errors:
-            raise ValidationError(errors)
-
-m2m_changed.connect(seat_season, sender=Seat.seasons.through)
 
 
 @python_2_unicode_compatible
@@ -325,7 +304,7 @@ class Race(models.Model):
                                        % {'grand_prix': self.grand_prix, 'competition': self.season.competition}
         if errors:
             raise ValidationError(errors)
-        super(Race, self).clean(*args, **kwargs)
+        super(Race, self).clean()
 
     def get_result_seat(self, *args, **kwargs):
         results = self.results.filter(**kwargs)
@@ -354,6 +333,71 @@ class Race(models.Model):
         ordering = ['season', 'round']
         verbose_name = _('Race')
         verbose_name_plural = _('Races')
+
+
+class SeatSeason(models.Model):
+    seat = models.ForeignKey('Seat', related_name='seasons_seat')
+    season = models.ForeignKey('Season', related_name='seats_season')
+
+    def get_seat_season_errors(self, seat, season):
+        seat_competition = seat.contender.competition
+        season_competition = season.competition
+        errors = []
+        if seat_competition != season_competition:
+            errors.append(
+                _('%(season)s is not a/an %(competition)s season')
+                % {'season': season, 'competition': seat_competition}
+            )
+        return errors
+
+    def get_seat_team_season_error(self, team, season):
+        errors = []
+        if season.pk:
+            season_teams = [season_team.pk for season_team in season.teams.all()]
+            if team.pk not in season_teams:
+                errors.append(
+                    _('%(team)s is not a team of %(season)s') % {'team': team, 'season': season}
+                )
+        return errors
+
+    def clean(self, *args, **kwargs):
+        raise Exception('ko')
+        seat = self.seat
+        season = self.season
+        errors = []
+        errors.extend(self.get_seat_season_errors(seat, season))
+        errors.extend(self.get_seat_team_season_error(seat.team, season))
+        if errors:
+            raise ValidationError(errors)
+        super(SeatSeason, self).clean(*args, **kwargs)
+
+    class Meta:
+        auto_created = True
+        db_table = 'driver27_seat_seasons'
+
+
+def seat_seasons(sender, instance, action, pk_set, **kwargs):  #noqa
+    # """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition"""
+    if action == 'pre_add':
+        contender_competition = instance.contender.competition
+        contender_seasons = [season.pk for season in contender_competition.seasons.all()]
+        team_seasons = [season.pk for season in instance.team.seasons.all()]
+        errors = []
+        for pk in list(pk_set):
+            pk_season = Season.objects.get(pk=pk)
+            if int(pk) not in contender_seasons:
+                errors.append(
+                    _('%(season)s is not a/an %(competition)s season')
+                    % {'season': pk_season, 'competition': contender_competition}
+                )
+            if int(pk) not in team_seasons:
+                errors.append(
+                    _('%(team)s is not a team of %(season)s') % {'team': instance.team, 'season': pk_season}
+                )
+        if errors:
+            raise ValidationError(errors)
+
+m2m_changed.connect(seat_seasons, sender=SeatSeason)
 
 
 @python_2_unicode_compatible
@@ -411,7 +455,7 @@ class Result(models.Model):
             seat_errors.append(_('Seat is not in current season'))
         if seat_errors:
             raise ValidationError(_('Invalid Seat in this race. ')+'\n'.join(seat_errors))
-        super(Result, self).clean(*args, **kwargs)
+        super(Result, self).clean()
 
     @property
     def driver(self):
@@ -507,6 +551,7 @@ class ContenderSeason(object):
 
 @receiver(pre_save)
 def pre_save_handler(sender, instance, *args, **kwargs):
-    model_list = (Driver, Team, Competition, Contender, Seat, Circuit, GrandPrix, Race, Season, Result, TeamSeason)
+    model_list = (Driver, Team, Competition, Contender, Seat, Circuit,
+                  GrandPrix, Race, Season, Result, SeatSeason, TeamSeason)
     if isinstance(instance, model_list):
         instance.full_clean()
