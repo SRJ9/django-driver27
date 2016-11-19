@@ -129,8 +129,6 @@ class Seat(models.Model):
         verbose_name_plural = _('Seats')
 
 
-
-
 @python_2_unicode_compatible
 class Circuit(models.Model):
     name = models.CharField(max_length=30, verbose_name=_('circuit'), unique=True)
@@ -339,7 +337,8 @@ class SeatSeason(models.Model):
     seat = models.ForeignKey('Seat', related_name='seasons_seat')
     season = models.ForeignKey('Season', related_name='seats_season')
 
-    def get_seat_season_errors(self, seat, season):
+    @staticmethod
+    def get_seat_season_errors(seat, season):
         seat_competition = seat.contender.competition
         season_competition = season.competition
         errors = []
@@ -350,7 +349,8 @@ class SeatSeason(models.Model):
             )
         return errors
 
-    def get_seat_team_season_error(self, team, season):
+    @staticmethod
+    def get_seat_team_season_error(team, season):
         errors = []
         if season.pk:
             season_teams = [season_team.pk for season_team in season.teams.all()]
@@ -361,7 +361,6 @@ class SeatSeason(models.Model):
         return errors
 
     def clean(self, *args, **kwargs):
-        raise Exception('ko')
         seat = self.seat
         season = self.season
         errors = []
@@ -379,21 +378,11 @@ class SeatSeason(models.Model):
 def seat_seasons(sender, instance, action, pk_set, **kwargs):  #noqa
     # """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition"""
     if action == 'pre_add':
-        contender_competition = instance.contender.competition
-        contender_seasons = [season.pk for season in contender_competition.seasons.all()]
-        team_seasons = [season.pk for season in instance.team.seasons.all()]
         errors = []
         for pk in list(pk_set):
-            pk_season = Season.objects.get(pk=pk)
-            if int(pk) not in contender_seasons:
-                errors.append(
-                    _('%(season)s is not a/an %(competition)s season')
-                    % {'season': pk_season, 'competition': contender_competition}
-                )
-            if int(pk) not in team_seasons:
-                errors.append(
-                    _('%(team)s is not a team of %(season)s') % {'team': instance.team, 'season': pk_season}
-                )
+            season = Season.objects.get(pk=pk)
+            errors.extend(SeatSeason.get_seat_season_errors(instance, season))
+            errors.extend(SeatSeason.get_seat_team_season_error(instance.team, season))
         if errors:
             raise ValidationError(errors)
 
