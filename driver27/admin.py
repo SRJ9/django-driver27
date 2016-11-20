@@ -566,7 +566,7 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
 
 class ContenderAdmin(TabbedModelAdmin):
     list_display = ('__unicode__', 'competition', 'teams_verbose', 'print_current')
-    list_filter = ('competition',)
+    list_filter = ('competition', 'seats__seasons',)
     tab_overview = (
         (None, {
         'fields': ('driver', 'competition')
