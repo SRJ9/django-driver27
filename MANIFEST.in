@@ -3,6 +3,7 @@ include LICENSE
 include README.md
 include README.rst
 recursive-include driver27 *.py
+recursive-include driver27/admin *.py
 recursive-include driver27/fixtures *.json
 recursive-include driver27/locale *
 recursive-include driver27/migrations *.py

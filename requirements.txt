@@ -1,3 +1,4 @@
+django
 django-bootstrap3
 django-countries
 django-tabbed-admin

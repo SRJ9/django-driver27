@@ -1,11 +1,12 @@
-from django.test import TestCase, Client, RequestFactory
-from django.contrib.admin.sites import AdminSite
 from django.conf import settings
+from django.contrib.admin.sites import AdminSite
+from django.test import TestCase, Client, RequestFactory
+
 try:
     from django.urls import reverse
 except ImportError:
     from django.core.urlresolvers import reverse
-from ..models import Season, Driver, Team, Competition, Circuit, GrandPrix, Race, Contender, Result, Seat, TeamSeason
+from ..models import Season, Driver, Team, Competition, Circuit, GrandPrix, Race, Contender, Seat, TeamSeason
 from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, TeamAdmin, CompetitionAdmin, CircuitAdmin, GrandPrixAdmin, \
     RaceAdmin, ContenderAdmin, RelatedCompetitionAdmin, RaceInline, SeatInline, SeatSeasonInline, TeamSeasonInline
 

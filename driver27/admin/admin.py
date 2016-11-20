@@ -1,217 +1,16 @@
-from django import forms
 from django.conf.urls import url
-from django.contrib import admin
-from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
-from django.db.models.fields import BLANK_CHOICE_DASH
 from django.shortcuts import render
 from django.utils.translation import ugettext as _
 from tabbed_admin import TabbedModelAdmin
 
-from . import punctuation
-from .models import Contender, Seat, TeamSeason, SeatSeason, SeatsSeason
-from .models import ContenderSeason
-from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
+from .forms import *
+from .inlines import *
+from ..models import Contender, SeatsSeason
+from ..models import ContenderSeason
+from ..models import Driver, Competition, Circuit, Season, Result
 
 lr_diff = lambda l, r: list(set(l).difference(r))
 lr_intr = lambda l, r: list(set(l).intersection(r))
-
-
-# http://stackoverflow.com/a/34567383
-class AlwaysChangedModelForm(forms.ModelForm):
-    def is_empty_form(self, *args, **kwargs):
-        empty_form = True
-        for name, field in self.fields.items():
-            prefixed_name = self.add_prefix(name)
-            data_value = field.widget.value_from_datadict(self.data, self.files, prefixed_name)
-            if data_value:
-                empty_form = False
-                break
-        return empty_form
-
-    def has_changed(self, *args, **kwargs):
-        """ Should returns True if data differs from initial. 
-        By always returning true even unchanged inlines will get validated and saved."""
-        if self.instance.pk is None and self.initial:
-            if not self.changed_data:
-                return True
-            if self.is_empty_form():
-                return False
-        return super(AlwaysChangedModelForm, self).has_changed(*args, **kwargs)
-
-
-class RelatedCompetitionAdmin(object):
-    """ Aux class to share print_competitions method between driver and team """
-    def print_competitions(self, obj):
-        if hasattr(obj, 'competitions'):
-            return ', '.join("%s" % competition for competition in obj.competitions.all())
-        else:
-            return None
-    print_competitions.short_description = _('competitions')
-
-
-class CompetitionFilterInline(admin.TabularInline):
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super(CompetitionFilterInline, self).get_formset(request, obj, **kwargs)
-        formset.request = request
-        return formset
-
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if getattr(request, '_obj_', None):
-            if db_field.name == 'team':
-                kwargs['queryset'] = Team.objects.filter(competitions__exact=request._obj_.competition)
-            elif db_field.name == 'grand_prix':
-                kwargs['queryset'] = GrandPrix.objects.filter(competitions__exact=request._obj_.competition)
-            elif db_field.name == 'seat':
-                kwargs['queryset'] = Seat.objects.filter(contender__competition__exact=request._obj_.competition)
-        return super(CompetitionFilterInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
-
-
-class CommonRaceAdmin(object):
-    def print_results_link(self, obj):
-        if obj.pk:
-            results_url = reverse("admin:driver27_race_results", args=[obj.pk])
-            return '<a href="%s">%s</a>' % (results_url, _('Results'))
-        else:
-            return ''
-    print_results_link.allow_tags = True
-    print_results_link.short_description = _('link')
-
-
-class RaceFormSet(forms.models.BaseInlineFormSet):
-    model = Race
-
-    def get_copy_race(self, copy_id):
-        races = Race.objects.filter(season__pk=copy_id)
-        initial = []
-        for race in races:
-            initial.append(
-                {
-                    'round': race.round,
-                    'circuit': race.circuit,
-                    'grand_prix': race.grand_prix
-                }
-            )
-        return initial
-
-    def __init__(self, *args, **kwargs):
-        super(RaceFormSet, self).__init__(*args, **kwargs)
-        request = self.request
-        copy_id = request.GET.get('copy', None)
-        if not self.initial and copy_id:
-            self.initial = self.get_copy_race(copy_id)
-            self.extra += len(self.initial)
-
-
-class RaceInline(CommonRaceAdmin, CompetitionFilterInline):
-    model = Race
-    extra = 1
-    readonly_fields = ('print_results_link', )
-    formset = RaceFormSet
-    form = AlwaysChangedModelForm
-
-
-class SeatInline(CompetitionFilterInline):
-    model = Seat
-    extra = 1
-
-
-class SeatSeasonFormSet(forms.models.BaseInlineFormSet):
-    model = SeatSeason
-
-    def get_seat_copy(self, copy_id):
-        seats_season = Seat.objects.filter(seasons__pk=copy_id)
-        initial = []
-        for seat_season in seats_season:
-            initial.append(
-                {
-                    'seat': seat_season.pk,
-                }
-            )
-        return initial
-
-    def __init__(self, *args, **kwargs):
-        super(SeatSeasonFormSet, self).__init__(*args, **kwargs)
-        request = self.request
-        copy_id = request.GET.get('copy', None)
-        if not self.initial and copy_id:
-            self.initial = self.get_seat_copy(copy_id)
-            self.extra += len(self.initial)
-
-
-class SeatSeasonInline(CompetitionFilterInline):
-    model = SeatSeason
-    ordering = ('seat',)
-    formset = SeatSeasonFormSet
-    form = AlwaysChangedModelForm
-
-
-class ContenderInline(admin.TabularInline):
-    model = Contender
-    extra = 1
-
-
-class CompetitionTeamInline(admin.TabularInline):
-    model = Team.competitions.through
-    extra = 1
-
-
-class TeamSeasonFormSet(forms.models.BaseInlineFormSet):
-    model = TeamSeason
-
-    def get_team_copy(self, copy_id):
-        teams_season = TeamSeason.objects.filter(season__pk=copy_id)
-        initial = []
-        for team_season in teams_season:
-            initial.append(
-                {
-                    'team': team_season.team,
-                    'sponsor_name': team_season.sponsor_name,
-                }
-            )
-        return initial
-
-    def clean(self):
-        delete_checked = False
-
-        for form in self.forms:
-            try:
-                if form.cleaned_data and form.cleaned_data.get('DELETE'):
-                    team = form.cleaned_data.get('team')
-                    season = form.cleaned_data.get('season')
-                    seat_check = TeamSeason.check_delete_seat_restriction(team=team, season=season)
-                    if seat_check:
-                        delete_checked = True
-            except AttributeError:
-                pass
-
-        if delete_checked:
-            raise forms.ValidationError('You cannot delete a team with seats in this season.'
-                                        'Delete seats before')
-
-    def __init__(self, *args, **kwargs):
-        super(TeamSeasonFormSet, self).__init__(*args, **kwargs)
-        request = self.request
-        copy_id = request.GET.get('copy', None)
-        if not self.initial and copy_id:
-            self.initial = self.get_team_copy(copy_id)
-            self.extra += len(self.initial)
-
-
-class TeamSeasonInlineForm(AlwaysChangedModelForm):
-    pass
-
-
-class TeamSeasonInline(CompetitionFilterInline):
-    model = TeamSeason
-    extra = 1
-    formset = TeamSeasonFormSet
-    form = TeamSeasonInlineForm
-
-
-class TeamInline(admin.TabularInline):
-    model = Team
-    extra = 1
 
 
 class DriverAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
@@ -290,19 +89,6 @@ class CircuitAdmin(admin.ModelAdmin):
 class GrandPrixAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_display = ('name', 'country', 'default_circuit', 'print_competitions')
     list_filter = ('competitions',)
-
-
-class SeasonAdminForm(AlwaysChangedModelForm):
-
-    def __init__(self, *args, **kwargs):
-        super(SeasonAdminForm, self).__init__(*args, **kwargs)
-        punctuation_dict = punctuation.DRIVER27_PUNCTUATION
-        punctuation_choices = [(punct['code'], punct['label']) for punct in punctuation_dict]
-        self.fields['punctuation'] = forms.ChoiceField(choices=BLANK_CHOICE_DASH + list(punctuation_choices), initial=None)
-
-    class Meta:
-        model = Season
-        fields = ('year', 'competition', 'rounds', 'punctuation')
 
 
 class SeatSeasonAdmin(TabbedModelAdmin):
@@ -423,7 +209,6 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
     def print_fastest(self, obj):
         return self.print_seat(obj.fastest)
     print_fastest.short_description = _('Fastest')
-
 
     def clean_qualifying(self, qualifying):
         try:
