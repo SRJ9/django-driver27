@@ -63,9 +63,7 @@ class CompetitionFilterInline(admin.TabularInline):
             elif db_field.name == 'grand_prix':
                 kwargs['queryset'] = GrandPrix.objects.filter(competitions__exact=request._obj_.competition)
             elif db_field.name == 'seat':
-                kwargs['queryset'] = Seat.objects.filter(
-                    contender__competition__exact=request._obj_.competition,
-                    team__seasons__exact=request._obj_)
+                kwargs['queryset'] = Seat.objects.filter(contender__competition__exact=request._obj_.competition)
         return super(CompetitionFilterInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -173,6 +171,24 @@ class TeamSeasonFormSet(forms.models.BaseInlineFormSet):
             )
         return initial
 
+    def clean(self):
+        delete_checked = False
+
+        for form in self.forms:
+            try:
+                if form.cleaned_data and form.cleaned_data.get('DELETE'):
+                    team = form.cleaned_data.get('team')
+                    season = form.cleaned_data.get('season')
+                    seat_check = TeamSeason.check_delete_seat_restriction(team=team, season=season)
+                    if seat_check:
+                        delete_checked = True
+            except AttributeError:
+                pass
+
+        if delete_checked:
+            raise forms.ValidationError('You cannot delete a team with seats in this season.'
+                                        'Delete seats before')
+
     def __init__(self, *args, **kwargs):
         super(TeamSeasonFormSet, self).__init__(*args, **kwargs)
         request = self.request
@@ -182,11 +198,15 @@ class TeamSeasonFormSet(forms.models.BaseInlineFormSet):
             self.extra += len(self.initial)
 
 
+class TeamSeasonInlineForm(AlwaysChangedModelForm):
+    pass
+
+
 class TeamSeasonInline(CompetitionFilterInline):
     model = TeamSeason
     extra = 1
     formset = TeamSeasonFormSet
-    form = AlwaysChangedModelForm
+    form = TeamSeasonInlineForm
 
 
 class TeamInline(admin.TabularInline):

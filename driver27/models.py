@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.dispatch import receiver
-from django.db.models.signals import m2m_changed, pre_save
+from django.db.models.signals import m2m_changed, pre_save, pre_delete
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
@@ -11,6 +11,7 @@ from . import punctuation
 from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField
+
 
 @python_2_unicode_compatible
 class Driver(models.Model):
@@ -413,7 +414,13 @@ class TeamSeason(models.Model):
                     _('Team %(team)s doesn\'t participate in %(competition)s')
                     % {'team': self.team, 'competition': self.season.competition}
                 )
-        super(TeamSeason, self).clean(*args, **kwargs)
+        super(TeamSeason, self).clean()
+
+    @staticmethod
+    def check_delete_seat_restriction(team, season):
+        seats_count = SeatSeason.objects.filter(seat__team=team, season=season).count()
+        return True if seats_count else None
+        # return {'team': _('Seats with %(team)s exists in this season. Delete seats before.' % {'team': team})}
 
     def get_points(self):
         results = Result.objects.filter(race__season=self.season, seat__team=self.team) \
@@ -546,9 +553,19 @@ class ContenderSeason(object):
         positions_str = ''.join([str(x).zfill(3) for x in position_list])
         return positions_str
 
+
 @receiver(pre_save)
 def pre_save_handler(sender, instance, *args, **kwargs):
     model_list = (Driver, Team, Competition, Contender, Seat, Circuit,
                   GrandPrix, Race, Season, Result, SeatSeason, TeamSeason)
     if isinstance(instance, model_list):
         instance.full_clean()
+
+
+@receiver(pre_delete, sender=TeamSeason)
+def pre_delete_team_season(sender, instance, *args, **kwargs):
+    team = instance.team
+    season = instance.season
+    if TeamSeason.check_delete_seat_restriction(team=team, season=season):
+        raise ValidationError('You cannot delete a team with seats in this season.'
+                                        'Delete seats before')
