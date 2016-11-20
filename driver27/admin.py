@@ -254,6 +254,10 @@ class TeamAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
     ]
 
 
+class CompetitionSeasonAdmin(admin.TabularInline):
+    model = Season
+
+
 class CompetitionAdmin(TabbedModelAdmin):
     model = Competition
     list_display = ('name', 'full_name')
@@ -268,10 +272,14 @@ class CompetitionAdmin(TabbedModelAdmin):
     tab_drivers = (
         ContenderInline,
     )
+    tab_seasons = (
+        CompetitionSeasonAdmin,
+    )
     tabs = [
         ('Overview', tab_overview),
         ('Team', tab_team),
         ('Drivers', tab_drivers),
+        ('Seasons', tab_seasons)
     ]
 
 
