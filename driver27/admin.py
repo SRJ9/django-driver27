@@ -9,12 +9,13 @@ from django.utils.translation import ugettext as _
 from tabbed_admin import TabbedModelAdmin
 
 from . import punctuation
-from .models import Contender, Seat, TeamSeason, SeatSeason
+from .models import Contender, Seat, TeamSeason, SeatSeason, SeatsSeason
 from .models import ContenderSeason
 from .models import Driver, Team, Competition, Circuit, Season, GrandPrix, Race, Result
 
 lr_diff = lambda l, r: list(set(l).difference(r))
 lr_intr = lambda l, r: list(set(l).intersection(r))
+
 
 # http://stackoverflow.com/a/34567383
 class AlwaysChangedModelForm(forms.ModelForm):
@@ -62,7 +63,9 @@ class CompetitionFilterInline(admin.TabularInline):
             elif db_field.name == 'grand_prix':
                 kwargs['queryset'] = GrandPrix.objects.filter(competitions__exact=request._obj_.competition)
             elif db_field.name == 'seat':
-                kwargs['queryset'] = Seat.objects.filter(contender__competition__exact=request._obj_.competition)
+                kwargs['queryset'] = Seat.objects.filter(
+                    contender__competition__exact=request._obj_.competition,
+                    team__seasons__exact=request._obj_)
         return super(CompetitionFilterInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -139,7 +142,7 @@ class SeatSeasonFormSet(forms.models.BaseInlineFormSet):
 
 
 class SeatSeasonInline(CompetitionFilterInline):
-    model = Seat.seasons.through
+    model = SeatSeason
     ordering = ('seat',)
     formset = SeatSeasonFormSet
     form = AlwaysChangedModelForm
@@ -274,8 +277,7 @@ class SeasonAdminForm(AlwaysChangedModelForm):
         fields = ('year', 'competition', 'rounds', 'punctuation')
 
 
-class SeasonAdmin(TabbedModelAdmin):
-    form = SeasonAdminForm
+class SeatSeasonAdmin(TabbedModelAdmin):
     tab_overview = (
         (None, {
         'fields': ('year', 'competition', 'rounds', 'punctuation')
@@ -287,13 +289,45 @@ class SeasonAdmin(TabbedModelAdmin):
     tab_drivers = (
         SeatSeasonInline,
     )
+    tabs = [
+        ('Overview', tab_overview),
+        ('Drivers', tab_drivers),
+    ]
+
+    readonly_fields = ('year', 'competition', 'rounds', 'punctuation')
+    list_filter = ('competition',)
+    list_display = ('competition', 'year',)
+
+    def has_add_permission(self, request):
+        return False
+
+    def get_form(self, request, obj=None, **kwargs):
+        # just save obj reference for future processing in Inline
+        if request and obj:
+            request._obj_ = obj
+        return super(SeatSeasonAdmin, self).get_form(request=request, obj=obj, **kwargs)
+
+
+class SeasonAdmin(TabbedModelAdmin):
+    form = SeasonAdminForm
+    tab_overview = (
+        (None, {
+        'fields': ('year', 'competition', 'rounds', 'punctuation')
+        }),
+    )
+    tab_teams = (
+        TeamSeasonInline,
+    )
+    # tab_drivers = (
+    #     SeatSeasonInline,
+    # )
     tab_races = (
         RaceInline,
     )
     tabs = [
         ('Overview', tab_overview),
         ('Teams', tab_teams),
-        ('Drivers', tab_drivers),
+        # ('Drivers', tab_drivers),
         ('Races', tab_races),
     ]
     readonly_fields = ('print_copy_season',)
@@ -550,3 +584,4 @@ admin.site.register(Race, RaceAdmin)
 
 # m2m admin
 admin.site.register(Contender, ContenderAdmin)
+admin.site.register(SeatsSeason, SeatSeasonAdmin)

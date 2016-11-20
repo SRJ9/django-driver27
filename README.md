@@ -27,12 +27,14 @@ Versions
 ========
 - 0.14c (Fernando Alonso 14)
 - 0.16c (Race to Championship '16)
-- 0.17x
+- 0.19x
 - 0.27-VIL (Gilles Villeneuve 27)
 
-0.17x (in process)
+0.19x (in process)
 ==================
-Spanish translation
+- Spanish translation
+- Link to copy season copying teams and races to add_view. Seats is potentially bugged by team dependency (both would be create at the same time).
+- Fix bugs founded in previous versions.
 
 0.16
 ====

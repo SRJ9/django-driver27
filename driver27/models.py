@@ -124,7 +124,7 @@ class Seat(models.Model):
 
     class Meta:
         unique_together = ('team', 'contender')
-        ordering = ['contender__driver__last_name', 'team']
+        ordering = ['current', 'contender__driver__last_name', 'team']
         verbose_name = _('Seat')
         verbose_name_plural = _('Seats')
 
@@ -266,6 +266,14 @@ class Season(models.Model):
         ordering = ['competition__name', 'year']
         verbose_name = _('Season')
         verbose_name_plural = _('Seasons')
+
+
+class SeatsSeason(Season):
+    # aux proxy class to use in Admin for Season/Seat relation from Season
+    class Meta:
+        proxy = True
+        verbose_name = _('Seats by season')
+        verbose_name_plural = _('Seats by season')
 
 
 @python_2_unicode_compatible
