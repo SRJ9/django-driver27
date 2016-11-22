@@ -6,9 +6,15 @@ try:
     from django.urls import reverse
 except ImportError:
     from django.core.urlresolvers import reverse
-from ..models import Season, Driver, Team, Competition, Circuit, GrandPrix, Race, Contender, Seat, TeamSeason
-from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, TeamAdmin, CompetitionAdmin, CircuitAdmin, GrandPrixAdmin, \
-    RaceAdmin, ContenderAdmin, RelatedCompetitionAdmin, RaceInline, SeatInline, SeatSeasonInline, TeamSeasonInline
+from django.forms.models import inlineformset_factory, formset_factory
+from ..models import Season, Driver, Team, Competition, Circuit
+from ..models import GrandPrix, Race, Contender, Seat, SeatSeason, TeamSeason
+from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, SeatSeasonAdmin, TeamAdmin
+from ..admin import CompetitionAdmin, CircuitAdmin, GrandPrixAdmin
+from ..admin import RaceAdmin, ContenderAdmin, RelatedCompetitionAdmin
+from ..admin import RaceInline, SeatInline, SeatSeasonInline, TeamSeasonInline
+from ..admin.formsets import RaceFormSet, SeatSeasonFormSet, TeamSeasonFormSet
+from ..admin.common import AlwaysChangedModelForm
 
 class MockRequest(object):
     pass
@@ -37,14 +43,13 @@ def get_fixtures_test():
 class FixturesTest(TestCase):
     fixtures = get_fixtures_test()
 
+
 class ViewTest(FixturesTest):
 
     def setUp(self):
         self.site = AdminSite()
         self.client = Client()
         self.factory = RequestFactory()
-
-
 
     def test_competition_list(self):
         # Issue a GET request.
@@ -132,15 +137,16 @@ class ViewTest(FixturesTest):
         request = get_request()
         self.assertTrue(ma.get_changelist(request=request))
 
-
     def test_season_admin(self):
         ma = SeasonAdmin(Season, self.site)
         self._check_get_changelist(ma)
         self.assertTrue(ma.get_form(request=None, obj=None))
+        self.assertIsInstance(ma.get_season_copy(copy_id=1), dict)
 
         request = get_request()
         season = Season.objects.get(pk=1)
         season_form = ma.get_form(request=request, obj=season)
+        self.assertTrue(ma.print_copy_season(obj=season))
         self.assertIsNotNone(SeasonAdminForm(season_form))
 
     def test_driver_admin(self):
@@ -166,6 +172,25 @@ class ViewTest(FixturesTest):
     def test_grandprix_admin(self):
         ma = GrandPrixAdmin(GrandPrix, self.site)
         self._check_get_changelist(ma)
+
+    def _test_season_formset(self, child_model, formset, fields):
+        inline_formset = inlineformset_factory(Season, child_model, formset=formset,
+                                               fields=fields,
+                                               form=AlwaysChangedModelForm)
+        inline_formset.request = self.factory.request(QUERY_STRING='copy=1')
+        related_formset = inline_formset()
+        self.assertTrue(related_formset.get_copy(copy_id=1))
+        return related_formset
+
+    def test_race_formset(self):
+        self._test_season_formset(Race, RaceFormSet, ('round', 'grand_prix', 'circuit', 'date', 'alter_punctuation'))
+
+    def test_seat_season_formset(self):
+        self._test_season_formset(SeatSeason, SeatSeasonFormSet, ('seat', 'season',))
+
+    def test_team_season_formset(self):
+        formset = self._test_season_formset(TeamSeason, TeamSeasonFormSet, ('team', 'season',))
+        formset.clean()
 
     def test_race_admin(self):
         ma = RaceAdmin(Race, self.site)
@@ -214,11 +239,17 @@ class ViewTest(FixturesTest):
         request._obj_ = request_obj
         self.assertIsNotNone(ma.formfield_for_foreignkey(dbfield, request=request))
 
-
     def test_seat_inline_admin(self):
         ma = SeatInline(ContenderAdmin, self.site)
         contender = Contender.objects.get(pk=1)
         self._check_formfield_for_foreignkey(ma, request_obj=contender, dbfield=Seat.team.field)
+
+    def test_seat_season_admin(self):
+        ma = SeatSeasonAdmin(SeatSeason, self.site)
+        seat_season = SeatSeason.objects.get(pk=1)
+        request = get_request()
+        self.assertFalse(ma.has_add_permission(request=request))
+        self.assertTrue(ma.get_form(request=request, obj=seat_season))
 
     def test_seat_season_inline_admin(self):
         ma = SeatSeasonInline(SeasonAdmin, self.site)
