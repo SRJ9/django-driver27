@@ -33,9 +33,10 @@ class DriverAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
 class TeamAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
     model = Team
     list_display = ('__unicode__', 'country', 'print_competitions')
+    list_filter = ('competitions', 'seats__seasons')
     tab_overview = (
         (None, {
-        'fields': ('name', 'full_name', 'country')
+                'fields': ('name', 'full_name', 'country')
         }),
     )
     tab_competitions = (
@@ -94,7 +95,7 @@ class GrandPrixAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
 class SeatSeasonAdmin(TabbedModelAdmin):
     tab_overview = (
         (None, {
-        'fields': ('year', 'competition', 'rounds', 'punctuation')
+                'fields': ('year', 'competition', 'rounds', 'punctuation')
         }),
     )
     tab_teams = (
@@ -387,6 +388,26 @@ class ContenderAdmin(TabbedModelAdmin):
         return super(ContenderAdmin, self).get_form(request, obj, **kwargs)
 
 
+class SeatAdmin(TabbedModelAdmin):
+    list_display = ('contender', 'team',)
+    list_filter = ('contender__competition', 'seasons',)
+    tab_overview = (
+        (None, {
+                'fields': ('team', 'contender', 'current')
+        }),
+    )
+    tab_seasons = (
+        # (None, {
+        #         'fields': ('seasons',)
+        # }),
+        SeatSeasonInline,
+    )
+    tabs = [
+        ('Overview', tab_overview),
+        ('Seasons', tab_seasons)
+    ]
+
+
 admin.site.register(Driver, DriverAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Competition, CompetitionAdmin)
@@ -394,6 +415,7 @@ admin.site.register(Circuit, CircuitAdmin)
 admin.site.register(GrandPrix, GrandPrixAdmin)
 admin.site.register(Season, SeasonAdmin)
 admin.site.register(Race, RaceAdmin)
+admin.site.register(Seat, SeatAdmin)
 
 # m2m admin
 admin.site.register(Contender, ContenderAdmin)
