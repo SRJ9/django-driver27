@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
-from django.contrib.admin.views import main as admin_views_main
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -136,5 +135,4 @@ DRIVER27_PUNCTUATION = [
     },
 ]
 
-admin_views_main.MAX_SHOW_ALL_ALLOWED = 25
 
