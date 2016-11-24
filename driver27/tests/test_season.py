@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from .common import CommonSeasonTestCase, CommonSeatTestCase
-from ..models import TeamSeason, Contender, Seat
+from ..models import SeatSeason, TeamSeason, Contender, Seat
 
 class SeasonTestCase(TestCase, CommonSeasonTestCase, CommonSeatTestCase):
     def test_season_unicode(self):
@@ -71,8 +71,13 @@ class SeasonTestCase(TestCase, CommonSeasonTestCase, CommonSeatTestCase):
         self.assertTrue(self.set_test_seat(**seat_b_args))
         seat_b = Seat.objects.get(**seat_b_args)
         # Fail again because Seat team is not in season
+        seat_season_args = {'seat': seat_b, 'season': season}
         with transaction.atomic():
             self.assertRaises(ValidationError, seat_b.seasons.add, season)
+        self.assertRaises(ValidationError, SeatSeason.objects.create, **seat_season_args)
         # Save team-season rel and Seat-Season save is ok
-        self.assertTrue(TeamSeason.objects.create(**{'team': team, 'season': season}))
-        self.assertIsNone(seat_b.seasons.add(season))
+        team_season_args = {'team': team, 'season': season}
+        self.assertTrue(TeamSeason.objects.create(**team_season_args))
+        self.assertTrue(SeatSeason.objects.create(**seat_season_args))
+        team_season_filter = TeamSeason.objects.filter(**team_season_args)
+        self.assertRaises(IntegrityError, team_season_filter.delete)

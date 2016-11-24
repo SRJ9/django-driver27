@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models
+from django.db import models, IntegrityError
 from django.dispatch import receiver
 from django.db.models.signals import m2m_changed, pre_save, pre_delete
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
@@ -377,7 +377,11 @@ class SeatSeason(models.Model):
         errors.extend(self.get_seat_team_season_error(seat.team, season))
         if errors:
             raise ValidationError(errors)
-        super(SeatSeason, self).clean(*args, **kwargs)
+        super(SeatSeason, self).clean()
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super(SeatSeason, self).save(*args, **kwargs)
 
     class Meta:
         auto_created = True
@@ -417,9 +421,16 @@ class TeamSeason(models.Model):
         super(TeamSeason, self).clean()
 
     @staticmethod
+    def delete_seat_exception(team, season):
+        if TeamSeason.check_delete_seat_restriction(team=team, season=season):
+            raise IntegrityError('You cannot delete a team with seats in this season.'
+                                  'Delete seats before')
+
+
+    @staticmethod
     def check_delete_seat_restriction(team, season):
         seats_count = SeatSeason.objects.filter(seat__team=team, season=season).count()
-        return True if seats_count else None
+        return bool(seats_count)
         # return {'team': _('Seats with %(team)s exists in this season. Delete seats before.' % {'team': team})}
 
     def get_points(self):
@@ -428,6 +439,12 @@ class TeamSeason(models.Model):
             .order_by('race__round')
         points_list = [result.points for result in results.all() if result.points is not None]
         return sum(points_list)
+
+    # def delete(self, *args, **kwargs):
+    #     team = self.team
+    #     season = self.season
+    #     self.delete_seat_exception(team=team, season=season)
+    #     super(TeamSeason, self).delete(*args, **kwargs)
 
     def __str__(self):
         str_team = self.team.name
@@ -558,14 +575,13 @@ class ContenderSeason(object):
 def pre_save_handler(sender, instance, *args, **kwargs):
     model_list = (Driver, Team, Competition, Contender, Seat, Circuit,
                   GrandPrix, Race, Season, Result, SeatSeason, TeamSeason)
-    if isinstance(instance, model_list):
-        instance.full_clean()
+    if not isinstance(instance, model_list):
+        return
+    instance.full_clean()
 
 
 @receiver(pre_delete, sender=TeamSeason)
 def pre_delete_team_season(sender, instance, *args, **kwargs):
     team = instance.team
     season = instance.season
-    if TeamSeason.check_delete_seat_restriction(team=team, season=season):
-        raise ValidationError('You cannot delete a team with seats in this season.'
-                                        'Delete seats before')
+    TeamSeason.delete_seat_exception(team=team, season=season)
