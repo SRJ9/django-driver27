@@ -148,6 +148,8 @@ class ViewTest(FixturesTest):
         season_form = ma.get_form(request=request, obj=season)
         self.assertTrue(ma.print_copy_season(obj=season))
         self.assertIsNotNone(SeasonAdminForm(season_form))
+        request = self.factory.request(QUERY_STRING='copy=1')
+        self.assertTrue(ma.get_changeform_initial_data(request=request))
 
     def test_driver_admin(self):
         ma = DriverAdmin(Driver, self.site)
@@ -205,7 +207,30 @@ class ViewTest(FixturesTest):
         self.assertEquals(ma.clean_finish('1'), 1)
         self.assertIsNone(ma.clean_finish(''))
 
+        race = Race.objects.get(pk=21)
         request = self.factory.get(reverse("admin:driver27_race_results", args=[race.pk]))
+        self.assertTrue(ma.results(request, race.pk))
+        results_post = {
+            'entry[]': 1,
+            'seat-1-qualifying': 1,
+            'seat-1-finish': None,
+            'seat-1-wildcard': False,
+            'seat-1-fastest-lap': True,
+            'seat-1-retired': True,
+            'entry[]': 2,
+            'seat-2-qualifying': 2,
+            'seat-2-finish': 5,
+            'seat-2-wildcard': False,
+            'seat-2-fastest-lap': False,
+            'seat-2-retired': False,
+            'entry[]': 3,
+            'seat-3-qualifying': 20,
+            'seat-3-finish': 1,
+            'seat-3-wildcard': False,
+            'seat-3-fastest-lap': False,
+            'seat-3-retired': False,
+        }
+        request = self.factory.post(reverse("admin:driver27_race_results", args=[race.pk]), data=results_post)
         self.assertTrue(ma.results(request, race.pk))
 
         race_ma = RaceInline(SeasonAdmin, self.site)
@@ -223,8 +248,8 @@ class ViewTest(FixturesTest):
         self.assertIsNone(ma.print_fastest(race))
         self.assertIsNotNone(ma.print_results_link(race))
 
-        request = self.factory.get(reverse("admin:driver27_race_results", args=[race.pk]))
-        self.assertTrue(ma.results(request, race.pk))
+        # request = self.factory.get(reverse("admin:driver27_race_results", args=[race.pk]))
+        # self.assertTrue(ma.results(request, race.pk))
 
     def test_contender_admin(self):
         ma = ContenderAdmin(Contender, self.site)
