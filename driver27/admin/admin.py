@@ -151,15 +151,16 @@ class SeasonAdmin(TabbedModelAdmin):
 
     def get_season_copy(self, copy_id):
         seasons = Season.objects.filter(pk=copy_id)
+        copy_dict = {}
         if seasons.count():
             season = seasons.first()
-            return {
+            copy_dict = {
                 #'year': season.year+1,
                 'competition': season.competition,
                 'rounds': season.rounds,
                 'punctuation': season.punctuation
             }
-        return {}
+        return copy_dict
 
     def get_changeform_initial_data(self, request, *args, **kwargs):
         copy_id = request.GET.get('copy', None)
@@ -214,14 +215,14 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
     def clean_qualifying(self, qualifying):
         try:
             qualifying = int(qualifying)
-        except ValueError:
+        except (ValueError, TypeError):
             qualifying = None
         return qualifying
 
     def clean_finish(self, finish):
         try:
             finish = int(finish)
-        except ValueError:
+        except (ValueError, TypeError):
             finish = None
         return finish
 
@@ -299,9 +300,9 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
         title = 'Results in %s' % race
         season = race.season
         season_seats = Seat.objects.filter(seasons__pk=season.pk)
-        if request.POST:
+        if request.method == 'POST':
             post_entries = request.POST.getlist('entry[]')
-            if post_entries:
+            if len(post_entries):
                 post_entries = map(int, post_entries)
                 self.update_race_seats(request, post_entries, race)
 

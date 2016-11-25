@@ -7,7 +7,7 @@ try:
 except ImportError:
     from django.core.urlresolvers import reverse
 from django.forms.models import inlineformset_factory, formset_factory
-from ..models import Season, Driver, Team, Competition, Circuit
+from ..models import Season, Driver, Team, Competition, Circuit, Result
 from ..models import GrandPrix, Race, Contender, Seat, SeatSeason, TeamSeason
 from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, SeatSeasonAdmin, TeamAdmin
 from ..admin import CompetitionAdmin, CircuitAdmin, GrandPrixAdmin
@@ -182,6 +182,8 @@ class ViewTest(FixturesTest):
         inline_formset.request = self.factory.request(QUERY_STRING='copy=1')
         related_formset = inline_formset()
         self.assertTrue(related_formset.get_copy(copy_id=1))
+        # self.assertFalse(related_formset.is_empty_form())
+        self.assertFalse(related_formset.has_changed())
         return related_formset
 
     def test_race_formset(self):
@@ -207,23 +209,41 @@ class ViewTest(FixturesTest):
         self.assertEquals(ma.clean_finish('1'), 1)
         self.assertIsNone(ma.clean_finish(''))
 
+    def test_race_inline(self):
+        race = Race.objects.get(pk=1)
+        race_ma = RaceInline(SeasonAdmin, self.site)
+        self.assertIsNotNone(race_ma.print_results_link(race))
+        self.assertIsNotNone(race_ma.get_formset())
+        request = get_request()
+        season = race.season
+        request._obj_ = season
+        self.assertIsNotNone(race_ma.formfield_for_foreignkey(Race.grand_prix.field, request=request))
+
+    def test_race_with_no_results(self):
+        ma = RaceAdmin(Race, self.site)
+        race = Race.objects.get(pk=20)  # No results
+        self.assertIsNone(ma.print_pole(race))
+        self.assertIsNone(ma.print_winner(race))
+        self.assertIsNone(ma.print_fastest(race))
+        self.assertIsNotNone(ma.print_results_link(race))
+
+    def test_result_admin(self):
+        ma = RaceAdmin(Race, self.site)
         race = Race.objects.get(pk=21)
         request = self.factory.get(reverse("admin:driver27_race_results", args=[race.pk]))
         self.assertTrue(ma.results(request, race.pk))
         results_post = {
-            'entry[]': 1,
+            'entry[]': [1, 2, 3],
             'seat-1-qualifying': 1,
             'seat-1-finish': None,
             'seat-1-wildcard': False,
             'seat-1-fastest-lap': True,
             'seat-1-retired': True,
-            'entry[]': 2,
             'seat-2-qualifying': 2,
             'seat-2-finish': 5,
             'seat-2-wildcard': False,
             'seat-2-fastest-lap': False,
             'seat-2-retired': False,
-            'entry[]': 3,
             'seat-3-qualifying': 20,
             'seat-3-finish': 1,
             'seat-3-wildcard': False,
@@ -233,23 +253,33 @@ class ViewTest(FixturesTest):
         request = self.factory.post(reverse("admin:driver27_race_results", args=[race.pk]), data=results_post)
         self.assertTrue(ma.results(request, race.pk))
 
-        race_ma = RaceInline(SeasonAdmin, self.site)
-        self.assertIsNotNone(race_ma.print_results_link(race))
+        # update and remove results
+        results_post = {
+            'entry[]': [1, 2, 4],  # 1: equal, 2: update finish, 3: remove, 4: add
+            'seat-1-qualifying': 1, 'seat-1-finish': None, 'seat-1-wildcard': False,
+            'seat-1-fastest-lap': True, 'seat-1-retired': True,
+            'seat-2-qualifying': 2, 'seat-2-finish': 7, 'seat-2-wildcard': False,
+            'seat-2-fastest-lap': False, 'seat-2-retired': False,
+            'seat-4-qualifying': 3, 'seat-4-finish': 10, 'seat-4-wildcard': False,
+            'seat-4-fastest-lap': False, 'seat-4-retired': False,
+            # entry 3 removed
+        }
+        request = self.factory.post(reverse("admin:driver27_race_results", args=[race.pk]), data=results_post)
+        self.assertTrue(ma.results(request, race.pk))
 
+        result_seat1 = Result.objects.get(seat__pk=1, race=race)
+        result_seat2 = Result.objects.get(seat__pk=2, race=race)
+        result_seat3 = Result.objects.filter(seat__pk=3, race=race)
+        result_seat4 = Result.objects.get(seat__pk=4, race=race)
 
-        request = get_request()
-        season = race.season
-        request._obj_ = season
-        self.assertIsNotNone(race_ma.formfield_for_foreignkey(Race.grand_prix.field, request=request))
+        self.assertTrue(result_seat1.fastest_lap)
+        self.assertEquals(result_seat2.finish, 7)
+        self.assertEquals(result_seat3.count(), 0)
+        self.assertEquals(result_seat4.qualifying, 3)
 
-        race = Race.objects.get(pk=20) # No results
-        self.assertIsNone(ma.print_pole(race))
-        self.assertIsNone(ma.print_winner(race))
-        self.assertIsNone(ma.print_fastest(race))
-        self.assertIsNotNone(ma.print_results_link(race))
-
-        # request = self.factory.get(reverse("admin:driver27_race_results", args=[race.pk]))
-        # self.assertTrue(ma.results(request, race.pk))
+        # no seats
+        request = self.factory.post(reverse("admin:driver27_race_results", args=[race.pk]), data={})
+        self.assertTrue(ma.results(request, race.pk))
 
     def test_contender_admin(self):
         ma = ContenderAdmin(Contender, self.site)
