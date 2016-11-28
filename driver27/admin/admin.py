@@ -9,8 +9,13 @@ from ..models import Contender, SeatsSeason
 from ..models import ContenderSeason
 from ..models import Driver, Competition, Circuit, Season, Result
 
-lr_diff = lambda l, r: list(set(l).difference(r))
-lr_intr = lambda l, r: list(set(l).intersection(r))
+
+def lr_diff(l, r):
+    return list(set(l).difference(r))
+
+
+def lr_intr(l, r):
+    return list(set(l).intersection(r))
 
 
 class DriverAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
@@ -303,7 +308,7 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
         if request.method == 'POST':
             post_entries = request.POST.getlist('entry[]')
             if len(post_entries):
-                post_entries = map(int, post_entries)
+                post_entries = list(map(int, post_entries))
                 self.update_race_seats(request, post_entries, race)
 
             else:

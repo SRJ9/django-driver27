@@ -267,6 +267,8 @@ class ViewTest(FixturesTest):
         request = self.factory.post(reverse("admin:driver27_race_results", args=[race.pk]), data=results_post)
         self.assertTrue(ma.results(request, race.pk))
 
+        self.assertEqual(len(request.POST.getlist('entry[]')), 3)
+
         result_seat1 = Result.objects.get(seat__pk=1, race=race)
         result_seat2 = Result.objects.get(seat__pk=2, race=race)
         result_seat3 = Result.objects.filter(seat__pk=3, race=race)
