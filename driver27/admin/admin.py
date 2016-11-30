@@ -285,7 +285,6 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
         race = self.model.objects.get(pk=race_id)
         title = 'Results in %s' % race
         season = race.season
-        season_seats = Seat.objects.filter(seasons__pk=season.pk)
         if request.method == 'POST':
             post_entries = request.POST.getlist('entry[]')
             if len(post_entries):
@@ -295,6 +294,19 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
             else:
                 race_seats = [result.seat_id for result in race.results.all()]
                 self.del_result_entries(request, race_seats, race)
+        entries = self.get_entries(race, season)
+
+        context = {
+            'race': race, 'season': season, 'entries': entries, 'title': title,
+            'opts': self.model._meta,
+            'app_label': self.model._meta.app_label,
+            'change': True
+        }
+        tpl = 'driver27/admin/results.html'
+        return render(request, tpl, context)
+
+    def get_entries(self, race, season):
+        season_seats = Seat.objects.filter(seasons__pk=season.pk)
         race_seats = [result.seat_id for result in race.results.all()]
         entries = []
         for seat in season_seats:
@@ -332,17 +344,8 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
                 'season_points': season_points
             }
             entries.append(entry)
-
         entries = self.order_entries(entries, len(race_seats))
-
-        context = {
-            'race': race, 'season': season, 'entries': entries, 'title': title,
-            'opts': self.model._meta,
-            'app_label': self.model._meta.app_label,
-            'change': True
-        }
-        tpl = 'driver27/admin/results.html'
-        return render(request, tpl, context)
+        return entries
 
 
 class ContenderAdmin(CommonTabbedModelAdmin):
