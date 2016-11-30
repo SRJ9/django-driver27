@@ -204,10 +204,10 @@ class ViewTest(FixturesTest):
         self.assertEquals(ma.print_winner(race), str(race.winner.contender.driver))
         self.assertEquals(ma.print_fastest(race), str(race.fastest.contender.driver))
         self.assertIsNotNone(ma.print_results_link(race))
-        self.assertEquals(ma.clean_qualifying('1'), 1)
-        self.assertIsNone(ma.clean_qualifying(''))
-        self.assertEquals(ma.clean_finish('1'), 1)
-        self.assertIsNone(ma.clean_finish(''))
+        self.assertEquals(ma.clean_position('1'), 1)
+        self.assertIsNone(ma.clean_position(''))
+        # self.assertEquals(ma.clean_finish('1'), 1)
+        # self.assertIsNone(ma.clean_finish(''))
 
     def test_race_inline(self):
         race = Race.objects.get(pk=1)

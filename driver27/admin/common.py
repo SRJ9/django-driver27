@@ -1,6 +1,7 @@
 from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
+from tabbed_admin import TabbedModelAdmin
 
 
 # http://stackoverflow.com/a/34567383
@@ -45,3 +46,11 @@ class CommonRaceAdmin(object):
             return ''
     print_results_link.allow_tags = True
     print_results_link.short_description = _('link')
+
+
+class CommonTabbedModelAdmin(TabbedModelAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        # just save obj reference for future processing in Inline
+        if request and obj:
+            request._obj_ = obj
+        return super(CommonTabbedModelAdmin, self).get_form(request=request, obj=obj, **kwargs)

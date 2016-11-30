@@ -1,8 +1,7 @@
 from django.conf.urls import url
 from django.shortcuts import render
 from django.utils.translation import ugettext as _
-from tabbed_admin import TabbedModelAdmin
-
+from .common import CommonTabbedModelAdmin
 from .forms import *
 from .inlines import *
 from ..models import Contender, SeatsSeason
@@ -18,7 +17,7 @@ def lr_intr(l, r):
     return list(set(l).intersection(r))
 
 
-class DriverAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
+class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     list_display = ('__unicode__', 'country', 'print_competitions')
     list_filter = ('competitions__name',)
     tab_overview = (
@@ -35,7 +34,7 @@ class DriverAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
     ]
 
 
-class TeamAdmin(RelatedCompetitionAdmin, TabbedModelAdmin):
+class TeamAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     model = Team
     list_display = ('__unicode__', 'country', 'print_competitions')
     list_filter = ('competitions', 'seats__seasons')
@@ -63,7 +62,7 @@ class CompetitionSeasonAdmin(admin.TabularInline):
     model = Season
 
 
-class CompetitionAdmin(TabbedModelAdmin):
+class CompetitionAdmin(CommonTabbedModelAdmin):
     model = Competition
     list_display = ('name', 'full_name')
     tab_overview = (
@@ -97,7 +96,7 @@ class GrandPrixAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_filter = ('competitions',)
 
 
-class SeatSeasonAdmin(TabbedModelAdmin):
+class SeatSeasonAdmin(CommonTabbedModelAdmin):
     tab_overview = (
         (None, {
                 'fields': ('year', 'competition', 'rounds', 'punctuation')
@@ -121,14 +120,8 @@ class SeatSeasonAdmin(TabbedModelAdmin):
     def has_add_permission(self, request):
         return False
 
-    def get_form(self, request, obj=None, **kwargs):
-        # just save obj reference for future processing in Inline
-        if request and obj:
-            request._obj_ = obj
-        return super(SeatSeasonAdmin, self).get_form(request=request, obj=obj, **kwargs)
 
-
-class SeasonAdmin(TabbedModelAdmin):
+class SeasonAdmin(CommonTabbedModelAdmin):
     form = SeasonAdminForm
     tab_overview = (
         (None, {
@@ -182,12 +175,6 @@ class SeasonAdmin(TabbedModelAdmin):
     print_copy_season.short_description = _('copy season')
     print_copy_season.allow_tags = True
 
-    def get_form(self, request, obj=None, **kwargs):
-        # just save obj reference for future processing in Inline
-        if request and obj:
-            request._obj_ = obj
-        return super(SeasonAdmin, self).get_form(request=request, obj=obj, **kwargs)
-
 
 class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
     list_display = ('__unicode__', 'season', 'print_pole', 'print_winner', 'print_fastest', 'print_results_link',)
@@ -217,19 +204,13 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
         return self.print_seat(obj.fastest)
     print_fastest.short_description = _('Fastest')
 
-    def clean_qualifying(self, qualifying):
+    @staticmethod
+    def clean_position(position):
         try:
-            qualifying = int(qualifying)
+            position = int(position)
         except (ValueError, TypeError):
-            qualifying = None
-        return qualifying
-
-    def clean_finish(self, finish):
-        try:
-            finish = int(finish)
-        except (ValueError, TypeError):
-            finish = None
-        return finish
+            position = None
+        return position
 
     def edit_result_entries(self, request, entries, race, action='update'):
         for entry in entries:
@@ -240,8 +221,8 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
             retired = request.POST.get(field_prefix + 'retired', False)
             wildcard = request.POST.get(field_prefix + 'wildcard', False)
 
-            qualifying = self.clean_qualifying(qualifying)
-            finish = self.clean_finish(finish)
+            qualifying = self.clean_position(qualifying)
+            finish = self.clean_position(finish)
 
             dict_to_save = {
                 'qualifying': qualifying,
@@ -364,7 +345,7 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
         return render(request, tpl, context)
 
 
-class ContenderAdmin(TabbedModelAdmin):
+class ContenderAdmin(CommonTabbedModelAdmin):
     list_display = ('__unicode__', 'competition', 'teams_verbose', 'print_current')
     list_filter = ('competition', 'seats__seasons',)
     tab_overview = (
@@ -388,13 +369,8 @@ class ContenderAdmin(TabbedModelAdmin):
         return filter_current[0].team if filter_current.count() else None
     print_current.short_description = _('current team')
 
-    def get_form(self, request, obj=None, **kwargs):
-        # just save obj reference for future processing in Inline
-        request._obj_ = obj
-        return super(ContenderAdmin, self).get_form(request, obj, **kwargs)
 
-
-class SeatAdmin(TabbedModelAdmin):
+class SeatAdmin(CommonTabbedModelAdmin):
     list_display = ('contender', 'team',)
     list_filter = ('contender__competition', 'seasons',)
     tab_overview = (
