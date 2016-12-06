@@ -39,15 +39,18 @@ class SeatSeasonFormSet(RelatedWithSeasonFormSet):
 
 class TeamSeasonFormSet(RelatedWithSeasonFormSet):
     model = TeamSeason
-    model_attributes = ('team', 'sponsor_name',)
+    model_attributes = ('team', 'season', 'sponsor_name',)
 
-    def check_if_delete_team_season(self, form):
+    def team_season_check(self, form):
         delete_checked = False
-        team = form.cleaned_data.get('team')
-        season = form.cleaned_data.get('season')
-        seat_check = self.model.check_delete_seat_restriction(team=team, season=season)
-        if seat_check:
-            delete_checked = True
+        if self.is_marked_to_delete(form):
+            team_season_obj = form.cleaned_data.get('id')
+            # team_season_obj = self.model.objects.get(pk=team_season_id)
+            team = team_season_obj.team
+            season = team_season_obj.season
+            seat_check = self.model.check_delete_seat_restriction(team=team, season=season)
+            if seat_check:
+                delete_checked = True
         return delete_checked
 
     def clean(self):
@@ -55,12 +58,20 @@ class TeamSeasonFormSet(RelatedWithSeasonFormSet):
         delete_checked = False
 
         for form in self.forms:
-            try:
-                if form.cleaned_data and form.cleaned_data.get('DELETE') and not delete_checked:
-                    delete_checked = self.check_if_delete_team_season(form)
-            except AttributeError:
-                pass
+            invalid_team_season_delete = self.team_season_check(form)
+            if invalid_team_season_delete:
+                delete_checked = True
 
         if delete_checked:
             raise forms.ValidationError('You cannot delete a team with seats in this season.'
                                         'Delete seats before')
+
+    @staticmethod
+    def is_marked_to_delete(form):
+        marked_to_delete = False
+        try:
+            if form.cleaned_data and form.cleaned_data.get('DELETE'):
+                marked_to_delete = True
+        except AttributeError:
+            pass
+        return marked_to_delete

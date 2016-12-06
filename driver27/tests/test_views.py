@@ -178,23 +178,39 @@ class ViewTest(FixturesTest):
     def _test_season_formset(self, child_model, formset, fields):
         inline_formset = inlineformset_factory(Season, child_model, formset=formset,
                                                fields=fields,
-                                               form=AlwaysChangedModelForm)
+                                               form=AlwaysChangedModelForm, can_delete=True)
+        return inline_formset
+
+    def _test_season_formset_copy(self, child_model, formset, fields, data=None):
+        inline_formset = self._test_season_formset(child_model, formset, fields)
         inline_formset.request = self.factory.request(QUERY_STRING='copy=1')
-        related_formset = inline_formset()
+        related_formset = inline_formset(data)
         self.assertTrue(related_formset.get_copy(copy_id=1))
         # self.assertFalse(related_formset.is_empty_form())
         self.assertFalse(related_formset.has_changed())
         return related_formset
 
     def test_race_formset(self):
-        self._test_season_formset(Race, RaceFormSet, ('round', 'grand_prix', 'circuit', 'date', 'alter_punctuation'))
+        self._test_season_formset_copy(Race, RaceFormSet, ('round', 'grand_prix', 'circuit', 'date', 'alter_punctuation'))
 
     def test_seat_season_formset(self):
-        self._test_season_formset(SeatSeason, SeatSeasonFormSet, ('seat', 'season',))
+        self._test_season_formset_copy(SeatSeason, SeatSeasonFormSet, ('seat', 'season',))
 
-    def test_team_season_formset(self):
-        formset = self._test_season_formset(TeamSeason, TeamSeasonFormSet, ('team', 'season',))
-        formset.clean()
+    def test_team_season_delete(self):
+        season_post = {
+            'teams_season-TOTAL_FORMS': '1',
+            'teams_season-INITIAL_FORMS': '0',
+            'teams_season-MAX_NUM_FORMS': '',
+            'teams_season-0-id': 1,
+            'teams_season-0-team': 1,
+            'teams_season-0-season': 1,
+            'teams_season-0-DELETE': True
+        }
+        formset = self._test_season_formset(TeamSeason, formset=TeamSeasonFormSet, fields=('team', 'season',))
+        formset.request = self.factory.request(QUERY_STRING='copy=1')
+        team_season_formset = formset(season_post)
+        # Invalid form. Team contains seats in that season.
+        self.assertFalse(team_season_formset.is_valid())
 
     def test_race_admin(self):
         ma = RaceAdmin(Race, self.site)
@@ -206,8 +222,6 @@ class ViewTest(FixturesTest):
         self.assertIsNotNone(ma.print_results_link(race))
         self.assertEquals(ma.clean_position('1'), 1)
         self.assertIsNone(ma.clean_position(''))
-        # self.assertEquals(ma.clean_finish('1'), 1)
-        # self.assertIsNone(ma.clean_finish(''))
 
     def test_race_inline(self):
         race = Race.objects.get(pk=1)
