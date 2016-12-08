@@ -176,18 +176,32 @@ class SeasonAdmin(CommonTabbedModelAdmin):
     print_copy_season.allow_tags = True
 
 
-class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
-    list_display = ('__unicode__', 'season', 'print_pole', 'print_winner', 'print_fastest', 'print_results_link',)
+class RaceAdmin(CommonTabbedModelAdmin):
+    list_display = ('__unicode__', 'season', 'print_pole', 'print_winner', 'print_fastest',)
     list_filter = ('season', 'season__competition',)
-    readonly_fields = ('print_results_link',)
 
-    def get_urls(self):
-        urls = super(RaceAdmin, self).get_urls()
-        urlpatterns = [
-            url(r'(?P<race_id>\d+)/results/$', self.admin_site.admin_view(self.results), name='driver27_race_results')
-        ]
+    tab_overview = (
+        (None, {
+            'fields': ('season', 'round', 'grand_prix', 'circuit', 'date', 'alter_punctuation')
+        }),
+    )
+    tab_results = (
+        ResultInline,
+    )
+    tabs = [
+        ('Overview', tab_overview),
+        # ('Summary', tab_summary),
+        # ('Drivers', tab_drivers),
+        ('Results', tab_results),
+    ]
 
-        return urlpatterns + urls
+    # def get_urls(self):
+    #     urls = super(RaceAdmin, self).get_urls()
+    #     urlpatterns = [
+    #         url(r'(?P<race_id>\d+)/results/$', self.admin_site.admin_view(self.results), name='driver27_race_results')
+    #     ]
+    #
+    #     return urlpatterns + urls
 
     def print_seat(self, seat):
         return "%s" % seat.contender.driver if seat else None
@@ -212,140 +226,140 @@ class RaceAdmin(CommonRaceAdmin, admin.ModelAdmin):
             position = None
         return position
 
-    def edit_result_entries(self, request, entries, race, action='update'):
-        for entry in entries:
-            field_prefix = '%s-%s-' % ('seat', str(entry))
-            qualifying = request.POST.get(field_prefix + 'qualifying', None)
-            finish = request.POST.get(field_prefix + 'finish', None)
-            fastest_lap = request.POST.get(field_prefix + 'fastest-lap', False)
-            retired = request.POST.get(field_prefix + 'retired', False)
-            wildcard = request.POST.get(field_prefix + 'wildcard', False)
-
-            qualifying = self.clean_position(qualifying)
-            finish = self.clean_position(finish)
-
-            dict_to_save = {
-                'qualifying': qualifying,
-                'finish': finish,
-                'fastest_lap': fastest_lap,
-                'retired': retired,
-                'wildcard': wildcard
-            }
-            if action == 'update':
-                # filter allows update
-                result = Result.objects.filter(race=race, seat_id=entry)
-                result.update(**dict_to_save)
-            elif action == 'add':
-                Result.objects.create(
-                    race=race,
-                    seat_id=entry,
-                    **dict_to_save
-                )
-
-    def add_result_entries(self, request, entries, race):
-        self.edit_result_entries(request, entries, race, action='add')
-
-    def update_result_entries(self, request, entries, race):
-        self.edit_result_entries(request, entries, race, action='update')
-
-    def del_result_entries(self, request, entries, race):
-        for entry in entries:
-            result = Result.objects.get(race=race, seat_id=entry)
-            result.delete()
-
-    def update_race_seats(self, request, new_seats, race):
-        old_seats = [result.seat_id for result in race.results.all()]
-        entries_to_add = lr_diff(new_seats, old_seats)
-        entries_to_upd = lr_intr(new_seats, old_seats)
-        entries_to_del = lr_diff(old_seats, new_seats)
-        if entries_to_add:
-            self.add_result_entries(request, entries_to_add, race)
-
-        if entries_to_upd:
-            self.update_result_entries(request, entries_to_upd, race)
-
-        if entries_to_del:
-            self.del_result_entries(request, entries_to_del, race)
-
-    def order_entries(self, entries, seats_len):
-        if seats_len:
-            entries = sorted(entries, key=lambda x: (
-                -x['checked'],
-                -x['finished'],
-                x['finish'],
-                -x['qualified'],
-                x['qualifying'],
-                -x['season_points']
-            ))
-        else:
-            entries = sorted(entries, key=lambda x: -x['season_points'])
-        return entries
-
-    def results(self, request, race_id):
-        race = self.model.objects.get(pk=race_id)
-        title = 'Results in %s' % race
-        season = race.season
-        if request.method == 'POST':
-            post_entries = request.POST.getlist('entry[]')
-            if len(post_entries):
-                post_entries = list(map(int, post_entries))
-                self.update_race_seats(request, post_entries, race)
-
-            else:
-                race_seats = [result.seat_id for result in race.results.all()]
-                self.del_result_entries(request, race_seats, race)
-        entries = self.get_entries(race, season)
-
-        context = {
-            'race': race, 'season': season, 'entries': entries, 'title': title,
-            'opts': self.model._meta,
-            'app_label': self.model._meta.app_label,
-            'change': True
-        }
-        tpl = 'driver27/admin/results.html'
-        return render(request, tpl, context)
-
-    def get_entries(self, race, season):
-        season_seats = Seat.objects.filter(seasons__pk=season.pk)
-        race_seats = [result.seat_id for result in race.results.all()]
-        entries = []
-        for seat in season_seats:
-            contender = seat.contender
-            driver_name = ' '.join((contender.driver.first_name, contender.driver.last_name))
-            season_points = ContenderSeason(contender, season).get_points(limit_races=race.round)
-
-            points = finish = qualifying = None
-            fastest_lap = retired = wildcard = False
-
-            is_race_seat = False
-            if seat.pk in race_seats:
-                result = Result.objects.get(race=race, seat=seat)
-                qualifying = result.qualifying
-                finish = result.finish if result.finish else None
-                points = result.points
-                fastest_lap = result.fastest_lap
-                retired = result.retired
-                wildcard = result.wildcard
-                is_race_seat = True
-
-            entry = {
-                'seat': seat.pk,
-                'driver_name': driver_name,
-                'team': seat.team.name,
-                'checked': is_race_seat,
-                'qualifying': qualifying,
-                'qualified': bool(qualifying),
-                'finish': finish,
-                'finished': bool(finish),
-                'fastest_lap': fastest_lap,
-                'retired': retired,
-                'wildcard': wildcard,
-                'points': points,
-                'season_points': season_points
-            }
-            entries.append(entry)
-        entries = self.order_entries(entries, len(race_seats))
-        return entries
+    # def edit_result_entries(self, request, entries, race, action='update'):
+    #     for entry in entries:
+    #         field_prefix = '%s-%s-' % ('seat', str(entry))
+    #         qualifying = request.POST.get(field_prefix + 'qualifying', None)
+    #         finish = request.POST.get(field_prefix + 'finish', None)
+    #         fastest_lap = request.POST.get(field_prefix + 'fastest-lap', False)
+    #         retired = request.POST.get(field_prefix + 'retired', False)
+    #         wildcard = request.POST.get(field_prefix + 'wildcard', False)
+    #
+    #         qualifying = self.clean_position(qualifying)
+    #         finish = self.clean_position(finish)
+    #
+    #         dict_to_save = {
+    #             'qualifying': qualifying,
+    #             'finish': finish,
+    #             'fastest_lap': fastest_lap,
+    #             'retired': retired,
+    #             'wildcard': wildcard
+    #         }
+    #         if action == 'update':
+    #             # filter allows update
+    #             result = Result.objects.filter(race=race, seat_id=entry)
+    #             result.update(**dict_to_save)
+    #         elif action == 'add':
+    #             Result.objects.create(
+    #                 race=race,
+    #                 seat_id=entry,
+    #                 **dict_to_save
+    #             )
+    #
+    # def add_result_entries(self, request, entries, race):
+    #     self.edit_result_entries(request, entries, race, action='add')
+    #
+    # def update_result_entries(self, request, entries, race):
+    #     self.edit_result_entries(request, entries, race, action='update')
+    #
+    # def del_result_entries(self, request, entries, race):
+    #     for entry in entries:
+    #         result = Result.objects.get(race=race, seat_id=entry)
+    #         result.delete()
+    #
+    # def update_race_seats(self, request, new_seats, race):
+    #     old_seats = [result.seat_id for result in race.results.all()]
+    #     entries_to_add = lr_diff(new_seats, old_seats)
+    #     entries_to_upd = lr_intr(new_seats, old_seats)
+    #     entries_to_del = lr_diff(old_seats, new_seats)
+    #     if entries_to_add:
+    #         self.add_result_entries(request, entries_to_add, race)
+    #
+    #     if entries_to_upd:
+    #         self.update_result_entries(request, entries_to_upd, race)
+    #
+    #     if entries_to_del:
+    #         self.del_result_entries(request, entries_to_del, race)
+    #
+    # def order_entries(self, entries, seats_len):
+    #     if seats_len:
+    #         entries = sorted(entries, key=lambda x: (
+    #             -x['checked'],
+    #             -x['finished'],
+    #             x['finish'],
+    #             -x['qualified'],
+    #             x['qualifying'],
+    #             -x['season_points']
+    #         ))
+    #     else:
+    #         entries = sorted(entries, key=lambda x: -x['season_points'])
+    #     return entries
+    #
+    # def results(self, request, race_id):
+    #     race = self.model.objects.get(pk=race_id)
+    #     title = 'Results in %s' % race
+    #     season = race.season
+    #     if request.method == 'POST':
+    #         post_entries = request.POST.getlist('entry[]')
+    #         if len(post_entries):
+    #             post_entries = list(map(int, post_entries))
+    #             self.update_race_seats(request, post_entries, race)
+    #
+    #         else:
+    #             race_seats = [result.seat_id for result in race.results.all()]
+    #             self.del_result_entries(request, race_seats, race)
+    #     entries = self.get_entries(race, season)
+    #
+    #     context = {
+    #         'race': race, 'season': season, 'entries': entries, 'title': title,
+    #         'opts': self.model._meta,
+    #         'app_label': self.model._meta.app_label,
+    #         'change': True
+    #     }
+    #     tpl = 'driver27/admin/results.html'
+    #     return render(request, tpl, context)
+    #
+    # def get_entries(self, race, season):
+    #     season_seats = Seat.objects.filter(seasons__pk=season.pk)
+    #     race_seats = [result.seat_id for result in race.results.all()]
+    #     entries = []
+    #     for seat in season_seats:
+    #         contender = seat.contender
+    #         driver_name = ' '.join((contender.driver.first_name, contender.driver.last_name))
+    #         season_points = ContenderSeason(contender, season).get_points(limit_races=race.round)
+    #
+    #         points = finish = qualifying = None
+    #         fastest_lap = retired = wildcard = False
+    #
+    #         is_race_seat = False
+    #         if seat.pk in race_seats:
+    #             result = Result.objects.get(race=race, seat=seat)
+    #             qualifying = result.qualifying
+    #             finish = result.finish if result.finish else None
+    #             points = result.points
+    #             fastest_lap = result.fastest_lap
+    #             retired = result.retired
+    #             wildcard = result.wildcard
+    #             is_race_seat = True
+    #
+    #         entry = {
+    #             'seat': seat.pk,
+    #             'driver_name': driver_name,
+    #             'team': seat.team.name,
+    #             'checked': is_race_seat,
+    #             'qualifying': qualifying,
+    #             'qualified': bool(qualifying),
+    #             'finish': finish,
+    #             'finished': bool(finish),
+    #             'fastest_lap': fastest_lap,
+    #             'retired': retired,
+    #             'wildcard': wildcard,
+    #             'points': points,
+    #             'season_points': season_points
+    #         }
+    #         entries.append(entry)
+    #     entries = self.order_entries(entries, len(race_seats))
+    #     return entries
 
 
 class ContenderAdmin(CommonTabbedModelAdmin):

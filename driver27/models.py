@@ -458,6 +458,7 @@ class TeamSeason(models.Model):
         verbose_name_plural = _('Teams Season')
 
 
+@python_2_unicode_compatible
 class Result(models.Model):
     race = models.ForeignKey(Race, related_name='results', verbose_name=_('race'))
     seat = models.ForeignKey(Seat, related_name='results', verbose_name=_('seat'))
@@ -515,6 +516,14 @@ class Result(models.Model):
     def points(self):
         scoring = self.race.season.get_scoring()
         return self.points_calculator(scoring)
+
+    def __str__(self):
+        string = '%s (%s)' % (self.seat, self.race)
+        if self.finish:
+            string += ' - %sº' % self.finish
+        else:
+            string += ' - ' + _('OUT')
+        return string
 
     class Meta:
         unique_together = [('race', 'seat'), ('race', 'qualifying'), ('race', 'finish')]

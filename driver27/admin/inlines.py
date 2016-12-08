@@ -1,13 +1,14 @@
 from .common import *
 from .filters import *
 from .formsets import *
-from ..models import Contender
+from ..models import Contender, ContenderSeason
 from ..models import Race
+from ..models import Result
 from ..models import Seat, SeatSeason
 from ..models import Team, TeamSeason
 
 
-class RaceInline(CommonRaceAdmin, CompetitionFilterInline):
+class RaceInline(CompetitionFilterInline):
     model = Race
     extra = 1
     readonly_fields = ('print_results_link', )
@@ -51,3 +52,16 @@ class TeamSeasonInline(CompetitionFilterInline):
 class TeamInline(admin.TabularInline):
     model = Team
     extra = 1
+
+
+class ResultInline(CompetitionFilterInline):
+    model = Result
+    extra = 1
+    ordering = ('retired', 'finish', 'qualifying',)
+    readonly_fields = ('points',)
+
+    @staticmethod
+    def points(obj):
+        points = obj.points
+        return points if points else ''
+
