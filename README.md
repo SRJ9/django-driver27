@@ -26,12 +26,12 @@ TABBED_ADMIN_USE_JQUERY_UI = True
 Versions
 ========
 - 0.14c (Fernando Alonso 14)
-- 0.16c (Race to Championship '16)
-- 0.19x
+- 0.16c (Road to Championship '16)
+- 0.19 (Ayrton Senna's Toleman's car number '84 - Debut)
 - 0.27-VIL (Gilles Villeneuve 27)
 
-0.19x (in process)
-==================
+0.19
+====
 - Spanish translation
 - Link to copy season copying teams and races to add_view. Seats is potentially bugged by team dependency (both would be create at the same time).
 - Fix bugs founded in previous versions.
@@ -63,7 +63,7 @@ models
 - Seat (Contender/Team relation)
 - fixtures folder contains fixture of each model to demo project.
 
-Demo (virtuaenv recomended)
+Demo (virtualenv recomended)
 ===========================
 ```bash
 $ git clone https://github.com/SRJ9/django-driver27
@@ -78,7 +78,7 @@ Todo
 - [ ] Add records by season, driver, team, competition
 - [ ] Add drivers profile with records, last_wins, teams...
 - [x] Add easy clone to Season
-- [ ] Translate
+- [x] Translate
 - [ ] 1980's punctuation. Only 11 best results.
 - [ ] Old punctuation. Split season races, and get only 4 of each half.
 
