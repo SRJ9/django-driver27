@@ -15,6 +15,16 @@
 {% block dr27_content %}
     {{ block.super }}
 {% load champion_filter i18n %}
+    <form method="POST">
+    {% csrf_token %}
+        <select id="record" name="record" onchange="change_record()">
+            {% for record_code in record_codes %}
+            <option value="{% url 'season-record' season.competition.slug season.year record_code.code %}"
+            {% if record_code.code == record %}selected{% endif %}
+            >{{ record_code.label }}</option>
+            {% endfor %}
+        </select>
+    </form>
 <table class="table">
     <tr>
         <th>{%  trans 'Count' %}</th>
@@ -30,4 +40,14 @@
     {% endfor %}
 
     </table>
+{% endblock %}
+
+{% block bootstrap3_extra_script %}
+    {{ block.super }}
+    <script type="text/javascript">
+        function change_record(){
+            var record = $('#record').val();
+            location.href = record;
+        }
+    </script>
 {% endblock %}

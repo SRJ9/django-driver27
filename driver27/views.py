@@ -156,6 +156,11 @@ def record_view(request, competition_slug, year, record):
     rank = season.stats_rank(**record_config['filter']) if record_config else None
     title = _('%(record_label)s Record, %(season)s') \
             % {'record_label': record_config['label'], 'season': season}
-    context = {'rank': rank, 'season': season, 'title': title}
+    context = {'rank': rank,
+               'season': season,
+               'title': title,
+               'record': record,
+               'record_codes': DR27_RECORDS_FILTER
+               }
     tpl = 'driver27/record-view.html'
     return render(request, tpl, context)
