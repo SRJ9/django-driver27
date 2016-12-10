@@ -11,4 +11,5 @@ urlpatterns = [
     url(r'^race$', views.race_list, name='season-race-list'),
     url(r'^race/(?P<race_id>\d+)$', views.race_view, name='season-race-view'),
     url(r'^race/(?P<race_id>\d+)/(?P<rank>[-\w\d]+)$', views.race_view, name='season-race-rank'),
+    url(r'^record/(?P<record>[-\w\d]+)$', views.record_view, name='season-record')
 ]

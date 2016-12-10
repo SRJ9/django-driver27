@@ -1,0 +1,33 @@
+{% extends 'driver27/base.html' %}
+{% load i18n %}
+{% block dr27_menu %}
+    {% include 'driver27/season-menu-pre.html' %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-record' season.competition.slug season.year 'POLE' %}">{%  trans 'Pole record' %}</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-record' season.competition.slug season.year 'WIN' %}">{%  trans 'Win record' %}</a>
+    </li>
+        <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-record' season.competition.slug season.year 'FASTEST' %}">{%  trans 'Fastest lap record' %}</a>
+    </li>
+{% endblock %}
+{% block dr27_content %}
+    {{ block.super }}
+{% load champion_filter i18n %}
+<table class="table">
+    <tr>
+        <th>{%  trans 'Count' %}</th>
+        <th>{%  trans 'Driver' %}</th>
+        <th>{%  trans 'Team' %}</th>
+    </tr>
+    {% for count,driver,team in rank %}
+        <tr>
+        <td>{{ count }}</td>
+        <td>{{ driver }}</td>
+        <td>{{ team }}</td>
+        </tr>
+    {% endfor %}
+
+    </table>
+{% endblock %}

@@ -206,6 +206,15 @@ class Season(models.Model):
         seats = [seat.pk for seat in self.seats.all()]
         return Contender.objects.filter(seats__pk__in=seats).distinct()
 
+    def stats_rank(self, **filters):
+        contenders = self.contenders()
+        rank = []
+        for contender in contenders:
+            contender_season = contender.get_season(self)
+            rank.append((contender_season.get_stats(**filters), contender.driver, contender_season.teams_verbose))
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        return rank
+
     def points_rank(self, scoring_code=None):
         contenders = self.contenders()
         scoring = self.get_scoring(scoring_code)
@@ -554,6 +563,13 @@ class ContenderSeason(object):
             results = results.filter(race__round__lte=limit_races)
         results = results.order_by('race__round')
         return results
+
+    def get_filtered_results(self, **filters):
+        results = self.get_results()
+        return results.filter(**filters)
+
+    def get_stats(self, **filters):
+        return self.get_filtered_results(**filters).count()
 
     def get_points(self, limit_races=None, scoring=None):
         results = self.get_results(limit_races=limit_races)

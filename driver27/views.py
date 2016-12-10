@@ -4,6 +4,7 @@ from django.http import Http404
 from django.utils.translation import ugettext as _
 from .models import Competition, Season, Race
 from .punctuation import DRIVER27_PUNCTUATION
+from .record_filters import DR27_RECORDS_FILTER
 
 
 def get_season(slug, year):
@@ -139,4 +140,22 @@ def race_view(request, competition_slug, year, race_id=None):
     title = _('Results of %(race)s') % {'race': race}
     context = {'race': race, 'season': season, 'title': title, 'results': results}
     tpl = 'driver27/race-view.html'
+    return render(request, tpl, context)
+
+
+def get_record_config(record):
+    for record_config in DR27_RECORDS_FILTER:
+        if record_config['code'] == record:
+            return record_config
+    return None
+
+
+def record_view(request, competition_slug, year, record):
+    season = get_season(competition_slug, year)
+    record_config = get_record_config(record)
+    rank = season.stats_rank(**record_config['filter']) if record_config else None
+    title = _('%(record_label)s Record, %(season)s') \
+            % {'record_label': record_config['label'], 'season': season}
+    context = {'rank': rank, 'season': season, 'title': title}
+    tpl = 'driver27/record-view.html'
     return render(request, tpl, context)
