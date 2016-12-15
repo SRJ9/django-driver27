@@ -215,6 +215,15 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
+    def team_stats_rank(self, **filters):
+        teams = self.teams.all()
+        rank = []
+        for team in teams:
+            team_season = TeamSeason.objects.get(season=self, team=team)
+            rank.append((team_season.get_stats(**filters), team))
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        return rank
+
     def points_rank(self, scoring_code=None):
         contenders = self.contenders()
         scoring = self.get_scoring(scoring_code)
@@ -442,12 +451,24 @@ class TeamSeason(models.Model):
         return bool(seats_count)
         # return {'team': _('Seats with %(team)s exists in this season. Delete seats before.' % {'team': team})}
 
+    def get_results(self, limit_races=None):
+        results = Result.objects.filter(race__season=self.season, seat__team=self.team)
+        if isinstance(limit_races, int):
+            results = results.filter(race__round__lte=limit_races)
+        results = results.order_by('race__round')
+        return results
+
     def get_points(self):
-        results = Result.objects.filter(race__season=self.season, seat__team=self.team) \
-            .exclude(wildcard=True) \
-            .order_by('race__round')
+        results = self.get_results().exclude(wildcard=True).order_by('race__round')
         points_list = [result.points for result in results.all() if result.points is not None]
         return sum(points_list)
+
+    def get_filtered_results(self, **filters):
+        results = self.get_results()
+        return results.filter(**filters)
+
+    def get_stats(self, **filters):
+        return self.get_filtered_results(**filters).count()
 
     # def delete(self, *args, **kwargs):
     #     team = self.team

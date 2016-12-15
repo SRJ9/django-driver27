@@ -1,0 +1,51 @@
+{% extends 'driver27/base.html' %}
+{% load i18n %}
+{% block dr27_menu %}
+    {% include 'driver27/season-menu-pre.html' %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-team-record' season.competition.slug season.year 'POLE' %}">{%  trans 'Pole record' %}</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-team-record' season.competition.slug season.year 'WIN' %}">{%  trans 'Win record' %}</a>
+    </li>
+        <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-team-record' season.competition.slug season.year 'FASTEST' %}">{%  trans 'Fastest lap record' %}</a>
+    </li>
+{% endblock %}
+{% block dr27_content %}
+    {{ block.super }}
+{% load champion_filter i18n %}
+    <form method="POST">
+    {% csrf_token %}
+        <select id="record" name="record" onchange="change_record()">
+            {% for record_code in record_codes %}
+            <option value="{% url 'season-team-record' season.competition.slug season.year record_code.code %}"
+            {% if record_code.code == record %}selected{% endif %}
+            >{{ record_code.label }}</option>
+            {% endfor %}
+        </select>
+    </form>
+<table class="table">
+    <tr>
+        <th>{%  trans 'Count' %}</th>
+        <th>{%  trans 'Team' %}</th>
+    </tr>
+    {% for count,team in rank %}
+        <tr>
+        <td>{{ count }}</td>
+        <td>{{ team }}</td>
+        </tr>
+    {% endfor %}
+
+    </table>
+{% endblock %}
+
+{% block bootstrap3_extra_script %}
+    {{ block.super }}
+    <script type="text/javascript">
+        function change_record(){
+            var record = $('#record').val();
+            location.href = record;
+        }
+    </script>
+{% endblock %}
