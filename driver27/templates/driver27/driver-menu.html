@@ -1,0 +1,21 @@
+{% load i18n %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-driver' season.competition.slug season.year %}">{%  trans 'Drivers' %}</a>
+    </li>
+    <li class="nav-item">
+        <a>>></a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-driver-record-index' season.competition.slug season.year %}">{%  trans 'Records' %}</a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-driver-olympic' season.competition.slug season.year %}">{%  trans 'Olympic' %}</a>
+    </li>
+
+    {% if access_to_road %}
+        <li class="nav-item">
+            <a class="nav-link"
+               href="{% url 'season-driver-road' season.competition.slug season.year %}">{%  trans 'Road to championship' %}</a>
+        </li>
+    {% endif %}

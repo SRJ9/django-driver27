@@ -150,34 +150,55 @@ def get_record_config(record):
     return None
 
 
-def record_view(request, competition_slug, year, record):
+def get_record_common_context(request, competition_slug, year, record=None):
     season = get_season(competition_slug, year)
-    record_config = get_record_config(record)
-    rank = season.stats_rank(**record_config['filter']) if record_config else None
-    title = _('%(record_label)s Record, %(season)s') \
+    if record:
+        record_config = get_record_config(record)
+        title = _('%(record_label)s Record, %(season)s') \
             % {'record_label': record_config['label'], 'season': season}
-    context = {'rank': rank,
+    else:
+        title = _('Select a %(season)s record' % {'season': season})
+
+    context = {
                'season': season,
                'title': title,
                'record': record,
                'record_codes': DR27_RECORDS_FILTER
                }
-    tpl = 'driver27/record-view.html'
+
+    return context
+
+
+def driver_record_view(request, competition_slug, year, record=None):
+    context = get_record_common_context(request, competition_slug, year, record)
+
+    if record:
+        season = context.get('season', None)
+        record_config = get_record_config(record)
+        rank = season.stats_rank(**record_config['filter']) if record_config else None
+    else:
+        rank = None
+    context['rank'] = rank
+    tpl = 'driver27/driver-record.html'
     return render(request, tpl, context)
 
 
-def record_team_view(request, competition_slug, year, record):
-    season = get_season(competition_slug, year)
-    record_config = get_record_config(record)
-    rank = season.team_stats_rank(**record_config['filter']) if record_config else None
-    title = _('%(record_label)s Team Record, %(season)s') \
-            % {'record_label': record_config['label'], 'season': season}
-    context = {'rank': rank,
-               'season': season,
-               'title': title,
-               'record': record,
-               'record_codes': DR27_RECORDS_FILTER
-               }
-    tpl = 'driver27/record-team-view.html'
+def team_record_by_race_view(request, competition_slug, year, record=None):
+    return team_record_view(request, competition_slug, year, record=record, unique_by_race=True)
+
+
+def team_record_view(request, competition_slug, year, record=None, unique_by_race=False):
+    context = get_record_common_context(request, competition_slug, year, record)
+
+    if record:
+        season = context.get('season', None)
+        record_config = get_record_config(record)
+        rank = season.team_stats_rank(unique_by_race=unique_by_race, **record_config['filter']) \
+            if record_config else None
+    else:
+        rank = None
+    context['rank'] = rank
+    context['by_race'] = bool(unique_by_race)
+    tpl = 'driver27/team-record.html'
     return render(request, tpl, context)
 

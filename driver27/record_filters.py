@@ -45,6 +45,10 @@ DR27_RECORDS_FILTER = [
         'code': 'OUT',
         'label': _('OUT'),
         'filter': {'retired': True}
+    },    {
+        'code': 'FINISH',
+        'label': _('Finish'),
+        'filter': {'retired': False}
     },
     {
         'code': 'TOP5',

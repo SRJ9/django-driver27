@@ -2,10 +2,7 @@
 {% load i18n %}
 {% block dr27_menu %}
     {% include 'driver27/season-menu-pre.html' %}
-
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'season-team' season.competition.slug season.year %}">{%  trans 'Teams' %}</a>
-    </li>
+    {% include 'driver27/team-menu.html' %}
 {% endblock %}
 {% block dr27_content %}
     {{ block.super }}

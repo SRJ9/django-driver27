@@ -1,9 +1,9 @@
 {% load champion_filter i18n %}
 <table class="table">
     <tr>
-        <th>{%  trans 'Points' %}</th>
-        <th>{%  trans 'Driver' %}</th>
-        <th>{%  trans 'Team' %}</th>
+        <th {% if not pending_races %}class="col-md-4"{% endif %}>{%  trans 'Points' %}</th>
+        <th {% if not pending_races %}class="col-md-3"{% endif %}>{%  trans 'Driver' %}</th>
+        <th {% if not pending_races %}class="col-md-5" {% endif %}>{%  trans 'Team' %}</th>
         {% if pending_races %}
         {% for pending_race in pending_races %}
         <th>{{ pending_race }}</th>
