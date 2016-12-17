@@ -147,7 +147,7 @@ def get_record_config(record):
     for record_config in DR27_RECORDS_FILTER:
         if record_config['code'] == record:
             return record_config
-    return None
+    raise Http404(_('Record does not exist'))
 
 
 def get_record_common_context(request, competition_slug, year, record=None):

@@ -31,6 +31,10 @@ Versions
 -  0.19 (Ayrton Senna's Toleman's car number '84 - Debut)
 -  0.27-VIL (Gilles Villeneuve 27)
 
+0.19.1
+======
+-  Records by season
+
 0.19
 ====
 -  Spanish translation
@@ -86,7 +90,9 @@ Demo (virtualenv recommended)
 Todo
 ====
 
--  [ ] Add records by season, driver, team, competition
+-  [x] Add records by season (driver, team)
+-  [ ] Add records by driver/team career
+-  [ ] Add records by competition
 -  [ ] Add drivers profile with records, last\_wins, teams...
 -  [x] Add easy clone to Season
 -  [x] Translate
