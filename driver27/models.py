@@ -215,12 +215,12 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
-    def team_stats_rank(self, unique_by_race=False, **filters):
+    def team_stats_rank(self, unique_by_race=False, double=False, **filters):
         teams = self.teams.all()
         rank = []
         for team in teams:
             team_season = TeamSeason.objects.get(season=self, team=team)
-            rank.append((team_season.get_stats(unique_by_race=unique_by_race, **filters), team))
+            rank.append((team_season.get_stats(unique_by_race=unique_by_race, double=double, **filters), team))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
@@ -473,12 +473,13 @@ class TeamSeason(models.Model):
         results = self.get_results()
         return results.filter(**filters)
 
-    def get_filtered_races(self, **filters):
-        return self.get_races(**filters)
+    def get_filtered_races(self, double=False, **filters):
+        races = self.get_races(**filters)
+        return races if not double else races.filter(count_race__gte=2)
 
-    def get_stats(self, unique_by_race=False, **filters):
+    def get_stats(self, unique_by_race=False, double=False, **filters):  # noqa
         if unique_by_race:
-            return self.get_filtered_races(**filters).count()
+            return self.get_filtered_races(double=double, **filters).count()
         return self.get_filtered_results(**filters).count()
 
     # def delete(self, *args, **kwargs):

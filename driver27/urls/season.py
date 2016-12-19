@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^team/record$', views.team_record_view, name='season-team-record-index'),
     url(r'^team/record/(?P<record>[-\w\d]+)$', views.team_record_view, name='season-team-record'),
     url(r'^team/record/(?P<record>[-\w\d]+)/by-race$', views.team_record_by_race_view, name='season-team-record-by-race'),
+    url(r'^team/record/(?P<record>[-\w\d]+)/double$', views.team_record_double_view, name='season-team-record-double'),
     url(r'^race$', views.race_list, name='season-race-list'),
     url(r'^race/(?P<race_id>\d+)$', views.race_view, name='season-race-view'),
     url(r'^race/(?P<race_id>\d+)/(?P<rank>[-\w\d]+)$', views.race_view, name='season-race-rank'),

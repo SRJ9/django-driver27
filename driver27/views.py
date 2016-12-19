@@ -183,17 +183,21 @@ def driver_record_view(request, competition_slug, year, record=None):
     return render(request, tpl, context)
 
 
+def team_record_double_view(request, competition_slug, year, record=None):
+    return team_record_view(request, competition_slug, year, record=record, unique_by_race=True, double=True)
+
+
 def team_record_by_race_view(request, competition_slug, year, record=None):
     return team_record_view(request, competition_slug, year, record=record, unique_by_race=True)
 
 
-def team_record_view(request, competition_slug, year, record=None, unique_by_race=False):
+def team_record_view(request, competition_slug, year, record=None, unique_by_race=False, double=False):
     context = get_record_common_context(request, competition_slug, year, record)
 
     if record:
         season = context.get('season', None)
         record_config = get_record_config(record)
-        rank = season.team_stats_rank(unique_by_race=unique_by_race, **record_config['filter']) \
+        rank = season.team_stats_rank(unique_by_race=unique_by_race, double=double, **record_config['filter']) \
             if record_config else None
     else:
         rank = None

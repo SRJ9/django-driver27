@@ -37,27 +37,40 @@ DR27_RECORDS_FILTER = [
         'filter': {'fastest_lap': True}
     },
     {
+        'code': 'FIRST-TWO',
+        'label': _('Finish 1st or 2nd'),
+        'filter': {'finish__gte': 1, 'finish__lte': 2},
+        'team_double_filter': True
+    },
+    {
         'code': 'PODIUM',
         'label': _('Podium'),
-        'filter': {'finish__gte': 1, 'finish__lte': 3}
+        'filter': {'finish__gte': 1, 'finish__lte': 3},
+        'team_double_filter': True
     },
     {
         'code': 'OUT',
         'label': _('OUT'),
-        'filter': {'retired': True}
-    },    {
+        'filter': {'retired': True},
+        'team_double_filter': True
+    },
+    {
         'code': 'FINISH',
         'label': _('Finish'),
-        'filter': {'retired': False}
+        'filter': {'retired': False},
+        'team_double_filter': True
     },
     {
         'code': 'TOP5',
         'label': _('Top 5'),
-        'filter': {'finish__gte': 1, 'finish__lte': 5}
-    },    {
+        'filter': {'finish__gte': 1, 'finish__lte': 5},
+        'team_double_filter': True
+    },
+    {
         'code': 'TOP10',
         'label': _('Top 10'),
-        'filter': {'finish__gte': 1, 'finish__lte': 10}
+        'filter': {'finish__gte': 1, 'finish__lte': 10},
+        'team_double_filter': True
     },
 
 ]
