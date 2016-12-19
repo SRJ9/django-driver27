@@ -10,11 +10,11 @@
 
 {% block dr27_content %}
     {{ block.super }}
-    <table class="table">
+    <table class="table table-condensed table-striped table-hover">
         <tr>
-            <th>{%  trans 'Season' %}</th>
-            <th>{%  trans 'Driver leader' %}</th>
-            <th>{%  trans 'Team leader' %}</th>
+            <th class="col-md-2">{%  trans 'Season' %}</th>
+            <th class="col-md-4">{%  trans 'Driver leader' %}</th>
+            <th class="col-md-6">{%  trans 'Team leader' %}</th>
         </tr>
         {% for season in competition.seasons.all %}
             <tr>

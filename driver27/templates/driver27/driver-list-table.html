@@ -1,6 +1,7 @@
 {% load champion_filter i18n %}
-<table class="table">
-    <tr>
+<table class="table table-condensed table-striped table-hover">
+    <thead>
+        <tr>
         <th {% if not pending_races %}class="col-md-4"{% endif %}>{%  trans 'Points' %}</th>
         <th {% if not pending_races %}class="col-md-3"{% endif %}>{%  trans 'Driver' %}</th>
         <th {% if not pending_races %}class="col-md-5" {% endif %}>{%  trans 'Team' %}</th>
@@ -11,6 +12,8 @@
         <th>{%  trans 'Total' %}</th>
         {% endif %}
     </tr>
+    </thead>
+
     {% for points,driver,team, positions in rank %}
         <tr>
         <td id="points_{{ forloop.counter }}">{{ points }}</td>

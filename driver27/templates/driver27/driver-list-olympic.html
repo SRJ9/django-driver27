@@ -1,12 +1,15 @@
 {% load champion_filter i18n %}
-<table class="table">
-    <tr>
+<table class="table table-condensed table-striped table-hover">
+    <thead>
+        <tr>
         <th>{%  trans 'Driver' %}</th>
         <th>{%  trans 'Team' %}</th>
         {% for position in positions %}
             <th>{{ position }}</th>
         {% endfor %}
     </tr>
+    </thead>
+
     {% for positions_str,driver,team, positions_list in rank %}
         <tr>
         <td>{{ driver }}</td>

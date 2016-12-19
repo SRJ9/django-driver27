@@ -2,12 +2,15 @@
         <div class="change_punctuation">
             <form method="POST" action="{% url 'season-driver' season.competition.slug season.year %}">
             {% csrf_token %}
-                <select name="scoring" class="form-control" >
+                <div class="form-group">
+                    <select name="scoring" class="form-control input-sm" >
                     {% for sc_label, sc_code in scoring_list %}
                     <option value="{{ sc_code }}" {% if sc_code == scoring_code %}selected{% endif %}>{{ sc_label }}</option>
                     {% endfor %}
-                </select>
-                <input type="submit" value="Change punctuation" class="btn btn-primary">
+                    </select>
+                    <input type="submit" value="Change punctuation" class="btn btn-xs btn-primary">
+                </div>
+
             </form>
         </div>
 

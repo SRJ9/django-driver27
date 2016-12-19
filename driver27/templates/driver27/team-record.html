@@ -8,9 +8,11 @@
 {% block dr27_content %}
     {{ block.super }}
 {% load champion_filter i18n %}
-    <form method="POST">
+    <form method="POST" class="form-inline">
     {% csrf_token %}
-        <select id="record" name="record" onchange="change_record()">
+        <div class="form-group">
+        <label for="record" class="control-label">Record:</label>
+            <select id="record" name="record" onchange="change_record()" class="form-control input-sm">
             {% if not record %}
                 <option value="">---</option>
             {% endif %}
@@ -19,10 +21,13 @@
             {% if record_code.code == record %}selected{% endif %}
             >{{ record_code.label }}</option>
             {% endfor %}
-        </select>
+            </select>
+        </div>
+        <div class="clear"></div>
+
     </form>
     {% if rank %}
-        <span class="container">
+        <span class="help-block">
         {% if by_race %}
             <a href="{% url 'season-team-record' season.competition.slug season.year record %}">
             {% trans 'Current record' %}</a>
@@ -31,7 +36,7 @@
             {% trans 'Current record by race' %}</a>
         {% endif %}
         </span>
-<table class="table">
+<table class="table table-condensed table-striped table-hover">
     <tr>
         <th>{%  trans 'Count' %}</th>
         <th>{%  trans 'Team' %}</th>
