@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
 from . import punctuation
+from .record_filters import TeamRecord
 from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField
@@ -215,12 +216,12 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
-    def team_stats_rank(self, unique_by_race=False, double=False, **filters):
+    def team_stats_rank(self, rank_type=None, **filters):
         teams = self.teams.all()
         rank = []
         for team in teams:
             team_season = TeamSeason.objects.get(season=self, team=team)
-            rank.append((team_season.get_stats(unique_by_race=unique_by_race, double=double, **filters), team))
+            rank.append((team_season.get_stats(rank_type=rank_type, **filters), team))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
@@ -473,13 +474,18 @@ class TeamSeason(models.Model):
         results = self.get_results()
         return results.filter(**filters)
 
-    def get_filtered_races(self, double=False, **filters):
-        races = self.get_races(**filters)
-        return races if not double else races.filter(count_race__gte=2)
+    def get_filtered_races(self, rank_type, **filters):
+        if TeamRecord.is_valid(rank_type):
+            races = self.get_races(**filters)
+            if rank_type == 'BY-RACE':
+                pass
+            elif rank_type == 'MULTIPLE':
+                races = races.filter(count_race__gte=2)
+        return races
 
-    def get_stats(self, unique_by_race=False, double=False, **filters):  # noqa
-        if unique_by_race:
-            return self.get_filtered_races(double=double, **filters).count()
+    def get_stats(self, rank_type=None, **filters):  # noqa
+        if TeamRecord.is_valid(rank_type):
+            return self.get_filtered_races(rank_type=rank_type, **filters).count()
         return self.get_filtered_results(**filters).count()
 
     # def delete(self, *args, **kwargs):

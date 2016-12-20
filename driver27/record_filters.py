@@ -74,3 +74,12 @@ DR27_RECORDS_FILTER = [
     },
 
 ]
+
+
+class TeamRecord(object):
+
+    @staticmethod
+    def is_valid(rank_type):
+        return rank_type in ('BY-RACE', 'MULTIPLE')
+
+

@@ -4,7 +4,7 @@ from django.http import Http404
 from django.utils.translation import ugettext as _
 from .models import Competition, Season, Race
 from .punctuation import DRIVER27_PUNCTUATION
-from .record_filters import DR27_RECORDS_FILTER
+from .record_filters import DR27_RECORDS_FILTER, TeamRecord
 
 
 def get_season(slug, year):
@@ -184,25 +184,24 @@ def driver_record_view(request, competition_slug, year, record=None):
 
 
 def team_record_double_view(request, competition_slug, year, record=None):
-    return team_record_view(request, competition_slug, year, record=record, unique_by_race=True, double=True)
+    return team_record_view(request, competition_slug, year, record=record, rank_type='MULTIPLE')
 
 
 def team_record_by_race_view(request, competition_slug, year, record=None):
-    return team_record_view(request, competition_slug, year, record=record, unique_by_race=True)
+    return team_record_view(request, competition_slug, year, record=record, rank_type='BY-RACE')
 
 
-def team_record_view(request, competition_slug, year, record=None, unique_by_race=False, double=False):
+def team_record_view(request, competition_slug, year, record=None, rank_type=None):
     context = get_record_common_context(request, competition_slug, year, record)
 
+    rank = None
     if record:
         season = context.get('season', None)
         record_config = get_record_config(record)
-        rank = season.team_stats_rank(unique_by_race=unique_by_race, double=double, **record_config['filter']) \
+        rank = season.team_stats_rank(rank_type=rank_type, **record_config['filter']) \
             if record_config else None
-    else:
-        rank = None
     context['rank'] = rank
-    context['by_race'] = bool(unique_by_race)
+    context['by_race'] = (record == 'BY-RACE')
     tpl = 'driver27/team-record.html'
     return render(request, tpl, context)
 
