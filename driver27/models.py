@@ -216,14 +216,31 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
-    def team_stats_rank(self, rank_type=None, **filters):
-        teams = self.teams.all()
+    def team_rank(self, rank_type, **filters):
+        allowed_ranks = ('STATS', 'RACES', 'RACES-DOUBLES')
         rank = []
-        for team in teams:
-            team_season = TeamSeason.objects.get(season=self, team=team)
-            rank.append((team_season.get_stats(rank_type=rank_type, **filters), team))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        if rank_type in allowed_ranks:
+            teams = self.teams.all()
+            for team in teams:
+                team_season = TeamSeason.objects.get(season=self, team=team)
+                if rank_type == 'STATS':
+                    total = team_season.get_stats(**filters)
+                else:
+                    multiple_by_race = (rank_type == 'RACES-DOUBLES')
+                    total = team_season.get_races_count(multiple_by_race=multiple_by_race, **filters)
+
+                rank.append((total, team))
+            rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
+
+    # def team_stats_rank(self, rank_type=None, **filters):
+    #     teams = self.teams.all()
+    #     rank = []
+    #     for team in teams:
+    #         team_season = TeamSeason.objects.get(season=self, team=team)
+    #         rank.append((team_season.get_stats(rank_type=rank_type, **filters), team))
+    #     rank = sorted(rank, key=lambda x: x[0], reverse=True)
+    #     return rank
 
     def points_rank(self, scoring_code=None):
         contenders = self.contenders()
@@ -474,18 +491,18 @@ class TeamSeason(models.Model):
         results = self.get_results()
         return results.filter(**filters)
 
-    def get_filtered_races(self, rank_type, **filters):
-        if TeamRecord.is_valid(rank_type):
-            races = self.get_races(**filters)
-            if rank_type == 'BY-RACE':
-                pass
-            elif rank_type == 'MULTIPLE':
-                races = races.filter(count_race__gte=2)
+    def get_filtered_races(self, multiple_by_race=False, **filters):
+        races = self.get_races(**filters)
+        if multiple_by_race:
+            races = races.filter(count_race__gte=2)
         return races
 
-    def get_stats(self, rank_type=None, **filters):  # noqa
-        if TeamRecord.is_valid(rank_type):
-            return self.get_filtered_races(rank_type=rank_type, **filters).count()
+    def get_races_count(self, multiple_by_race=False, **filters):
+        return self.get_filtered_races(multiple_by_race=multiple_by_race, **filters).count()
+
+    def get_stats(self, **filters):  # noqa
+        # if TeamRecord.is_valid(rank_type):
+        #     return self.get_filtered_races(rank_type=rank_type, **filters).count()
         return self.get_filtered_results(**filters).count()
 
     # def delete(self, *args, **kwargs):

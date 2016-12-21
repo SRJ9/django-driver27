@@ -184,24 +184,24 @@ def driver_record_view(request, competition_slug, year, record=None):
 
 
 def team_record_double_view(request, competition_slug, year, record=None):
-    return team_record_view(request, competition_slug, year, record=record, rank_type='MULTIPLE')
+    return team_record_view(request, competition_slug, year, record=record, rank_type='RACES-DOUBLES')
 
 
 def team_record_by_race_view(request, competition_slug, year, record=None):
-    return team_record_view(request, competition_slug, year, record=record, rank_type='BY-RACE')
+    return team_record_view(request, competition_slug, year, record=record, rank_type='RACES')
 
 
-def team_record_view(request, competition_slug, year, record=None, rank_type=None):
+def team_record_view(request, competition_slug, year, record=None, rank_type='STATS'):
     context = get_record_common_context(request, competition_slug, year, record)
 
     rank = None
     if record:
         season = context.get('season', None)
         record_config = get_record_config(record)
-        rank = season.team_stats_rank(rank_type=rank_type, **record_config['filter']) \
+        rank = season.team_rank(rank_type=rank_type, **record_config['filter']) \
             if record_config else None
     context['rank'] = rank
-    context['by_race'] = (record == 'BY-RACE')
+    context['races'] = (rank_type in ('RACES', 'RACES-DOUBLES'))
     tpl = 'driver27/team-record.html'
     return render(request, tpl, context)
 
