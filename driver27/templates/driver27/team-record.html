@@ -16,7 +16,7 @@
             {% if not record %}
                 <option value="">---</option>
             {% endif %}
-            <optgroup label="{% trans 'Total by all team drivers' %}">
+            <optgroup label="{% trans 'Total' %}">
                 {% for record_code in record_codes %}
                 <option value="{% url 'season-team-record' season.competition.slug season.year record_code.code %}"
                 {% if record_code.code == record %}selected{% endif %}
@@ -24,10 +24,18 @@
                 {% endfor %}
             </optgroup>
 
-            <optgroup label="{% trans 'Races with multiple drivers' %}">
+            <optgroup label="{% trans 'Races with at least one' %}">
+                {% for record_code in record_codes %}
+                <option value="{% url 'season-team-record-races' season.competition.slug season.year record_code.code %}"
+                {% if record_code.code == record %}selected{% endif %}
+                >{{ record_code.label }}</option>
+                {% endfor %}
+            </optgroup>
+
+            <optgroup label="{% trans 'Races with doubles' %}">
                 {% for record_code in record_codes %}
                     {% if record_code.team_double_filter %}
-                <option value="{% url 'season-team-record-double' season.competition.slug season.year record_code.code %}"
+                <option value="{% url 'season-team-record-doubles' season.competition.slug season.year record_code.code %}"
                 {% if record_code.code == record %}selected{% endif %}
                 >{{ record_code.label }}</option>
                     {% endif %}
@@ -40,15 +48,15 @@
 
     </form>
     {% if rank %}
-        <span class="help-block">
-        {% if races %}
-            <a href="{% url 'season-team-record' season.competition.slug season.year record %}">
-            {% trans 'Current record' %}</a>
-        {% else %}
-            <a href="{% url 'season-team-record-by-race' season.competition.slug season.year record %}">
-            {% trans 'Current record by race' %}</a>
-        {% endif %}
-        </span>
+{#        <span class="help-block">#}
+{#        {% if races %}#}
+{#            <a href="{% url 'season-team-record' season.competition.slug season.year record %}">#}
+{#            {% trans 'Current record' %}</a>#}
+{#        {% else %}#}
+{#            <a href="{% url 'season-team-record-races' season.competition.slug season.year record %}">#}
+{#            {% trans 'Current record by race' %}</a>#}
+{#        {% endif %}#}
+{#        </span>#}
 <table class="table table-condensed table-striped table-hover">
     <tr>
         <th>{%  trans 'Count' %}</th>

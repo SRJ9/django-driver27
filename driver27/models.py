@@ -185,6 +185,8 @@ class Season(models.Model):
                 return scoring
         return None
 
+
+
     def pending_races(self):
         past_races = Race.objects.filter(season=self, results__pk__isnull=False).distinct().count()
         pending_races = (self.rounds - past_races)
@@ -216,31 +218,38 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
-    def team_rank(self, rank_type, **filters):
-        allowed_ranks = ('STATS', 'RACES', 'RACES-DOUBLES')
-        rank = []
-        if rank_type in allowed_ranks:
-            teams = self.teams.all()
-            for team in teams:
-                team_season = TeamSeason.objects.get(season=self, team=team)
-                if rank_type == 'STATS':
-                    total = team_season.get_stats(**filters)
-                else:
-                    multiple_by_race = (rank_type == 'RACES-DOUBLES')
-                    total = team_season.get_races_count(multiple_by_race=multiple_by_race, **filters)
+    @staticmethod
+    def get_team_rank_method(rank_type):
+        rank_dict = {
+            'STATS': 'team_stats_rank',
+            'RACES': 'team_races_rank',
+            'DOUBLES': 'team_doubles_rank'
+        }
 
-                rank.append((total, team))
+        return rank_dict.get(rank_type, None)
+
+    def get_team_rank(self, rank_type, **filters):
+        rank_method = self.get_team_rank_method(rank_type)
+        return getattr(self, rank_method)(**filters) if rank_method else None
+
+    def team_rank(self, total_method, **filters):
+        rank = []
+        teams = self.teams.all()
+        for team in teams:
+            team_season = TeamSeason.objects.get(season=self, team=team)
+            total = getattr(team_season, total_method)(**filters)
+            rank.append((total, team))
             rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
-    # def team_stats_rank(self, rank_type=None, **filters):
-    #     teams = self.teams.all()
-    #     rank = []
-    #     for team in teams:
-    #         team_season = TeamSeason.objects.get(season=self, team=team)
-    #         rank.append((team_season.get_stats(rank_type=rank_type, **filters), team))
-    #     rank = sorted(rank, key=lambda x: x[0], reverse=True)
-    #     return rank
+    def team_stats_rank(self, **filters):
+        return self.team_rank('get_total_stats', **filters)
+
+    def team_races_rank(self, **filters):
+        return self.team_rank('get_total_races', **filters)
+
+    def team_doubles_rank(self, **filters):
+        return self.team_rank('get_doubles_races', **filters)
 
     def points_rank(self, scoring_code=None):
         contenders = self.contenders()
@@ -462,7 +471,6 @@ class TeamSeason(models.Model):
             raise IntegrityError('You cannot delete a team with seats in this season.'
                                   'Delete seats before')
 
-
     @staticmethod
     def check_delete_seat_restriction(team, season):
         seats_count = SeatSeason.objects.filter(seat__team=team, season=season).count()
@@ -491,18 +499,17 @@ class TeamSeason(models.Model):
         results = self.get_results()
         return results.filter(**filters)
 
-    def get_filtered_races(self, multiple_by_race=False, **filters):
-        races = self.get_races(**filters)
-        if multiple_by_race:
-            races = races.filter(count_race__gte=2)
-        return races
+    def get_filtered_races(self, **filters):
+        races = self.get_races()
+        return races.filter(**filters)
 
-    def get_races_count(self, multiple_by_race=False, **filters):
-        return self.get_filtered_races(multiple_by_race=multiple_by_race, **filters).count()
+    def get_total_races(self, **filters):
+        return self.get_filtered_races(**filters).count()
 
-    def get_stats(self, **filters):  # noqa
-        # if TeamRecord.is_valid(rank_type):
-        #     return self.get_filtered_races(rank_type=rank_type, **filters).count()
+    def get_doubles_races(self, **filters):
+        return self.get_filtered_races(**filters).filter(count_race__gte=2).count()
+
+    def get_total_stats(self, **filters):  # noqa
         return self.get_filtered_results(**filters).count()
 
     # def delete(self, *args, **kwargs):
