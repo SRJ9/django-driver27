@@ -8,7 +8,6 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
 from . import punctuation
-from .record_filters import TeamRecord
 from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField

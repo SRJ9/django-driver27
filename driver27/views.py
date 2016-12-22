@@ -4,7 +4,7 @@ from django.http import Http404
 from django.utils.translation import ugettext as _
 from .models import Competition, Season, Race
 from .punctuation import DRIVER27_PUNCTUATION
-from .record_filters import DR27_RECORDS_FILTER, TeamRecord
+from .record_filters import DR27_RECORDS_FILTER
 
 
 def get_season(slug, year):
@@ -205,6 +205,7 @@ def team_record_view(request, competition_slug, year, rank_type, record=None):
         if record_config:
             rank = season.get_team_rank(rank_type, **record_config['filter'])
     context['rank'] = rank
+    context['rank_type'] = rank_type
     # context['races'] = (rank_type in ('RACES', 'RACES-DOUBLES'))
     tpl = 'driver27/team-record.html'
     return render(request, tpl, context)

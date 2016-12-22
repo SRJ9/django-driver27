@@ -141,7 +141,13 @@ class ViewTest(FixturesTest):
         self.assertEqual(response.status_code, 200)
 
         # Issue a GET request.
-        response = self.client.get(reverse('season-team-record-by-race',
+        response = self.client.get(reverse('season-team-record-races',
+                                           kwargs={'competition_slug': 'f1', 'year': 2016, 'record': 'POLE'}))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+
+        # Issue a GET request.
+        response = self.client.get(reverse('season-team-record-doubles',
                                            kwargs={'competition_slug': 'f1', 'year': 2016, 'record': 'POLE'}))
         # Check that the response is 200 OK.
         self.assertEqual(response.status_code, 200)

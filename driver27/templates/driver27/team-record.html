@@ -19,7 +19,7 @@
             <optgroup label="{% trans 'Total' %}">
                 {% for record_code in record_codes %}
                 <option value="{% url 'season-team-record' season.competition.slug season.year record_code.code %}"
-                {% if record_code.code == record %}selected{% endif %}
+                {% if record_code.code == record and rank_type == 'STATS' %}selected{% endif %}
                 >{{ record_code.label }}</option>
                 {% endfor %}
             </optgroup>
@@ -27,16 +27,16 @@
             <optgroup label="{% trans 'Races with at least one' %}">
                 {% for record_code in record_codes %}
                 <option value="{% url 'season-team-record-races' season.competition.slug season.year record_code.code %}"
-                {% if record_code.code == record %}selected{% endif %}
+                {% if record_code.code == record  and rank_type == 'RACES' %}selected{% endif %}
                 >{{ record_code.label }}</option>
                 {% endfor %}
             </optgroup>
 
             <optgroup label="{% trans 'Races with doubles' %}">
                 {% for record_code in record_codes %}
-                    {% if record_code.team_double_filter %}
+                    {% if record_code.team_doubles_filter %}
                 <option value="{% url 'season-team-record-doubles' season.competition.slug season.year record_code.code %}"
-                {% if record_code.code == record %}selected{% endif %}
+                {% if record_code.code == record  and rank_type == 'DOUBLES' %}selected{% endif %}
                 >{{ record_code.label }}</option>
                     {% endif %}
                 {% endfor %}
