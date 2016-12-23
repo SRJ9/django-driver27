@@ -1,4 +1,5 @@
 from django.utils.translation import ugettext as _
+from marshmallow import Schema, fields, pprint
 
 DR27_RECORDS_FILTER = [
     {
@@ -76,3 +77,8 @@ DR27_RECORDS_FILTER = [
 ]
 
 
+class RecordFilter(Schema):
+    code = fields.Str()
+    label = fields.Str()
+    filter = fields.Dict()
+    team_doubles_filter = fields.Bool()
