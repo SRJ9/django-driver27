@@ -4,7 +4,7 @@ from django.http import Http404
 from django.utils.translation import ugettext as _
 from .models import Competition, Season, Race
 from .punctuation import DRIVER27_PUNCTUATION
-from .record_filters import DR27_RECORDS_FILTER
+from .record_filters import RecordFilter
 
 
 def get_season(slug, year):
@@ -144,10 +144,12 @@ def race_view(request, competition_slug, year, race_id=None):
 
 
 def get_record_config(record):
-    for record_config in DR27_RECORDS_FILTER:
-        if record_config['code'] == record:
-            return record_config
-    raise Http404(_('Record does not exist'))
+    record_filter_obj = RecordFilter()
+    record_config = record_filter_obj.get(record)
+    if record_config:
+        return record_config
+    else:
+        raise Http404(_('Record does not exist'))
 
 
 def get_record_common_context(request, competition_slug, year, record=None):
@@ -163,7 +165,7 @@ def get_record_common_context(request, competition_slug, year, record=None):
                'season': season,
                'title': title,
                'record': record,
-               'record_codes': DR27_RECORDS_FILTER
+               'record_codes': RecordFilter.profiles
                }
 
     return context
