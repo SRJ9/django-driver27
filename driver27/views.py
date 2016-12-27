@@ -1,10 +1,11 @@
-from django.shortcuts import render
 from django.db.models import Count
 from django.http import Http404
+from django.shortcuts import render
 from django.utils.translation import ugettext as _
+
+from driver27.records import DR27_RECORDS
 from .models import Competition, Season, Race
 from .punctuation import DRIVER27_PUNCTUATION
-from .record_filters import RecordFilter
 
 
 def get_season(slug, year):
@@ -13,6 +14,7 @@ def get_season(slug, year):
     except Season.DoesNotExist:
         raise Http404(_('Season does not exist'))
     return season
+
 
 def competition_view(request, competition_slug=None):
     if competition_slug is not None:
@@ -144,8 +146,7 @@ def race_view(request, competition_slug, year, race_id=None):
 
 
 def get_record_config(record):
-    record_filter_obj = RecordFilter()
-    record_config = record_filter_obj.get(record)
+    record_config = DR27_RECORDS.get_code(code=record)
     if record_config:
         return record_config
     else:
@@ -157,7 +158,7 @@ def get_record_common_context(request, competition_slug, year, record=None):
     if record:
         record_config = get_record_config(record)
         title = _('%(record_label)s Record, %(season)s') \
-            % {'record_label': record_config['label'], 'season': season}
+            % {'record_label': record_config.label, 'season': season}
     else:
         title = _('Select a %(season)s record' % {'season': season})
 
@@ -165,7 +166,7 @@ def get_record_common_context(request, competition_slug, year, record=None):
                'season': season,
                'title': title,
                'record': record,
-               'record_codes': RecordFilter.profiles
+               'record_codes': DR27_RECORDS.filters
                }
 
     return context
@@ -177,7 +178,7 @@ def driver_record_view(request, competition_slug, year, record=None):
     if record:
         season = context.get('season', None)
         record_config = get_record_config(record)
-        rank = season.stats_rank(**record_config['filter']) if record_config else None
+        rank = season.stats_rank(**record_config.rec_filter) if record_config else None
     else:
         rank = None
     context['rank'] = rank
@@ -205,7 +206,7 @@ def team_record_view(request, competition_slug, year, rank_type, record=None):
         season = context.get('season', None)
         record_config = get_record_config(record)
         if record_config:
-            rank = season.get_team_rank(rank_type, **record_config['filter'])
+            rank = season.get_team_rank(rank_type, **record_config.rec_filter)
     context['rank'] = rank
     context['rank_type'] = rank_type
     # context['races'] = (rank_type in ('RACES', 'RACES-DOUBLES'))

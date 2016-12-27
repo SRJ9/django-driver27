@@ -7,6 +7,7 @@ recursive-include driver27/admin *.py
 recursive-include driver27/fixtures *.json
 recursive-include driver27/locale *
 recursive-include driver27/migrations *.py
+recursive-include driver27/records *.py
 recursive-include driver27/static *.css
 recursive-include driver27/templates *.html
 recursive-include driver27/templatetags *.py
