@@ -31,6 +31,10 @@ Versions
 -  0.19 (Ayrton Senna's Toleman's car number '84 - Debut)
 -  0.27-VIL (Gilles Villeneuve 27)
 
+0.19.1.1
+========
+-  Team records by season (total, races with at least one and races with doubles)
+
 0.19.1
 ======
 -  Records by season
