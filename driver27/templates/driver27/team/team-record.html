@@ -30,7 +30,7 @@
             </optgroup>
 
             <optgroup label="{% trans 'Races with doubles' %}">
-                {% with rank_group='DOUBLES' record_url='season-team-record-doubles' %}
+                {% with rank_group='DOUBLES' record_url='season-team-record-doubles' record_codes=doubles_record_codes %}
                     {% include 'driver27/team/team-record-optgroup.html' %}
                 {% endwith %}
             </optgroup>

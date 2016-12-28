@@ -205,6 +205,8 @@ def team_record_view(request, competition_slug, year, rank_type, record=None):
         rank = season.get_team_rank(rank_type, **context.get('record_filter')) if 'record_filter' in context else None
     context['rank'] = rank
     context['rank_type'] = rank_type
+
+    context['doubles_record_codes'] = get_record_label_dict(doubles=True)
     # context['races'] = (rank_type in ('RACES', 'RACES-DOUBLES'))
     tpl = 'driver27/team/team-record.html'
     return render(request, tpl, context)
