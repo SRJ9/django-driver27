@@ -1,0 +1,13 @@
+{% load i18n %}
+    <li class="nav-item">
+        <a>>></a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-driver' season.competition.slug season.year %}">{%  trans 'Drivers' %}</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-team' season.competition.slug season.year %}">{%  trans 'Teams' %}</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-race-list' season.competition.slug season.year %}">{%  trans 'Races' %}</a>
+    </li>

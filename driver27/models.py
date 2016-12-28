@@ -7,7 +7,7 @@ from django.db.models.signals import m2m_changed, pre_save, pre_delete
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
-from . import punctuation
+from .punctuation import get_punctuation_config
 from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField
@@ -179,12 +179,7 @@ class Season(models.Model):
     def get_scoring(self, code=None):
         if not code:
             code = self.punctuation
-        for scoring in punctuation.DRIVER27_PUNCTUATION:
-            if scoring['code'] == code:
-                return scoring
-        return None
-
-
+        return get_punctuation_config(code)
 
     def pending_races(self):
         past_races = Race.objects.filter(season=self, results__pk__isnull=False).distinct().count()

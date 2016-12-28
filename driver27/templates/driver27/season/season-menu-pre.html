@@ -1,0 +1,10 @@
+{% load i18n %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'competition-view' season.competition.slug %}">{{ season.competition }}</a>
+    </li>
+    <li class="nav-item">
+        <a><<</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-view' season.competition.slug season.year %}">{{ season }}</a>
+    </li>

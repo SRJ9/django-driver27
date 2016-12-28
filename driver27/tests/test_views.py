@@ -158,9 +158,6 @@ class ViewTest(FixturesTest):
         # Check that the response is 200 OK.
         self.assertEqual(response.status_code, 404)
 
-
-
-
     # def test_admin(self):
     #     response = self.client.get(reverse('admin:driver27_driver_changelist'))
     #     # Check that the response is 200 OK.

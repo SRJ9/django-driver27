@@ -1,8 +1,8 @@
 {% extends 'driver27/base.html' %}
 {% load i18n %}
 {% block dr27_menu %}
-    {% include 'driver27/season-menu-pre.html' %}
-    {% include 'driver27/team-menu.html' %}
+    {% include 'driver27/season/season-menu-pre.html' %}
+    {% include 'driver27/team/team-menu.html' %}
 
 {% endblock %}
 {% block dr27_content %}
@@ -16,30 +16,23 @@
             {% if not record %}
                 <option value="">---</option>
             {% endif %}
+
             <optgroup label="{% trans 'Total' %}">
-                {% for record_code in record_codes %}
-                <option value="{% url 'season-team-record' season.competition.slug season.year record_code.code %}"
-                {% if record_code.code == record and rank_type == 'STATS' %}selected{% endif %}
-                >{{ record_code.label }}</option>
-                {% endfor %}
+                {% with rank_group='STATS' record_url='season-team-record' %}
+                    {% include 'driver27/team/team-record-optgroup.html' %}
+                {% endwith %}
             </optgroup>
 
             <optgroup label="{% trans 'Races with at least one' %}">
-                {% for record_code in record_codes %}
-                <option value="{% url 'season-team-record-races' season.competition.slug season.year record_code.code %}"
-                {% if record_code.code == record  and rank_type == 'RACES' %}selected{% endif %}
-                >{{ record_code.label }}</option>
-                {% endfor %}
+                {% with rank_group='RACES' record_url='season-team-record-races' %}
+                    {% include 'driver27/team/team-record-optgroup.html' %}
+                {% endwith %}
             </optgroup>
 
             <optgroup label="{% trans 'Races with doubles' %}">
-                {% for record_code in record_codes %}
-                    {% if record_code.team_doubles_filter %}
-                <option value="{% url 'season-team-record-doubles' season.competition.slug season.year record_code.code %}"
-                {% if record_code.code == record  and rank_type == 'DOUBLES' %}selected{% endif %}
-                >{{ record_code.label }}</option>
-                    {% endif %}
-                {% endfor %}
+                {% with rank_group='DOUBLES' record_url='season-team-record-doubles' %}
+                    {% include 'driver27/team/team-record-optgroup.html' %}
+                {% endwith %}
             </optgroup>
 
             </select>

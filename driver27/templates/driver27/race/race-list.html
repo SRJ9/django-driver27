@@ -1,7 +1,7 @@
 {% extends 'driver27/base.html' %}
 {% load i18n %}
 {% block dr27_menu %}
-    {% include 'driver27/season-menu-pre.html' %}
+    {% include 'driver27/season/season-menu-pre.html' %}
     <li class="nav-item">
         <a class="nav-link" href="{% url 'season-race-list' season.competition.slug season.year %}">{%  trans 'Races' %}</a>
     </li>

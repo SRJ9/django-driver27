@@ -1,0 +1,10 @@
+{% extends 'driver27/base.html' %}
+{% load i18n %}
+{% block dr27_menu %}
+    {% include 'driver27/season/season-menu-pre.html' %}
+    {% include 'driver27/team/team-menu.html' %}
+{% endblock %}
+{% block dr27_content %}
+    {{ block.super }}
+    {% include 'driver27/team/team-list-table.html' %}
+{% endblock %}

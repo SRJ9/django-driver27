@@ -1,0 +1,53 @@
+{% extends 'driver27/base.html' %}
+{% load static i18n %}
+{% block dr27_menu %}
+    {% include 'driver27/season/season-menu-pre.html' %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-race-list' season.competition.slug season.year %}">Races</a>
+    </li>
+        <li class="nav-item">
+        <a class="nav-link" href="{% url 'season-race-view' season.competition.slug season.year race.round %}">{{ race }}</a>
+    </li>
+{% endblock %}
+{% block dr27_content %}
+    {{ block.super }}
+    <table class="table">
+    <tr>
+        <th>{%  trans 'Position' %}</th>
+        <th>{%  trans 'Driver' %}</th>
+        <th>{%  trans 'Team' %}</th>
+        <th>{%  trans 'Start' %}</th>
+        <th>&nbsp;</th>
+    </tr>
+    {% for result in results %}
+        <tr class="finish_{{ result.finish }} {% if result.points %}points{% endif %}">
+        <td>
+            {% if result.retired or  not result.finish %}
+                <span class="result retired">Retired</span>
+            {% else %}
+                {{ result.finish }}
+            {% endif %}
+        </td>
+        <td>{{ result.driver }}</td>
+        <td>{{ result.team }}</td>
+        <td>
+            {% if result.qualifying %}
+                {{ result.qualifying }}
+            {% else %}
+                -
+            {% endif %}
+        </td>
+        <td>
+            {% if result.wildcard %}
+                <span class="result wildcard">{%  trans 'Wildcard' %}</span>
+            {% endif %}
+            {% if result.fastest_lap %}
+                <span class="result fastest">{%  trans 'Fastest lap' %}</span>
+            {% endif %}
+        </td>
+        </tr>
+    {% endfor %}
+
+    </table>
+{% endblock %}
+

@@ -11,7 +11,7 @@ from ..models import Team, TeamSeason
 class RaceInline(CompetitionFilterInline):
     model = Race
     extra = 1
-    readonly_fields = ('print_results_link', )
+    # readonly_fields = ('print_results_link', )
     formset = RaceFormSet
     form = AlwaysChangedModelForm
 

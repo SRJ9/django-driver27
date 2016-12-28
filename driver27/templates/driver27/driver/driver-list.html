@@ -1,0 +1,23 @@
+{% extends 'driver27/base.html' %}
+{% load i18n %}
+{% block dr27_menu %}
+    {% include 'driver27/season/season-menu-pre.html' %}
+    {% include 'driver27/driver/driver-menu.html' %}
+{% endblock %}
+{% block dr27_content %}
+    {{ block.super }}
+    {% include 'driver27/driver/driver-list-scoring-form.html' %}
+    {% if olympic %}
+        {% include 'driver27/driver/driver-list-olympic.html' %}
+    {% else %}
+        {% include 'driver27/driver/driver-list-table.html' %}
+    {% endif %}
+{% endblock %}
+
+
+{% block bootstrap3_extra_script %}
+    {{ block.super }}
+    {% if road_to_championship %}
+        {% include 'driver27/driver/driver-list-road-to-championship.html' %}
+    {% endif %}
+{% endblock %}
