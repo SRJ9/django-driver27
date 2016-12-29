@@ -45,13 +45,15 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         race_points = result.points
 
         # change scoring to add fastest_lap point
-        scoring = season.get_scoring()
-        scoring['fastest_lap'] = 1
-        # result + fastest_lap
         result.fastest_lap = True
         self.assertIsNone(result.save())
-        # result.points is greater than before
-        # self.assertGreater(result.points, race_points) # No working currently
+
+        # modify scoring to check if fastest_lap scoring is counted
+        scoring = season.get_scoring()
+        scoring['fastest_lap'] = 1
+        with self.settings(DR27_CONFIG={'PUNCTUATION': {'F1-25': scoring}}):
+            # result.points is greater than before
+            self.assertGreater(result.points, race_points)  # No working currently
         self.assertEquals(race.fastest, result.seat)
 
     def test_result_seat_exception(self):
