@@ -21,7 +21,7 @@ class RelatedWithSeasonFormSet(forms.models.BaseInlineFormSet):
     def __init__(self, *args, **kwargs):
         super(RelatedWithSeasonFormSet, self).__init__(*args, **kwargs)
         request = self.request
-        copy_id = request.GET.get('copy', None)
+        copy_id = request.GET.get('copy')
         if not self.initial and copy_id:
             self.initial = self.get_copy(copy_id)
             self.extra += len(self.initial)

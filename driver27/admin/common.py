@@ -31,7 +31,8 @@ class RelatedCompetitionAdmin(object):
     """ Aux class to share print_competitions method between driver and team """
     def print_competitions(self, obj):
         if hasattr(obj, 'competitions'):
-            return ', '.join("%s" % competition for competition in obj.competitions.all())
+            return ', '.join('{competition}'.format(competition=competition)
+                             for competition in obj.competitions.all())
         else:
             return None
     print_competitions.short_description = _('competitions')

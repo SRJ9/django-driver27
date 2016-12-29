@@ -30,9 +30,9 @@ class TeamSeasonTestCase(TestCase, CommonTeamSeasonTestCase):
         self.assertTrue(TeamSeason.objects.create(**team_season_args))
         team_season = TeamSeason.objects.get(**team_season_args)
         # STR team_season
-        expected_team_season = '%s in %s' % (team_season.team, season)
+        expected_team_season = '{team} in {season}'.format(team=team_season.team, season=season)
         self.assertEquals(str(team_season), retro_encode(expected_team_season))
         team_season.sponsor_name = 'Sponsored Team'
         self.assertIsNone(team_season.save())
-        expected_team_season = '%s in %s' % (team_season.sponsor_name, season)
+        expected_team_season = '{sponsor} in {season}'.format(sponsor=team_season.sponsor_name, season=season)
         self.assertEquals(str(team_season), retro_encode(expected_team_season))

@@ -63,5 +63,5 @@ def get_config(param, key=None):
     if settings_config:
         config.update(settings_config)
     if key:
-        return config.get(key, None)
+        return config.get(key)
     return config

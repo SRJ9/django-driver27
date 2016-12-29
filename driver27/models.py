@@ -220,7 +220,7 @@ class Season(models.Model):
             'DOUBLES': 'team_doubles_rank'
         }
 
-        return rank_dict.get(rank_type, None)
+        return rank_dict.get(rank_type)
 
     def get_team_rank(self, rank_type, **filters):
         rank_method = self.get_team_rank_method(rank_type)

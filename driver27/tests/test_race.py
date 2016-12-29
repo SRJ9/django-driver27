@@ -12,7 +12,7 @@ class RaceTestCase(TestCase, CommonRaceTestCase):
 
     def test_race_unicode(self):
         race = self.get_test_race()
-        expected_race = '%s-%s' % (race.season, race.round)
+        expected_race = '{season}-{round}'.format(season=race.season, round=race.round)
         self.assertEquals(str(race), expected_race)
         return race
 

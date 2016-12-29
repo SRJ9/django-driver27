@@ -23,7 +23,7 @@ def competition_view(request, competition_slug=None):
         except Competition.DoesNotExist:
             raise Http404(_('Competition does not exist'))
 
-        title = '%s' % competition_obj
+        title = '{competition}'.format(competition=competition_obj)
         context = {'competition': competition_obj, 'title': title}
         tpl = 'driver27/competition/competition-view.html'
     else:

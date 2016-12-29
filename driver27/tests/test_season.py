@@ -5,11 +5,13 @@ from django.db import transaction, IntegrityError
 from .common import CommonSeasonTestCase, CommonSeatTestCase
 from ..models import SeatSeason, TeamSeason, Contender, Seat
 
+
 class SeasonTestCase(TestCase, CommonSeasonTestCase, CommonSeatTestCase):
     def test_season_unicode(self):
         competition = self.get_test_competition_a()
         season = self.get_test_season(competition)
-        expected_season = '%s/%s' % (str(season.competition), season.year)
+        year = season.year
+        expected_season = '{competition}/{year}'.format(competition=competition, year=year)
         self.assertEquals(str(season), expected_season)
 
     def test_season_scoring(self):

@@ -161,14 +161,14 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         return copy_dict
 
     def get_changeform_initial_data(self, request, *args, **kwargs):
-        copy_id = request.GET.get('copy', None)
+        copy_id = request.GET.get('copy')
         if copy_id:
             return self.get_season_copy(copy_id)
  
     def print_copy_season(self, obj):
         if obj.pk:
             copy_link = reverse("admin:driver27_season_add")
-            get_copy_id = '?copy=%d' % obj.pk
+            get_copy_id = '?copy={obj_pk}'.format(obj_pk=obj.pk)
             return "<a href='%s%s'>%s</a>" % (copy_link, get_copy_id, _('Copy'))
         else:
             return ''
