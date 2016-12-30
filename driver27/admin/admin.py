@@ -169,7 +169,9 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         if obj.pk:
             copy_link = reverse("admin:driver27_season_add")
             get_copy_id = '?copy={obj_pk}'.format(obj_pk=obj.pk)
-            return "<a href='%s%s'>%s</a>" % (copy_link, get_copy_id, _('Copy'))
+            return "<a href='{link}{query}'>{copy_text}</a>".format(link=copy_link,
+                                                                    query=get_copy_id,
+                                                                    copy_text=_('Copy'))
         else:
             return ''
     print_copy_season.short_description = _('copy season')
@@ -204,7 +206,7 @@ class RaceAdmin(CommonTabbedModelAdmin):
     #     return urlpatterns + urls
 
     def print_seat(self, seat):
-        return "%s" % seat.contender.driver if seat else None
+        return u"{driver}".format(driver=seat.contender.driver) if seat else None
 
     def print_pole(self, obj):
         return self.print_seat(obj.pole)

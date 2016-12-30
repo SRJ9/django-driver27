@@ -38,17 +38,6 @@ class RelatedCompetitionAdmin(object):
     print_competitions.short_description = _('competitions')
 
 
-# class CommonRaceAdmin(object):
-#     def print_results_link(self, obj):
-#         if obj.pk:
-#             results_url = reverse("admin:driver27_race_results", args=[obj.pk])
-#             return '<a href="%s">%s</a>' % (results_url, _('Results'))
-#         else:
-#             return ''
-#     print_results_link.allow_tags = True
-#     print_results_link.short_description = _('link')
-
-
 class CommonTabbedModelAdmin(TabbedModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         # just save obj reference for future processing in Inline

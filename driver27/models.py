@@ -251,7 +251,8 @@ class Season(models.Model):
         rank = []
         for contender in contenders:
             contender_season = contender.get_season(self)
-            rank.append((contender_season.get_points(scoring=scoring), contender.driver, contender_season.teams_verbose, contender_season.get_positions_str()))
+            rank.append((contender_season.get_points(scoring=scoring), contender.driver, contender_season.teams_verbose,
+                         contender_season.get_positions_str()))
         rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
         return rank
 
@@ -352,7 +353,7 @@ class Race(models.Model):
             raise ValidationError(errors)
         super(Race, self).clean()
 
-    def get_result_seat(self, *args, **kwargs):
+    def get_result_seat(self, **kwargs):
         results = self.results.filter(**kwargs)
         return results.first().seat if results.count() else None
 
@@ -369,9 +370,9 @@ class Race(models.Model):
         return self.get_result_seat(fastest_lap=True)
 
     def __str__(self):
-        race_str = '%s-%s' % (self.season, self.round)
+        race_str = '{season}-{round}'.format(season=self.season, round=self.round)
         if self.grand_prix:
-            race_str += '.%s' % self.grand_prix
+            race_str += u'.{grand_prix}'.format(grand_prix=self.grand_prix)
         return race_str
 
     class Meta:
@@ -463,7 +464,7 @@ class TeamSeason(models.Model):
     def delete_seat_exception(team, season):
         if TeamSeason.check_delete_seat_restriction(team=team, season=season):
             raise IntegrityError('You cannot delete a team with seats in this season.'
-                                  'Delete seats before')
+                                 'Delete seats before')
 
     @staticmethod
     def check_delete_seat_restriction(team, season):
@@ -506,17 +507,11 @@ class TeamSeason(models.Model):
     def get_total_stats(self, **filters):  # noqa
         return self.get_filtered_results(**filters).count()
 
-    # def delete(self, *args, **kwargs):
-    #     team = self.team
-    #     season = self.season
-    #     self.delete_seat_exception(team=team, season=season)
-    #     super(TeamSeason, self).delete(*args, **kwargs)
-
     def __str__(self):
         str_team = self.team.name
         if self.sponsor_name:
             str_team = self.sponsor_name
-        return '%s in %s' % (str_team, self.season)
+        return '{team} in {season}'.format(team=str_team, season=self.season)
 
     class Meta:
         unique_together = ('season', 'team')
@@ -566,7 +561,7 @@ class Result(models.Model):
         points_scoring = sorted(scoring['finish'], reverse=True)
         if self.finish:
             scoring_len = len(points_scoring)
-            if self.finish <= scoring_len:
+            if not self.finish > scoring_len:
                 return points_scoring[self.finish - 1] * factor
         return 0
 
@@ -584,9 +579,9 @@ class Result(models.Model):
         return self.points_calculator(scoring)
 
     def __str__(self):
-        string = '%s (%s)' % (self.seat, self.race)
+        string = '{seat} ({race})'.format(seat=self.seat, race=self.race)
         if self.finish:
-            string += ' - %sº' % self.finish
+            string += ' - {finish}º'.format(finish=self.finish)
         else:
             string += ' - ' + _('OUT')
         return string
@@ -639,7 +634,7 @@ class ContenderSeason(object):
         
     def get_positions_list(self, limit_races=None):
         results = self.get_results(limit_races=limit_races)
-        last_position=20
+        last_position = 20
         positions = []
         for x in range(1, last_position+1):
             position_count = results.filter(finish=x).count()

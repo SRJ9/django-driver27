@@ -2,7 +2,7 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from .common import retro_encode, CommonRaceTestCase
-from ..models import Race
+
 
 class RaceTestCase(TestCase, CommonRaceTestCase):
     def test_circuit_unicode(self):
@@ -19,16 +19,17 @@ class RaceTestCase(TestCase, CommonRaceTestCase):
     def test_race_grandprix(self):
         race = self.get_test_race()
         season = race.season
-        grandprix = self.get_test_grandprix()
+        grand_prix = self.get_test_grandprix()
         # add grandprix without season
-        race.grand_prix = grandprix
-        race.default_circuit = grandprix.default_circuit
+        race.grand_prix = grand_prix
+        race.default_circuit = grand_prix.default_circuit
         self.assertRaises(ValidationError, race.save)
         # add season to grandprix
-        self.assertIsNone(grandprix.competitions.add(season.competition))
+        self.assertIsNone(grand_prix.competitions.add(season.competition))
         self.assertIsNone(race.save())
         # expected race changes (adding grandprix to str)
-        expected_race = '%s-%s.%s' % (season, race.round, grandprix)
+        expected_race = '{season}-{round}.{grand_prix}'.format(season=season, round=race.round,
+                                                               grand_prix=grand_prix)
         self.assertEquals(str(race), expected_race)
 
     def test_race_round_exception(self):

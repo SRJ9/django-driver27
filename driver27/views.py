@@ -36,7 +36,7 @@ def competition_view(request, competition_slug=None):
 
 def season_view(request, competition_slug, year):
     season = get_season(competition_slug, year)
-    title = '%s/%d' % (season.competition, season.year)
+    title = '{competition}/{year:d}'.format(competition=season.competition, year=season.year)
     driver_rank = season.points_rank()[:5]
     team_rank = season.team_points_rank()[:5]
     context = {'season': season, 'title': title, 'driver_rank': driver_rank, 'team_rank': team_rank}
@@ -62,7 +62,7 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
     else:
         raise Http404(_('Impossible rank'))
 
-    title = '%s [%s]' % (season, rank_title)
+    title = '{season} [{title}]'.format(season=season, title=rank_title)
 
     context = {'rank': rank,
                'season': season,
@@ -84,7 +84,7 @@ def driver_olympic_view(request, competition_slug, year):
     rank_title = _('DRIVERS rank by olympic mode')
     tpl = 'driver27/driver/driver-list.html'
 
-    title = '%s [%s]' % (season, rank_title)
+    title = '{season} [{title}]'.format(season=season, title=rank_title)
 
     context = {'rank': rank,
                'season': season,
@@ -164,7 +164,7 @@ def get_record_common_context(request, competition_slug, year, record=None):
             % {'record_label': record_config.get('label'), 'season': season}
         context['record_filter'] = record_config.get('filter')
     else:
-        title = _('Select a %(season)s record' % {'season': season})
+        title = _('Select a %(season)s record') % {'season': season}
 
     context['title'] = title
     context['record_codes'] = get_record_label_dict()
