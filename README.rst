@@ -23,6 +23,28 @@ Modify your settings.py
 
     TABBED_ADMIN_USE_JQUERY_UI = True
 
+DR27_CONFIG
+===========
+Now, you can add more punctuation and record configs adding DR27_CONFIG in your settings.py.
+Follow this example
+::
+
+    DR27_DEMO = {
+        'RECORDS': {
+            'PODIUM-GATES': {'label': _('At the gates of podium'), 'filter': {'finish__exact': 4}},
+            ...
+        },
+        'PUNCTUATION': {
+            'DR27-POINTS': {'type': 'full', 'finish': [10, 5, 3, 1], 'fastest_lap': 0, 'label': 'DR27 points'},
+            ...
+        }
+    }
+
+If you want to allow translate, add this import
+::
+
+    from django.utils.translation import ugettext as _
+
 Versions
 ========
 
