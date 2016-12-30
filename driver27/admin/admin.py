@@ -18,7 +18,7 @@ def lr_intr(l, r):
 
 
 class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
-    list_display = ('__unicode__', 'country', 'print_competitions')
+    list_display = ('__str__', 'country', 'print_competitions')
     list_filter = ('competitions__name',)
     tab_overview = (
         (None, {
@@ -36,7 +36,7 @@ class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
 
 class TeamAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     model = Team
-    list_display = ('__unicode__', 'country', 'print_competitions')
+    list_display = ('__str__', 'country', 'print_competitions')
     list_filter = ('competitions', 'seats__seasons')
     tab_overview = (
         (None, {
@@ -144,7 +144,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         ('Races', tab_races),
     ]
     readonly_fields = ('print_copy_season',)
-    list_display = ('__unicode__', 'print_copy_season')
+    list_display = ('__str__', 'print_copy_season')
     list_filter = ('competition',)
 
     def get_season_copy(self, copy_id):
@@ -179,7 +179,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
 
 
 class RaceAdmin(CommonTabbedModelAdmin):
-    list_display = ('__unicode__', 'season', 'print_pole', 'print_winner', 'print_fastest',)
+    list_display = ('__str__', 'season', 'print_pole', 'print_winner', 'print_fastest',)
     list_filter = ('season', 'season__competition',)
 
     tab_overview = (
@@ -365,7 +365,7 @@ class RaceAdmin(CommonTabbedModelAdmin):
 
 
 class ContenderAdmin(CommonTabbedModelAdmin):
-    list_display = ('__unicode__', 'competition', 'teams_verbose', 'print_current')
+    list_display = ('__str__', 'competition', 'teams_verbose', 'print_current')
     list_filter = ('competition', 'seats__seasons',)
     tab_overview = (
         (None, {
