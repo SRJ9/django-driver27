@@ -15,6 +15,7 @@ from exclusivebooleanfield.fields import ExclusiveBooleanField
 
 @python_2_unicode_compatible
 class Driver(models.Model):
+    """ Main Driver Model. To combine with competitions (Contender) and competition/team (Seat) """
     last_name = models.CharField(max_length=50, verbose_name=_('last name'))
     first_name = models.CharField(max_length=25, verbose_name=_('first name'))
     year_of_birth = models.IntegerField(verbose_name=_('year of birth'))
@@ -39,6 +40,7 @@ class Driver(models.Model):
 
 @python_2_unicode_compatible
 class Competition(models.Model):
+    """ Competition model. Season, races, results... are grouped by competition """
     name = models.CharField(max_length=30, verbose_name=_('competition'), unique=True)
     full_name = models.CharField(max_length=100, unique=True, verbose_name=_('full name'))
     country = CountryField(null=True, blank=True, default=None, verbose_name=_('country'))
@@ -59,6 +61,9 @@ class Competition(models.Model):
 
 @python_2_unicode_compatible
 class Contender(models.Model):
+    """ Contender are used to ranks or individual stats"""
+    " Contender only can be related with teams of same competition "
+    " If driver is related with same team in different competition, it is necessary to create new contender "
     driver = models.ForeignKey(Driver, related_name='career', verbose_name=_('driver'))
     competition = models.ForeignKey('Competition', related_name='contenders', verbose_name=_('competition'))
     teams = models.ManyToManyField('Team', through='Seat', related_name='contenders',
@@ -88,6 +93,7 @@ class Contender(models.Model):
 
 @python_2_unicode_compatible
 class Team(models.Model):
+    """ Team model, unique if is the same in different competition """
     name = models.CharField(max_length=75, verbose_name=_('team'), unique=True)
     full_name = models.CharField(max_length=200, unique=True, verbose_name=_('full name'))
     competitions = models.ManyToManyField('Competition', related_name='teams', verbose_name=_('competitions'))
@@ -104,6 +110,9 @@ class Team(models.Model):
 
 @python_2_unicode_compatible
 class Seat(models.Model):
+    """ Seat is contender/team relation """
+    " If a same contender drives to two teams in same season/competition, he will have many seats as driven teams "
+    " e.g. Max Verstappen in 2016 (Seat 1: Toro Rosso, Seat 2: Red Bull) "
     team = models.ForeignKey('Team', related_name='seats', verbose_name=_('team'))
     contender = models.ForeignKey('Contender', related_name='seats', verbose_name=_('contender'))
     current = ExclusiveBooleanField(on='contender', default=False, verbose_name=_('current team'))
@@ -132,6 +141,7 @@ class Seat(models.Model):
 
 @python_2_unicode_compatible
 class Circuit(models.Model):
+    """ Circuit model. It can be in any competition, grand_prix or season """
     name = models.CharField(max_length=30, verbose_name=_('circuit'), unique=True)
     city = models.CharField(max_length=100, null=True, blank=True, verbose_name=_('city'))
     country = CountryField(verbose_name=_('country'))
@@ -150,6 +160,8 @@ class Circuit(models.Model):
 
 @python_2_unicode_compatible
 class GrandPrix(models.Model):
+    """ Grand Prix model """
+    " default_circuit will be in future the default choice in circuit selector "
     name = models.CharField(max_length=30, verbose_name=_('grand prix'), unique=True)
     country = CountryField(null=True, blank=True, default=None, verbose_name=_('country'))
     first_held = models.IntegerField(null=True, blank=True, verbose_name=_('first held'))
@@ -169,6 +181,7 @@ class GrandPrix(models.Model):
 
 @python_2_unicode_compatible
 class Season(models.Model):
+    """ Season model. The main model to restrict races, results and punctuation """
     year = models.IntegerField(verbose_name=_('year'))
     competition = models.ForeignKey(Competition, related_name='seasons', verbose_name=_('competition'))
     rounds = models.IntegerField(blank=True, null=True, default=None, verbose_name=_('rounds'))
@@ -177,22 +190,27 @@ class Season(models.Model):
     punctuation = models.CharField(max_length=20, null=True, default=None, verbose_name=_('punctuation'))
 
     def get_scoring(self, code=None):
+        """ Getting the punctuation config. Chosen punctuation will be override temporarily by code kwarg """
         if not code:
             code = self.punctuation
         return get_punctuation_config(code)
 
     def pending_races(self):
+        """ Based on rounds field, return races count when race doesn't have any result """
         past_races = Race.objects.filter(season=self, results__pk__isnull=False).distinct().count()
         pending_races = (self.rounds - past_races)
         return pending_races
 
     def pending_points(self):
+        """ Return the maximum of available points taking into account the number of pending races"""
+        # @todo fastest_lap and pole points are not counted
         scoring = self.get_scoring()
         max_score_by_race = sorted(scoring['finish'], reverse=True)[0]
         pending_races = self.pending_races()
         return pending_races * max_score_by_race
 
     def has_champion(self):
+        """ If pending points is less than different between leader and runner-up, there is a champions """
         leader_points = self.leader[0] if self.leader else 0
         runner_up_points = self.runner_up[0] if self.runner_up else 0
         pending_points = self.pending_points()
@@ -200,10 +218,12 @@ class Season(models.Model):
         return leader_distance >= pending_points
 
     def contenders(self):
+        """ As season is related with seats, this method is a shorcut to get contenders """
         seats = [seat.pk for seat in self.seats.all()]
         return Contender.objects.filter(seats__pk__in=seats).distinct()
 
     def stats_rank(self, **filters):
+        """ Get driver rank based on record filter """
         contenders = self.contenders()
         rank = []
         for contender in contenders:
@@ -214,6 +234,10 @@ class Season(models.Model):
 
     @staticmethod
     def get_team_rank_method(rank_type):
+        """ Dict with distinct teams rank method, depending of rank_type param """
+        " STATS: Count 1 by each time that driver get record "
+        " RACES: Count 1 by each race that any driver get record "
+        " DOUBLES: Count 1 by each race that at least two drivers get record "
         rank_dict = {
             'STATS': 'team_stats_rank',
             'RACES': 'team_races_rank',
@@ -223,10 +247,12 @@ class Season(models.Model):
         return rank_dict.get(rank_type)
 
     def get_team_rank(self, rank_type, **filters):
+        """ Return team rank calling returned method by get_team_rank_method """
         rank_method = self.get_team_rank_method(rank_type)
         return getattr(self, rank_method)(**filters) if rank_method else None
 
     def team_rank(self, total_method, **filters):
+        """ Collect the records of each team calling the method of TeamSeason passed by total_method param """
         rank = []
         teams = self.teams.all()
         for team in teams:
@@ -246,6 +272,7 @@ class Season(models.Model):
         return self.team_rank('get_doubles_races', **filters)
 
     def points_rank(self, scoring_code=None):
+        """ Points driver rank. Scoring can be override by scoring_code param """
         contenders = self.contenders()
         scoring = self.get_scoring(scoring_code)
         rank = []
@@ -257,6 +284,9 @@ class Season(models.Model):
         return rank
 
     def olympic_rank(self):
+        """ The driver
+        with superior race results (based on descending order, from number of
+        wins to numbers of second-places down) will gain precedence. """
         contenders = self.contenders()
         rank = []
         for contender in contenders:
@@ -271,6 +301,7 @@ class Season(models.Model):
         return rank
 
     def team_points_rank(self):
+        """ Same that points_rank by count both team drivers """
         teams = self.teams.all()
         rank = []
         for team in teams:
@@ -280,6 +311,7 @@ class Season(models.Model):
         return rank
 
     def get_leader(self, team=False):
+        """ Get driver leader or team leader """
         if team:
             rank = self.team_points_rank()
         else:
@@ -288,15 +320,18 @@ class Season(models.Model):
 
     @property
     def leader(self):
+        """ get_leader(driver) property """
         return self.get_leader()
 
     @property
     def runner_up(self):
+        """ Get the runner_up (driver) """
         rank = self.points_rank()
         return rank[1] if len(rank) > 1 else None
 
     @property
     def team_leader(self):
+        """ get_leader(team) property """
         return self.get_leader(team=True)
 
     def __str__(self):
@@ -310,7 +345,7 @@ class Season(models.Model):
 
 
 class SeatsSeason(Season):
-    # aux proxy class to use in Admin for Season/Seat relation from Season
+    """ Aux proxy model to use in Admin for Season/Seat relation from Season """
     class Meta:
         proxy = True
         verbose_name = _('Seats by season')
@@ -319,6 +354,7 @@ class SeatsSeason(Season):
 
 @python_2_unicode_compatible
 class Race(models.Model):
+    """ Race model. It can altered season punctuation (double or half) only in this race"""
     ALTER_PUNCTUATION = (
         ('double', _('Double')),
         ('half', _('Half'))
@@ -334,6 +370,7 @@ class Race(models.Model):
                                          default=None, max_length=6, verbose_name=_('alter punctuation'))
 
     def _grandprix_exception(self):
+        """ Grand Prix must be related with season competition """
         competition = self.season.competition
         if competition and self.grand_prix and competition not in self.grand_prix.competitions.all():
             return True
@@ -341,6 +378,7 @@ class Race(models.Model):
             return False
 
     def clean(self, *args, **kwargs):
+        """ Validate round and grand_prix field """
         errors = {}
         season = getattr(self, 'season', None)
         if season:
@@ -354,19 +392,23 @@ class Race(models.Model):
         super(Race, self).clean()
 
     def get_result_seat(self, **kwargs):
+        """ Return the first result that match with filter """
         results = self.results.filter(**kwargs)
         return results.first().seat if results.count() else None
 
     @property
     def pole(self):
+        """ get_result_seat(pole) """
         return self.get_result_seat(qualifying=1)
 
     @property
     def winner(self):
+        """ get_result_seat(winner) """
         return self.get_result_seat(finish=1)
 
     @property
     def fastest(self):
+        """ get_result_seat(fastest) """
         return self.get_result_seat(fastest_lap=True)
 
     def __str__(self):
@@ -383,11 +425,13 @@ class Race(models.Model):
 
 
 class SeatSeason(models.Model):
+    """ Model created to validate restriction between both models """
     seat = models.ForeignKey('Seat', related_name='seasons_seat')
     season = models.ForeignKey('Season', related_name='seats_season')
 
     @staticmethod
     def get_seat_season_errors(seat, season):
+        """ Check if seat is valid in current season competition """
         seat_competition = seat.contender.competition
         season_competition = season.competition
         errors = []
@@ -400,6 +444,8 @@ class SeatSeason(models.Model):
 
     @staticmethod
     def get_seat_team_season_error(team, season):
+        """ Check if team is valid in current season """
+        " Team must be related with season before of save Seat/Season rel "
         errors = []
         if season.pk:
             season_teams = [season_team.pk for season_team in season.teams.all()]
@@ -410,6 +456,7 @@ class SeatSeason(models.Model):
         return errors
 
     def clean(self, *args, **kwargs):
+        """ Check validation """
         seat = self.seat
         season = self.season
         errors = []
@@ -420,6 +467,7 @@ class SeatSeason(models.Model):
         super(SeatSeason, self).clean()
 
     def save(self, *args, **kwargs):
+        """ Force to validate before of save """
         self.clean()
         super(SeatSeason, self).save(*args, **kwargs)
 
@@ -429,7 +477,7 @@ class SeatSeason(models.Model):
 
 
 def seat_seasons(sender, instance, action, pk_set, **kwargs):  #noqa
-    # """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition"""
+    """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition """
     if action == 'pre_add':
         errors = []
         for pk in list(pk_set):
@@ -444,12 +492,14 @@ m2m_changed.connect(seat_seasons, sender=SeatSeason)
 
 @python_2_unicode_compatible
 class TeamSeason(models.Model):
+    """ TeamSeason model, only for validation although it is saved in DB"""
     season = models.ForeignKey('Season', related_name='teams_season', verbose_name=_('season'))
     team = models.ForeignKey('Team', related_name='seasons_team', verbose_name=_('team'))
     sponsor_name = models.CharField(max_length=75, null=True, blank=True, default=None,
                                     verbose_name=_('sponsor name'))
 
     def clean(self, *args, **kwargs):
+        """ Check if team participate in competition """
         if hasattr(self, 'team') and hasattr(self, 'season'):
             team = self.team
             team_competitions = [competition.pk for competition in team.competitions.all()]
@@ -462,6 +512,7 @@ class TeamSeason(models.Model):
 
     @staticmethod
     def delete_seat_exception(team, season):
+        """ Force IntegrityError when delete a team with seats in season """
         if TeamSeason.check_delete_seat_restriction(team=team, season=season):
             raise IntegrityError('You cannot delete a team with seats in this season.'
                                  'Delete seats before')
@@ -473,6 +524,7 @@ class TeamSeason(models.Model):
         # return {'team': _('Seats with %(team)s exists in this season. Delete seats before.' % {'team': team})}
 
     def get_results(self, limit_races=None):
+        """ Return all results of team in season """
         results = Result.objects.filter(race__season=self.season, seat__team=self.team)
         if isinstance(limit_races, int):
             results = results.filter(race__round__lte=limit_races)
@@ -480,31 +532,39 @@ class TeamSeason(models.Model):
         return results
 
     def get_races(self, **filters):
+        """ Return only race id of team in season """
         results = self.get_results().filter(**filters)\
             .values('race').annotate(count_race=models.Count('race'))\
             .order_by()
         return results
 
     def get_points(self):
+        """ Get points. Exclude wildcards """
         results = self.get_results().exclude(wildcard=True).order_by('race__round')
         points_list = [result.points for result in results.all() if result.points is not None]
         return sum(points_list)
 
     def get_filtered_results(self, **filters):
+        """ Filter results """
         results = self.get_results()
         return results.filter(**filters)
 
     def get_filtered_races(self, **filters):
+        """ Filter races"""
+        # @todo Check if filter in return line is necessary
         races = self.get_races()
         return races.filter(**filters)
 
     def get_total_races(self, **filters):
+        """ Only count 1 by race with any driver in filter """
         return self.get_filtered_races(**filters).count()
 
     def get_doubles_races(self, **filters):
+        """ Only count 1 by race with at least two drivers in filter """
         return self.get_filtered_races(**filters).filter(count_race__gte=2).count()
 
     def get_total_stats(self, **filters):  # noqa
+        """ Count 1 by each result """
         return self.get_filtered_results(**filters).count()
 
     def __str__(self):
@@ -521,6 +581,7 @@ class TeamSeason(models.Model):
 
 @python_2_unicode_compatible
 class Result(models.Model):
+    """ Result model """
     race = models.ForeignKey(Race, related_name='results', verbose_name=_('race'))
     seat = models.ForeignKey(Seat, related_name='results', verbose_name=_('seat'))
     qualifying = models.IntegerField(blank=True, null=True, default=None, verbose_name=_('qualifying'))
@@ -549,12 +610,14 @@ class Result(models.Model):
         return self.seat.team
 
     def _get_fastest_lap_points(self, scoring):
+        """ Return fastest_lap point if fastest lap is scoring and driver get fastest lap """
         if 'fastest_lap' in scoring and self.fastest_lap:
             return scoring['fastest_lap']
         else:
             return 0
 
     def _get_race_points(self, scoring):
+        """ Return race points with factor depending of alter_punctuation field"""
         race = self.race
         points_factor = {'double': 2, 'half': 0.5}
         factor = points_factor[race.alter_punctuation] if race.alter_punctuation in points_factor else 1
@@ -566,6 +629,7 @@ class Result(models.Model):
         return 0
 
     def points_calculator(self, scoring):
+        """ Return points. Scoring can be the season scoring or scoring param"""
         points = 0
         if not scoring:
             scoring = self.race.season.get_scoring()
@@ -575,6 +639,7 @@ class Result(models.Model):
 
     @property
     def points(self):
+        """ Return points based on season scoring """
         scoring = self.race.season.get_scoring()
         return self.points_calculator(scoring)
 
@@ -594,6 +659,7 @@ class Result(models.Model):
 
 
 class ContenderSeason(object):
+    """ ContenderSeason is not a model. Only for validation and ranks"""
     contender = None
     season = None
     teams = None
@@ -610,6 +676,7 @@ class ContenderSeason(object):
         self.teams_verbose = ', '.join([team.name for team in self.teams])
 
     def get_results(self, limit_races=None):
+        """ Return results. Can be limited."""
         results = Result.objects.filter(race__season=self.season, seat__contender=self.contender)
         if isinstance(limit_races, int):
             results = results.filter(race__round__lte=limit_races)
@@ -617,13 +684,16 @@ class ContenderSeason(object):
         return results
 
     def get_filtered_results(self, **filters):
+        """ Apply filters to contender-season results """
         results = self.get_results()
         return results.filter(**filters)
 
     def get_stats(self, **filters):
+        """ Count 1 by each result """
         return self.get_filtered_results(**filters).count()
 
     def get_points(self, limit_races=None, scoring=None):
+        """ Get points. Can be limited. Scoring will be overwrite temporarily"""
         results = self.get_results(limit_races=limit_races)
         points_list = []
         for result in results.all():
@@ -633,6 +703,7 @@ class ContenderSeason(object):
         return sum(points_list)
         
     def get_positions_list(self, limit_races=None):
+        """ Return a list with the count of each 20 first positions """
         results = self.get_results(limit_races=limit_races)
         last_position = 20
         positions = []
@@ -642,6 +713,8 @@ class ContenderSeason(object):
         return positions
 
     def get_positions_str(self, position_list=None, limit_races=None):
+        """ Return a str with position_list to order """
+        " Each list item will be filled to zeros until get three digits e.g. 1 => 001, 12 => 012 "
         if not position_list:
             position_list = self.get_positions_list(limit_races=limit_races)
         positions_str = ''.join([str(x).zfill(3) for x in position_list])
@@ -650,6 +723,7 @@ class ContenderSeason(object):
 
 @receiver(pre_save)
 def pre_save_handler(sender, instance, *args, **kwargs):
+    """ Force full_clean in each model to validation """
     model_list = (Driver, Team, Competition, Contender, Seat, Circuit,
                   GrandPrix, Race, Season, Result, SeatSeason, TeamSeason)
     if not isinstance(instance, model_list):
@@ -659,6 +733,7 @@ def pre_save_handler(sender, instance, *args, **kwargs):
 
 @receiver(pre_delete, sender=TeamSeason)
 def pre_delete_team_season(sender, instance, *args, **kwargs):
+    """ Force exception before of delete team in season when exists dependent seats """
     team = instance.team
     season = instance.season
     TeamSeason.delete_seat_exception(team=team, season=season)
