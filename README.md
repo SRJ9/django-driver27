@@ -33,7 +33,7 @@ DR27\_CONFIG
 Now, you can add more punctuation and record configs adding DR27\_CONFIG
 in your settings.py. Follow this example :
 
-    DR27_DEMO = {
+    DR27_CONFIG = {
         'RECORDS': {
             'PODIUM-GATES': {'label': _('At the gates of podium'), 'filter': {'finish__exact': 4}},
             ...
@@ -56,16 +56,15 @@ Versions
 -   0.19 (Ayrton Senna's Toleman's car number '84 - Debut)
 -   0.27-VIL (Gilles Villeneuve 27)
 
-0.19.1.1
-========
+0.19.2
+======
 
--   Team records by season (total, races with at least one and races
-    with doubles)
+-   Allow different Team ranks (total, races with at least one and races with double coincidence)
 
 0.19.1
 ======
 
--   Records by season
+-   Ranks by season
 
 0.19
 ====
