@@ -17,6 +17,7 @@ Modify your settings.py
     ...
         'django_countries',
         'tabbed_admin',
+        'rest_framework', # since v0.19.3
         'driver27'
     ]
 

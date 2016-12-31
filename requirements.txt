@@ -4,3 +4,4 @@ django-tabbed-admin
 python-slugify
 tox
 django-exclusivebooleanfield
+djangorestframework

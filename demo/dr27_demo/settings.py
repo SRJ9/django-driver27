@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_countries',
     'tabbed_admin',
+    'rest_framework',
     'driver27'
 ]
 
