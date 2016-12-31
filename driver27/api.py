@@ -1,20 +1,40 @@
-from .models import Competition, Race, Season
+from .models import Competition, Race, Result, Season
 from rest_framework import routers, serializers, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from django_countries.serializer_fields import CountryField
 
 
+class ResultSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Result
+        fields = ('race', 'seat_id', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
+                  'retired', 'comment')
+
+
+# ViewSets define the view behavior.
+class ResultViewSet(viewsets.ModelViewSet):
+    queryset = Result.objects.all()
+    serializer_class = ResultSerializer
+
+
 class RaceSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Race
-        fields = ('season', 'round', 'round', 'date', 'alter_punctuation')
+        fields = ('season', 'round', 'round', 'date', 'alter_punctuation',)
 
 
 # ViewSets define the view behavior.
 class RaceViewSet(viewsets.ModelViewSet):
     queryset = Race.objects.all()
     serializer_class = RaceSerializer
+
+    @detail_route(methods=['get'])
+    def results(self, request, pk=None):
+        race = self.get_object()
+        self.queryset = race.results.all()
+        serializer = ResultSerializer(instance=self.queryset, many=True, context={'request': request})
+        return Response(serializer.data)
 
 
 class SeasonSerializer(serializers.HyperlinkedModelSerializer):
@@ -55,4 +75,5 @@ class CompetitionViewSet(viewsets.ModelViewSet):
 router = routers.DefaultRouter()
 router.register(r'competitions', CompetitionViewSet)
 router.register(r'races', RaceViewSet)
+router.register(r'results', ResultViewSet)
 router.register(r'seasons', SeasonViewSet)
