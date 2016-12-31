@@ -57,6 +57,10 @@ Versions
 -   0.19 (Ayrton Senna's Toleman's car number '84 - Debut)
 -   0.27-VIL (Gilles Villeneuve 27)
 
+0.19.3
+======
+-   Incompatible with Django 1.7 (adding rest_framework)
+
 0.19.2
 ======
 
