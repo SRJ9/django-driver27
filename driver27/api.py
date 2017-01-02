@@ -19,18 +19,6 @@ class DriverViewSet(viewsets.ModelViewSet):
     serializer_class = DriverSerializer
 
 
-class ContenderSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Contender
-        fields = ('url', 'driver', 'competition', 'teams')
-
-
-# ViewSets define the view behavior.
-class ContenderViewSet(viewsets.ModelViewSet):
-    queryset = Contender.objects.all()
-    serializer_class = ContenderSerializer
-
-
 class TeamSerializer(serializers.HyperlinkedModelSerializer):
     country = CountryField()
 
@@ -45,7 +33,25 @@ class TeamViewSet(viewsets.ModelViewSet):
     serializer_class = TeamSerializer
 
 
+class ContenderSerializer(serializers.HyperlinkedModelSerializer):
+    driver = DriverSerializer(many=False)
+    teams = TeamSerializer(many=True)
+
+    class Meta:
+        model = Contender
+        fields = ('url', 'driver', 'competition', 'teams')
+
+
+# ViewSets define the view behavior.
+class ContenderViewSet(viewsets.ModelViewSet):
+    queryset = Contender.objects.all()
+    serializer_class = ContenderSerializer
+
+
 class SeatSerializer(serializers.HyperlinkedModelSerializer):
+    team = TeamSerializer(many=False)
+    contender = ContenderSerializer(many=False)
+
     class Meta:
         model = Seat
         fields = ('url', 'team', 'contender', 'current', 'seasons')
@@ -58,6 +64,8 @@ class SeatViewSet(viewsets.ModelViewSet):
 
 
 class ResultSerializer(serializers.HyperlinkedModelSerializer):
+    seat = SeatSerializer(many=False)
+
     class Meta:
         model = Result
         fields = ('url', 'race', 'seat', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
@@ -71,9 +79,12 @@ class ResultViewSet(viewsets.ModelViewSet):
 
 
 class RaceSerializer(serializers.HyperlinkedModelSerializer):
+
+    results = ResultSerializer(many=True)
+
     class Meta:
         model = Race
-        fields = ('url', 'season', 'round',  'date', 'alter_punctuation',)
+        fields = ('url', 'season', 'round',  'date', 'alter_punctuation', 'results')
 
 
 # ViewSets define the view behavior.
