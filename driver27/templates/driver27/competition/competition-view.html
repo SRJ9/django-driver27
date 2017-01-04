@@ -4,7 +4,7 @@
 {% block dr27_menu %}
     {{ block.super }}
         <li class="nav-item">
-        <a class="nav-link" href="{% url 'competition-view' competition.slug %}">{{ competition }}</a>
+        <a class="nav-link" href="{% url 'dr27-competition-view' competition.slug %}">{{ competition }}</a>
     </li>
 {% endblock %}
 
@@ -19,7 +19,7 @@
         {% for season in competition.seasons.all %}
             <tr>
             <td>
-                <a href="{% url 'season-view' competition.slug season.year %}">
+                <a href="{% url 'dr27-season-view' competition.slug season.year %}">
                     {{ season }}
                 </a>
             </td>

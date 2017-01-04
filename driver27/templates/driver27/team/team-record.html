@@ -18,19 +18,19 @@
             {% endif %}
 
             <optgroup label="{% trans 'Total' %}">
-                {% with rank_group='STATS' record_url='season-team-record' %}
+                {% with rank_group='STATS' record_url='dr27-season-team-record' %}
                     {% include 'driver27/team/team-record-optgroup.html' %}
                 {% endwith %}
             </optgroup>
 
             <optgroup label="{% trans 'Races with at least one' %}">
-                {% with rank_group='RACES' record_url='season-team-record-races' %}
+                {% with rank_group='RACES' record_url='dr27-season-team-record-races' %}
                     {% include 'driver27/team/team-record-optgroup.html' %}
                 {% endwith %}
             </optgroup>
 
             <optgroup label="{% trans 'Races with doubles' %}">
-                {% with rank_group='DOUBLES' record_url='season-team-record-doubles' record_codes=doubles_record_codes %}
+                {% with rank_group='DOUBLES' record_url='dr27-season-team-record-doubles' record_codes=doubles_record_codes %}
                     {% include 'driver27/team/team-record-optgroup.html' %}
                 {% endwith %}
             </optgroup>

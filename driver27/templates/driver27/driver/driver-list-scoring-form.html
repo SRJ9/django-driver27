@@ -1,6 +1,6 @@
     {% if scoring_list %}
         <div class="change_punctuation">
-            <form method="POST" action="{% url 'season-driver' season.competition.slug season.year %}">
+            <form method="POST" action="{% url 'dr27-season-driver' season.competition.slug season.year %}">
             {% csrf_token %}
                 <div class="form-group">
                     <select name="scoring" class="form-control input-sm" >

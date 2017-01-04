@@ -16,7 +16,7 @@
                 <option value="">---</option>
             {% endif %}
             {% for record_label, record_code in record_codes %}
-            <option value="{% url 'season-driver-record' season.competition.slug season.year record_code %}"
+            <option value="{% url 'dr27-season-driver-record' season.competition.slug season.year record_code %}"
             {% if record_code == record %}selected{% endif %}
             >{{ record_label }}</option>
             {% endfor %}

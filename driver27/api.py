@@ -12,18 +12,12 @@ class DriverSerializer(serializers.HyperlinkedModelSerializer):
         model = Driver
         fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country', 'competitions')
 
-class NestedDriverSerializer(serializers.HyperlinkedModelSerializer):
-    country = CountryField()
+
+class NestedDriverSerializer(DriverSerializer):
 
     class Meta:
         model = Driver
         fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country')
-
-
-# ViewSets define the view behavior.
-class DriverViewSet(viewsets.ModelViewSet):
-    queryset = Driver.objects.all()
-    serializer_class = DriverSerializer
 
 
 class TeamSerializer(serializers.HyperlinkedModelSerializer):
@@ -33,18 +27,12 @@ class TeamSerializer(serializers.HyperlinkedModelSerializer):
         model = Team
         fields = ('url', 'name', 'full_name', 'competitions', 'country')
 
-class NestedTeamSerializer(serializers.HyperlinkedModelSerializer):
-    country = CountryField()
+
+class NestedTeamSerializer(TeamSerializer):
 
     class Meta:
         model = Team
         fields = ('url', 'name', 'full_name', 'country')
-
-
-# ViewSets define the view behavior.
-class TeamViewSet(viewsets.ModelViewSet):
-    queryset = Team.objects.all()
-    serializer_class = TeamSerializer
 
 
 class ContenderSerializer(serializers.HyperlinkedModelSerializer):
@@ -55,19 +43,12 @@ class ContenderSerializer(serializers.HyperlinkedModelSerializer):
         model = Contender
         fields = ('url', 'driver', 'competition', 'teams')
 
-class NestedContenderSerializer(serializers.HyperlinkedModelSerializer):
-    driver = NestedDriverSerializer(many=False)
-    #teams = TeamSerializer(many=True)
+
+class NestedContenderSerializer(ContenderSerializer):
 
     class Meta:
         model = Contender
         fields = ('url', 'driver')
-
-
-# ViewSets define the view behavior.
-class ContenderViewSet(viewsets.ModelViewSet):
-    queryset = Contender.objects.all()
-    serializer_class = ContenderSerializer
 
 
 class SeatSerializer(serializers.HyperlinkedModelSerializer):
@@ -78,16 +59,11 @@ class SeatSerializer(serializers.HyperlinkedModelSerializer):
         model = Seat
         fields = ('url', 'team', 'contender', 'current', 'seasons')
 
+
 class NestedSeatSerializer(SeatSerializer):
     class Meta:
         model = Seat
         fields = ('url', 'team', 'contender', 'current')
-
-
-# ViewSets define the view behavior.
-class SeatViewSet(viewsets.ModelViewSet):
-    queryset = Seat.objects.all()
-    serializer_class = SeatSerializer
 
 
 class ResultSerializer(serializers.HyperlinkedModelSerializer):
@@ -98,19 +74,13 @@ class ResultSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'race', 'seat', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
                   'retired', 'comment')
 
-class NestedResultSerializer(serializers.HyperlinkedModelSerializer):
-    seat = NestedSeatSerializer(many=False)
+
+class NestedResultSerializer(ResultSerializer):
 
     class Meta:
         model = Result
         fields = ('url', 'seat', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
                   'retired', 'comment')
-
-
-# ViewSets define the view behavior.
-class ResultViewSet(viewsets.ModelViewSet):
-    queryset = Result.objects.all()
-    serializer_class = ResultSerializer
 
 
 class CompetitionSerializer(serializers.HyperlinkedModelSerializer):
@@ -122,7 +92,14 @@ class CompetitionSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'name', 'full_name', 'country', 'slug')
 
 
-class NestedSeasonSerializer(serializers.HyperlinkedModelSerializer):
+class SeasonSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = Season
+        fields = ('url', 'year', 'competition', 'rounds', 'punctuation', 'races')
+
+
+class NestedSeasonSerializer(SeasonSerializer):
     competition = CompetitionSerializer(many=False)
     
     class Meta:
@@ -153,12 +130,6 @@ class RaceViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class SeasonSerializer(serializers.HyperlinkedModelSerializer):
-
-    class Meta:
-        model = Season
-        fields = ('url', 'year', 'competition', 'rounds', 'punctuation', 'races')
-
 # ViewSets define the view behavior.
 class SeasonViewSet(viewsets.ModelViewSet):
     queryset = Season.objects.all()
@@ -176,6 +147,36 @@ class SeasonViewSet(viewsets.ModelViewSet):
 class CompetitionViewSet(viewsets.ModelViewSet):
     queryset = Competition.objects.all()
     serializer_class = CompetitionSerializer
+
+
+# ViewSets define the view behavior.
+class DriverViewSet(viewsets.ModelViewSet):
+    queryset = Driver.objects.all()
+    serializer_class = DriverSerializer
+
+
+# ViewSets define the view behavior.
+class TeamViewSet(viewsets.ModelViewSet):
+    queryset = Team.objects.all()
+    serializer_class = TeamSerializer
+
+
+# ViewSets define the view behavior.
+class ContenderViewSet(viewsets.ModelViewSet):
+    queryset = Contender.objects.all()
+    serializer_class = ContenderSerializer
+
+
+# ViewSets define the view behavior.
+class SeatViewSet(viewsets.ModelViewSet):
+    queryset = Seat.objects.all()
+    serializer_class = SeatSerializer
+
+
+# ViewSets define the view behavior.
+class ResultViewSet(viewsets.ModelViewSet):
+    queryset = Result.objects.all()
+    serializer_class = ResultSerializer
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
