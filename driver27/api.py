@@ -12,6 +12,13 @@ class DriverSerializer(serializers.HyperlinkedModelSerializer):
         model = Driver
         fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country', 'competitions')
 
+class NestedDriverSerializer(serializers.HyperlinkedModelSerializer):
+    country = CountryField()
+
+    class Meta:
+        model = Driver
+        fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country')
+
 
 # ViewSets define the view behavior.
 class DriverViewSet(viewsets.ModelViewSet):
@@ -25,6 +32,13 @@ class TeamSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Team
         fields = ('url', 'name', 'full_name', 'competitions', 'country')
+
+class NestedTeamSerializer(serializers.HyperlinkedModelSerializer):
+    country = CountryField()
+
+    class Meta:
+        model = Team
+        fields = ('url', 'name', 'full_name', 'country')
 
 
 # ViewSets define the view behavior.
@@ -41,6 +55,14 @@ class ContenderSerializer(serializers.HyperlinkedModelSerializer):
         model = Contender
         fields = ('url', 'driver', 'competition', 'teams')
 
+class NestedContenderSerializer(serializers.HyperlinkedModelSerializer):
+    driver = NestedDriverSerializer(many=False)
+    #teams = TeamSerializer(many=True)
+
+    class Meta:
+        model = Contender
+        fields = ('url', 'driver')
+
 
 # ViewSets define the view behavior.
 class ContenderViewSet(viewsets.ModelViewSet):
@@ -49,12 +71,17 @@ class ContenderViewSet(viewsets.ModelViewSet):
 
 
 class SeatSerializer(serializers.HyperlinkedModelSerializer):
-    team = TeamSerializer(many=False)
-    contender = ContenderSerializer(many=False)
+    team = NestedTeamSerializer(many=False)
+    contender = NestedContenderSerializer(many=False)
 
     class Meta:
         model = Seat
         fields = ('url', 'team', 'contender', 'current', 'seasons')
+
+class NestedSeatSerializer(SeatSerializer):
+    class Meta:
+        model = Seat
+        fields = ('url', 'team', 'contender', 'current')
 
 
 # ViewSets define the view behavior.
@@ -71,6 +98,14 @@ class ResultSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'race', 'seat', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
                   'retired', 'comment')
 
+class NestedResultSerializer(serializers.HyperlinkedModelSerializer):
+    seat = NestedSeatSerializer(many=False)
+
+    class Meta:
+        model = Result
+        fields = ('url', 'seat', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
+                  'retired', 'comment')
+
 
 # ViewSets define the view behavior.
 class ResultViewSet(viewsets.ModelViewSet):
@@ -78,9 +113,27 @@ class ResultViewSet(viewsets.ModelViewSet):
     serializer_class = ResultSerializer
 
 
+class CompetitionSerializer(serializers.HyperlinkedModelSerializer):
+    # https://github.com/SmileyChris/django-countries/issues/106
+    country = CountryField()
+
+    class Meta:
+        model = Competition
+        fields = ('url', 'name', 'full_name', 'country', 'slug')
+
+
+class NestedSeasonSerializer(serializers.HyperlinkedModelSerializer):
+    competition = CompetitionSerializer(many=False)
+    
+    class Meta:
+        model = Season
+        fields = ('url', 'year', 'competition', 'rounds', 'punctuation')
+
+
 class RaceSerializer(serializers.HyperlinkedModelSerializer):
 
-    results = ResultSerializer(many=True)
+    results = NestedResultSerializer(many=True)
+    season = NestedSeasonSerializer(many=False)
 
     class Meta:
         model = Race
@@ -106,7 +159,6 @@ class SeasonSerializer(serializers.HyperlinkedModelSerializer):
         model = Season
         fields = ('url', 'year', 'competition', 'rounds', 'punctuation', 'races')
 
-
 # ViewSets define the view behavior.
 class SeasonViewSet(viewsets.ModelViewSet):
     queryset = Season.objects.all()
@@ -118,15 +170,6 @@ class SeasonViewSet(viewsets.ModelViewSet):
         self.queryset = season.races.all()
         serializer = RaceSerializer(instance=self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
-
-
-class CompetitionSerializer(serializers.HyperlinkedModelSerializer):
-    # https://github.com/SmileyChris/django-countries/issues/106
-    country = CountryField()
-
-    class Meta:
-        model = Competition
-        fields = ('url', 'name', 'full_name', 'country', 'slug')
 
 
 # ViewSets define the view behavior.
