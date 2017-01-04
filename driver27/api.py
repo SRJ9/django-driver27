@@ -45,6 +45,7 @@ class ContenderSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class NestedContenderSerializer(ContenderSerializer):
+    driver = NestedDriverSerializer(many=False)
 
     class Meta:
         model = Contender
@@ -109,12 +110,12 @@ class NestedSeasonSerializer(SeasonSerializer):
 
 class RaceSerializer(serializers.HyperlinkedModelSerializer):
 
-    results = NestedResultSerializer(many=True)
+    # results = NestedResultSerializer(many=True)
     season = NestedSeasonSerializer(many=False)
 
     class Meta:
         model = Race
-        fields = ('url', 'season', 'round',  'date', 'alter_punctuation', 'results')
+        fields = ('url', 'season', 'round',  'date', 'alter_punctuation')
 
 
 # ViewSets define the view behavior.
@@ -140,6 +141,13 @@ class SeasonViewSet(viewsets.ModelViewSet):
         season = self.get_object()
         self.queryset = season.races.all()
         serializer = RaceSerializer(instance=self.queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @detail_route(methods=['get'])
+    def seats(self, request, pk=None):
+        season = self.get_object()
+        self.queryset = season.seats.all()
+        serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
 
