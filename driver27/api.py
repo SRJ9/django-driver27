@@ -5,6 +5,15 @@ from rest_framework.response import Response
 from django_countries.serializer_fields import CountryField
 
 
+class CompetitionSerializer(serializers.HyperlinkedModelSerializer):
+    # https://github.com/SmileyChris/django-countries/issues/106
+    country = CountryField()
+
+    class Meta:
+        model = Competition
+        fields = ('url', 'name', 'full_name', 'country', 'slug')
+
+
 class DriverSerializer(serializers.HyperlinkedModelSerializer):
     country = CountryField()
 
@@ -36,8 +45,9 @@ class NestedTeamSerializer(TeamSerializer):
 
 
 class ContenderSerializer(serializers.HyperlinkedModelSerializer):
-    driver = DriverSerializer(many=False)
-    teams = TeamSerializer(many=True)
+    driver = NestedDriverSerializer(many=False)
+    teams = NestedTeamSerializer(many=True)
+    competition = CompetitionSerializer(many=False)
 
     class Meta:
         model = Contender
@@ -82,15 +92,6 @@ class NestedResultSerializer(ResultSerializer):
         model = Result
         fields = ('url', 'seat', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
                   'retired', 'comment')
-
-
-class CompetitionSerializer(serializers.HyperlinkedModelSerializer):
-    # https://github.com/SmileyChris/django-countries/issues/106
-    country = CountryField()
-
-    class Meta:
-        model = Competition
-        fields = ('url', 'name', 'full_name', 'country', 'slug')
 
 
 class SeasonSerializer(serializers.HyperlinkedModelSerializer):
