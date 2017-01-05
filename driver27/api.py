@@ -5,13 +5,28 @@ from rest_framework.response import Response
 from django_countries.serializer_fields import CountryField
 
 
+class SeasonSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = Season
+        fields = ('url', 'year', 'competition', 'rounds', 'punctuation', 'races')
+
+
+class CompetitionSeasonSerializer(SeasonSerializer):
+
+    class Meta:
+        model = Season
+        fields = ('url', 'year', 'rounds', 'punctuation')
+
+
 class CompetitionSerializer(serializers.HyperlinkedModelSerializer):
     # https://github.com/SmileyChris/django-countries/issues/106
     country = CountryField()
+    seasons = CompetitionSeasonSerializer(many=True)
 
     class Meta:
         model = Competition
-        fields = ('url', 'name', 'full_name', 'country', 'slug')
+        fields = ('url', 'name', 'full_name', 'country', 'slug', 'seasons')
 
 
 class DriverSerializer(serializers.HyperlinkedModelSerializer):
@@ -94,11 +109,7 @@ class NestedResultSerializer(ResultSerializer):
                   'retired', 'comment')
 
 
-class SeasonSerializer(serializers.HyperlinkedModelSerializer):
 
-    class Meta:
-        model = Season
-        fields = ('url', 'year', 'competition', 'rounds', 'punctuation', 'races')
 
 
 class NestedSeasonSerializer(SeasonSerializer):
@@ -107,6 +118,9 @@ class NestedSeasonSerializer(SeasonSerializer):
     class Meta:
         model = Season
         fields = ('url', 'year', 'competition', 'rounds', 'punctuation')
+
+
+
 
 
 class RaceSerializer(serializers.HyperlinkedModelSerializer):
