@@ -1,8 +1,13 @@
 from .models import Competition, Contender, Driver, Race, Result, Season, Seat, Team
-from rest_framework import routers, serializers, viewsets
+from rest_framework import routers, serializers, viewsets, authentication, permissions
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from django_countries.serializer_fields import CountryField
+
+
+class DR27ViewSet(viewsets.ModelViewSet):
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
 
 
 class SeasonSerializer(serializers.HyperlinkedModelSerializer):
@@ -35,6 +40,7 @@ class DriverSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Driver
         fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country', 'competitions')
+        read_only_fields = ('competitions', )
 
 
 class NestedDriverSerializer(DriverSerializer):
@@ -109,18 +115,12 @@ class NestedResultSerializer(ResultSerializer):
                   'retired', 'comment')
 
 
-
-
-
 class NestedSeasonSerializer(SeasonSerializer):
     competition = CompetitionSerializer(many=False)
     
     class Meta:
         model = Season
         fields = ('url', 'year', 'competition', 'rounds', 'punctuation')
-
-
-
 
 
 class RaceSerializer(serializers.HyperlinkedModelSerializer):
@@ -134,7 +134,7 @@ class RaceSerializer(serializers.HyperlinkedModelSerializer):
 
 
 # ViewSets define the view behavior.
-class RaceViewSet(viewsets.ModelViewSet):
+class RaceViewSet(DR27ViewSet):
     queryset = Race.objects.all()
     serializer_class = RaceSerializer
 
@@ -147,7 +147,7 @@ class RaceViewSet(viewsets.ModelViewSet):
 
 
 # ViewSets define the view behavior.
-class SeasonViewSet(viewsets.ModelViewSet):
+class SeasonViewSet(DR27ViewSet):
     queryset = Season.objects.all()
     serializer_class = SeasonSerializer
 
@@ -167,37 +167,37 @@ class SeasonViewSet(viewsets.ModelViewSet):
 
 
 # ViewSets define the view behavior.
-class CompetitionViewSet(viewsets.ModelViewSet):
+class CompetitionViewSet(DR27ViewSet):
     queryset = Competition.objects.all()
     serializer_class = CompetitionSerializer
 
 
 # ViewSets define the view behavior.
-class DriverViewSet(viewsets.ModelViewSet):
+class DriverViewSet(DR27ViewSet):
     queryset = Driver.objects.all()
     serializer_class = DriverSerializer
 
 
 # ViewSets define the view behavior.
-class TeamViewSet(viewsets.ModelViewSet):
+class TeamViewSet(DR27ViewSet):
     queryset = Team.objects.all()
     serializer_class = TeamSerializer
 
 
 # ViewSets define the view behavior.
-class ContenderViewSet(viewsets.ModelViewSet):
+class ContenderViewSet(DR27ViewSet):
     queryset = Contender.objects.all()
     serializer_class = ContenderSerializer
 
 
 # ViewSets define the view behavior.
-class SeatViewSet(viewsets.ModelViewSet):
+class SeatViewSet(DR27ViewSet):
     queryset = Seat.objects.all()
     serializer_class = SeatSerializer
 
 
 # ViewSets define the view behavior.
-class ResultViewSet(viewsets.ModelViewSet):
+class ResultViewSet(DR27ViewSet):
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
 

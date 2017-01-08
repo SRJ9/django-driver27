@@ -8,8 +8,15 @@ https://docs.djangoproject.com/en/1.10/howto/deployment/wsgi/
 """
 
 import os
+import sys
 
 from django.core.wsgi import get_wsgi_application
+
+try:
+    import driver27
+except ImportError:
+    sys.path.append(os.path.abspath(os.path.join(os.path.abspath(__file__), '../../../')))
+    import driver27
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dr27_demo.settings")
 
