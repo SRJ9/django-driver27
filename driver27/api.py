@@ -10,6 +10,14 @@ class DR27ViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
 
+class SeasonCompetitionSerializer(serializers.HyperlinkedModelSerializer):
+    country = CountryField()
+
+    class Meta:
+        model = Competition
+        fields = ('url', 'name', 'full_name', 'country', 'slug')
+
+
 class SeasonSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
@@ -17,13 +25,14 @@ class SeasonSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'year', 'competition', 'rounds', 'punctuation', 'races')
 
 
+#
 class CompetitionSeasonSerializer(SeasonSerializer):
 
     class Meta:
         model = Season
         fields = ('url', 'year', 'rounds', 'punctuation')
-
-
+#
+#
 class CompetitionSerializer(serializers.HyperlinkedModelSerializer):
     # https://github.com/SmileyChris/django-countries/issues/106
     country = CountryField()
@@ -32,8 +41,8 @@ class CompetitionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Competition
         fields = ('url', 'name', 'full_name', 'country', 'slug', 'seasons')
-
-
+#
+#
 class DriverSerializer(serializers.HyperlinkedModelSerializer):
     country = CountryField()
 
@@ -42,14 +51,14 @@ class DriverSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country', 'competitions')
         read_only_fields = ('competitions', )
 
-
+#
 class NestedDriverSerializer(DriverSerializer):
 
     class Meta:
         model = Driver
         fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country')
 
-
+#
 class TeamSerializer(serializers.HyperlinkedModelSerializer):
     country = CountryField()
 
@@ -57,24 +66,27 @@ class TeamSerializer(serializers.HyperlinkedModelSerializer):
         model = Team
         fields = ('url', 'name', 'full_name', 'competitions', 'country')
 
-
+#
 class NestedTeamSerializer(TeamSerializer):
 
     class Meta:
         model = Team
         fields = ('url', 'name', 'full_name', 'country')
+#
+#
 
 
 class ContenderSerializer(serializers.HyperlinkedModelSerializer):
     driver = NestedDriverSerializer(many=False)
     teams = NestedTeamSerializer(many=True)
-    competition = CompetitionSerializer(many=False)
+    # competition = CompetitionSerializer(many=False)
 
     class Meta:
         model = Contender
         fields = ('url', 'driver', 'competition', 'teams')
 
 
+#
 class NestedContenderSerializer(ContenderSerializer):
     driver = NestedDriverSerializer(many=False)
 
@@ -90,50 +102,53 @@ class SeatSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Seat
         fields = ('url', 'team', 'contender', 'current', 'seasons')
-
-
-class NestedSeatSerializer(SeatSerializer):
-    class Meta:
-        model = Seat
-        fields = ('url', 'team', 'contender', 'current')
+#
+#
+# class NestedSeatSerializer(SeatSerializer):
+#     class Meta:
+#         model = Seat
+#         fields = ('url', 'team', 'contender', 'current')
+#
+#
 
 
 class ResultSerializer(serializers.HyperlinkedModelSerializer):
-    seat = SeatSerializer(many=False)
+    # seat = SeatSerializer(many=False, read_only=True)
 
     class Meta:
         model = Result
         fields = ('url', 'race', 'seat', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
                   'retired', 'comment')
-
-
-class NestedResultSerializer(ResultSerializer):
-
-    class Meta:
-        model = Result
-        fields = ('url', 'seat', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
-                  'retired', 'comment')
-
-
-class NestedSeasonSerializer(SeasonSerializer):
-    competition = CompetitionSerializer(many=False)
-    
-    class Meta:
-        model = Season
-        fields = ('url', 'year', 'competition', 'rounds', 'punctuation')
+#
+#
+# class NestedResultSerializer(ResultSerializer):
+#
+#     class Meta:
+#         model = Result
+#         fields = ('url', 'seat', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
+#                   'retired', 'comment')
+#
+#
+# class NestedSeasonSerializer(SeasonSerializer):
+#     competition = CompetitionSerializer(many=False)
+#
+#     class Meta:
+#         model = Season
+#         fields = ('url', 'year', 'competition', 'rounds', 'punctuation')
+#
+#
 
 
 class RaceSerializer(serializers.HyperlinkedModelSerializer):
 
-    # results = NestedResultSerializer(many=True)
-    season = NestedSeasonSerializer(many=False)
-
     class Meta:
         model = Race
         fields = ('url', 'season', 'round',  'date', 'alter_punctuation')
+#
+#
 
 
-# ViewSets define the view behavior.
+# # ViewSets define the view behavior.
 class RaceViewSet(DR27ViewSet):
     queryset = Race.objects.all()
     serializer_class = RaceSerializer
@@ -173,6 +188,18 @@ class CompetitionViewSet(DR27ViewSet):
 
 
 # ViewSets define the view behavior.
+class ResultViewSet(DR27ViewSet):
+    queryset = Result.objects.all()
+    serializer_class = ResultSerializer
+
+
+# ViewSets define the view behavior.
+class ContenderViewSet(DR27ViewSet):
+    queryset = Contender.objects.all()
+    serializer_class = ContenderSerializer
+
+
+# ViewSets define the view behavior.
 class DriverViewSet(DR27ViewSet):
     queryset = Driver.objects.all()
     serializer_class = DriverSerializer
@@ -185,21 +212,9 @@ class TeamViewSet(DR27ViewSet):
 
 
 # ViewSets define the view behavior.
-class ContenderViewSet(DR27ViewSet):
-    queryset = Contender.objects.all()
-    serializer_class = ContenderSerializer
-
-
-# ViewSets define the view behavior.
 class SeatViewSet(DR27ViewSet):
     queryset = Seat.objects.all()
     serializer_class = SeatSerializer
-
-
-# ViewSets define the view behavior.
-class ResultViewSet(DR27ViewSet):
-    queryset = Result.objects.all()
-    serializer_class = ResultSerializer
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
