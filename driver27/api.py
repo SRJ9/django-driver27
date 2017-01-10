@@ -24,6 +24,7 @@ class DR27ViewSet(viewsets.ModelViewSet):
 
 class SeasonSerializer(DR27Serializer, serializers.ModelSerializer):
     competition_details = serializers.SerializerMethodField()
+    slug = serializers.SerializerMethodField(read_only=True)
     races = serializers.HyperlinkedRelatedField(view_name='race-detail',
                                                 many=True,
                                                 read_only=True)
@@ -32,10 +33,13 @@ class SeasonSerializer(DR27Serializer, serializers.ModelSerializer):
         return CompetitionSerializer(instance=obj.competition, many=False,
                                      context=self.context, exclude_fields=['seasons', ]).data
 
+    def get_slug(self, obj):
+        return '-'.join((obj.competition.slug, str(obj.year)))
+
     class Meta:
         model = Season
-        fields = ('url', 'year', 'competition', 'competition_details', 'rounds',
-                  'punctuation', 'races')
+        fields = ('url', 'year', 'rounds', 'slug', 'punctuation', 'competition',
+                  'competition_details', 'races', )
         read_only_fields = ('competition_details', 'races',)
 
 
