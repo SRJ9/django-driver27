@@ -5,44 +5,50 @@ from rest_framework.response import Response
 from django_countries.serializer_fields import CountryField
 
 
+class DR27Serializer(object):
+    def __init__(self, *args, **kwargs):
+        self.exclude_fields = kwargs.pop('exclude_fields', None)
+        super(DR27Serializer, self).__init__(*args, **kwargs)
+
+    def get_field_names(self, declared_fields, info):
+        fields = super(DR27Serializer, self).get_field_names(declared_fields, info)
+        if getattr(self, 'exclude_fields', None):
+            fields = tuple([x for x in fields if x not in self.exclude_fields])
+        return fields
+
+
 class DR27ViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
 
-class SeasonCompetitionSerializer(serializers.HyperlinkedModelSerializer):
-    country = CountryField()
+class SeasonSerializer(DR27Serializer, serializers.ModelSerializer):
+    competition_details = serializers.SerializerMethodField()
+    races = serializers.HyperlinkedRelatedField(view_name='race-detail',
+                                                many=True,
+                                                read_only=True)
 
-    class Meta:
-        model = Competition
-        fields = ('url', 'name', 'full_name', 'country', 'slug')
-
-
-class SeasonSerializer(serializers.HyperlinkedModelSerializer):
-
-    class Meta:
-        model = Season
-        fields = ('url', 'year', 'competition', 'rounds', 'punctuation', 'races')
-
-
-#
-class CompetitionSeasonSerializer(SeasonSerializer):
+    def get_competition_details(self, obj):
+        return CompetitionSerializer(instance=obj.competition, many=False,
+                                     context=self.context, exclude_fields=['seasons', ]).data
 
     class Meta:
         model = Season
-        fields = ('url', 'year', 'rounds', 'punctuation')
-#
-#
-class CompetitionSerializer(serializers.HyperlinkedModelSerializer):
+        fields = ('url', 'year', 'competition', 'competition_details', 'rounds',
+                  'punctuation', 'races')
+        read_only_fields = ('competition_details', 'races',)
+
+
+class CompetitionSerializer(DR27Serializer, serializers.HyperlinkedModelSerializer):
     # https://github.com/SmileyChris/django-countries/issues/106
     country = CountryField()
-    seasons = CompetitionSeasonSerializer(many=True)
+    seasons = SeasonSerializer(many=True, exclude_fields=['competition', 'competition_details', 'races'])
 
     class Meta:
         model = Competition
         fields = ('url', 'name', 'full_name', 'country', 'slug', 'seasons')
-#
-#
+
+
 class DriverSerializer(serializers.HyperlinkedModelSerializer):
     country = CountryField()
 
@@ -51,7 +57,7 @@ class DriverSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country', 'competitions')
         read_only_fields = ('competitions', )
 
-#
+
 class NestedDriverSerializer(DriverSerializer):
 
     class Meta:
