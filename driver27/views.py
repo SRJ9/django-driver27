@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import render
@@ -62,7 +63,7 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
     else:
         raise Http404(_('Impossible rank'))
 
-    title = '{season} [{title}]'.format(season=season, title=rank_title)
+    title = u'{season} [{title}]'.format(season=season, title=rank_title)
 
     context = {'rank': rank,
                'season': season,
@@ -84,7 +85,7 @@ def driver_olympic_view(request, competition_slug, year):
     rank_title = _('DRIVERS rank by olympic mode')
     tpl = 'driver27/driver/driver-list.html'
 
-    title = '{season} [{title}]'.format(season=season, title=rank_title)
+    title = u'{season} [{title}]'.format(season=season, title=rank_title)
 
     context = {'rank': rank,
                'season': season,

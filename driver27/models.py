@@ -82,7 +82,7 @@ class Contender(models.Model):
         return ', '.join([team.name for team in teams.all()]) if teams.count() else None
 
     def __str__(self):
-        return _('%(driver)s in %(competition)s') % {'driver': self.driver, 'competition': self.competition}
+        return _(u'%(driver)s in %(competition)s') % {'driver': self.driver, 'competition': self.competition}
 
     class Meta:
         unique_together = ('driver', 'competition')
