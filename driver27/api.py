@@ -1,4 +1,4 @@
-from .models import Competition, Contender, Driver, Race, Result, Season, Seat, Team
+from .models import Competition, Contender, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit
 from rest_framework import routers, serializers, viewsets, authentication, permissions
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
@@ -21,6 +21,19 @@ class DR27ViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
+
+class GrandPrixSerializer(serializers.ModelSerializer):
+    country = CountryField()
+    class Meta:
+        model = GrandPrix
+        fields = '__all__'
+
+
+class CircuitSerializer(serializers.ModelSerializer):
+    country = CountryField()
+    class Meta:
+        model = Circuit
+        fields = '__all__'
 
 class SeasonSerializer(DR27Serializer, serializers.ModelSerializer):
     competition_details = serializers.SerializerMethodField()
@@ -149,11 +162,15 @@ class ResultSerializer(serializers.HyperlinkedModelSerializer):
 #
 
 
-class RaceSerializer(serializers.HyperlinkedModelSerializer):
+class RaceSerializer(serializers.ModelSerializer):
+
+    grand_prix = GrandPrixSerializer(many=False)
+    circuit = CircuitSerializer(many=False)
 
     class Meta:
         model = Race
-        fields = ('url', 'season', 'round',  'date', 'alter_punctuation')
+        fields = ('url', 'season', 'round',  'grand_prix', 'circuit',
+                  'date', 'alter_punctuation')
 #
 #
 
