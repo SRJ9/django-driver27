@@ -22,18 +22,21 @@ class DR27ViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
 
-class GrandPrixSerializer(serializers.ModelSerializer):
+class GrandPrixSerializer(DR27Serializer, serializers.ModelSerializer):
     country = CountryField()
+
     class Meta:
         model = GrandPrix
-        fields = '__all__'
+        fields = ('url', 'id', 'country', 'name', 'first_held', 'default_circuit', 'competitions',)
 
 
-class CircuitSerializer(serializers.ModelSerializer):
+class CircuitSerializer(DR27Serializer, serializers.ModelSerializer):
     country = CountryField()
+
     class Meta:
         model = Circuit
-        fields = '__all__'
+        fields = ('url', 'country', 'name', 'city', 'opened_in',)
+
 
 class SeasonSerializer(DR27Serializer, serializers.ModelSerializer):
     competition_details = serializers.SerializerMethodField()
@@ -164,13 +167,24 @@ class ResultSerializer(serializers.HyperlinkedModelSerializer):
 
 class RaceSerializer(serializers.ModelSerializer):
 
-    grand_prix = GrandPrixSerializer(many=False)
-    circuit = CircuitSerializer(many=False)
+    grand_prix_details = serializers.SerializerMethodField()
+    circuit_details = serializers.SerializerMethodField()
+
+    def get_grand_prix_details(self, obj):
+        return GrandPrixSerializer(instance=obj.grand_prix,
+                                   many=False,
+                                   context=self.context,
+                                   exclude_fields=['competitions', ]).data
+
+    def get_circuit_details(self, obj):
+        return CircuitSerializer(instance=obj.circuit,
+                                   many=False,
+                                   context=self.context).data
 
     class Meta:
         model = Race
-        fields = ('url', 'season', 'round',  'grand_prix', 'circuit',
-                  'date', 'alter_punctuation')
+        fields = ('url', 'id', 'season', 'round',  'grand_prix', 'grand_prix_details',
+                  'circuit', 'circuit_details', 'date', 'alter_punctuation')
 #
 #
 
@@ -206,6 +220,18 @@ class SeasonViewSet(DR27ViewSet):
         self.queryset = season.seats.all()
         serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
+
+
+# ViewSets define the view behavior.
+class CircuitViewSet(DR27ViewSet):
+    queryset = Circuit.objects.all()
+    serializer_class = CircuitSerializer
+
+
+# ViewSets define the view behavior.
+class GrandPrixViewSet(DR27ViewSet):
+    queryset = GrandPrix.objects.all()
+    serializer_class = GrandPrixSerializer
 
 
 # ViewSets define the view behavior.
@@ -245,9 +271,11 @@ class SeatViewSet(DR27ViewSet):
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
+router.register(r'circuits', CircuitViewSet)
 router.register(r'competitions', CompetitionViewSet)
 router.register(r'contenders', ContenderViewSet)
 router.register(r'drivers', DriverViewSet)
+router.register(r'grands-prix', GrandPrixViewSet)
 router.register(r'races', RaceViewSet)
 router.register(r'results', ResultViewSet)
 router.register(r'seasons', SeasonViewSet)
