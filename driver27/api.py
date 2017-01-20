@@ -138,13 +138,56 @@ class SeatSerializer(serializers.HyperlinkedModelSerializer):
 #
 
 
-class ResultSerializer(serializers.HyperlinkedModelSerializer):
+class SeatRecapSerializer(serializers.ModelSerializer):
+
+    contender = serializers.SerializerMethodField()
+    team = serializers.SerializerMethodField()
+
+    def get_contender(self, obj):
+        contender = obj.contender
+        return {
+            'id': contender.id,
+            'driver': {
+                'id': contender.driver.id,
+                'first_name': contender.driver.first_name,
+                'last_name': contender.driver.last_name
+            }
+        }
+
+    def get_team(self, obj):
+        team = obj.team
+        return {
+            'id': team.id,
+            'name': team.name
+        }
+
+    class Meta:
+        model = Seat
+        fields = ('contender',
+                  'team')
+
+
+class ResultSerializer(serializers.ModelSerializer):
     # seat = SeatSerializer(many=False, read_only=True)
+    seat_details = serializers.SerializerMethodField()
+
+    def get_seat_details(self, obj):
+        return SeatRecapSerializer(instance=obj.seat,
+                                   many=False,
+                                   context=self.context).data
 
     class Meta:
         model = Result
-        fields = ('url', 'race', 'seat', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
-                  'retired', 'comment')
+        fields = ('url',
+                  'race',
+                  'seat',
+                  'seat_details',
+                  'qualifying',
+                  'finish',
+                  'fastest_lap',
+                  'wildcard',
+                  'retired',
+                  'comment')
 #
 #
 # class NestedResultSerializer(ResultSerializer):
