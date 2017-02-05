@@ -5,3 +5,4 @@ python-slugify
 tox
 django-exclusivebooleanfield
 djangorestframework
+django-swapfield

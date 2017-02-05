@@ -11,6 +11,7 @@ from .punctuation import get_punctuation_config
 from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField
+from swapfield.fields import SwapIntegerField
 
 
 @python_2_unicode_compatible
@@ -584,8 +585,8 @@ class Result(models.Model):
     """ Result model """
     race = models.ForeignKey(Race, related_name='results', verbose_name=_('race'))
     seat = models.ForeignKey(Seat, related_name='results', verbose_name=_('seat'))
-    qualifying = models.IntegerField(blank=True, null=True, default=None, verbose_name=_('qualifying'))
-    finish = models.IntegerField(blank=True, null=True, default=None, verbose_name=_('finish'))
+    qualifying = SwapIntegerField(unique_for_fields=['race'], blank=True, null=True, default=None, verbose_name=_('qualifying'))
+    finish = SwapIntegerField(unique_for_fields=['race'], blank=True, null=True, default=None, verbose_name=_('finish'))
     fastest_lap = ExclusiveBooleanField(on='race', default=False, verbose_name=_('fastest lap'))
     retired = models.BooleanField(default=False, verbose_name=_('retired'))
     wildcard = models.BooleanField(default=False, verbose_name=_('wildcard'))
@@ -652,7 +653,7 @@ class Result(models.Model):
         return string
 
     class Meta:
-        unique_together = [('race', 'seat'), ('race', 'qualifying'), ('race', 'finish')]
+        unique_together = ('race', 'seat')
         ordering = ['race__season', 'race__round', 'finish', 'qualifying']
         verbose_name = _('Result')
         verbose_name_plural = _('Results')
