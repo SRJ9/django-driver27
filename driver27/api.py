@@ -133,10 +133,10 @@ class SeatSerializer(serializers.ModelSerializer):
         return ContenderSerializer(instance=obj.contender, many=False,
                                    context=self.context).data
 
-
     class Meta:
         model = Seat
         fields = ('url', 'team', 'team_details', 'contender', 'contender_details', 'current', 'seasons')
+
 #
 #
 # class NestedSeatSerializer(SeatSerializer):
@@ -197,24 +197,6 @@ class ResultSerializer(serializers.ModelSerializer):
                   'wildcard',
                   'retired',
                   'comment')
-#
-#
-# class NestedResultSerializer(ResultSerializer):
-#
-#     class Meta:
-#         model = Result
-#         fields = ('url', 'seat', 'qualifying', 'finish', 'fastest_lap', 'wildcard',
-#                   'retired', 'comment')
-#
-#
-# class NestedSeasonSerializer(SeasonSerializer):
-#     competition = CompetitionSerializer(many=False)
-#
-#     class Meta:
-#         model = Season
-#         fields = ('url', 'year', 'competition', 'rounds', 'punctuation')
-#
-#
 
 
 class RaceSerializer(serializers.ModelSerializer):
@@ -230,15 +212,13 @@ class RaceSerializer(serializers.ModelSerializer):
 
     def get_circuit_details(self, obj):
         return CircuitSerializer(instance=obj.circuit,
-                                   many=False,
-                                   context=self.context).data
+                                 many=False,
+                                 context=self.context).data
 
     class Meta:
         model = Race
         fields = ('url', 'id', 'season', 'round',  'grand_prix', 'grand_prix_details',
                   'circuit', 'circuit_details', 'date', 'alter_punctuation')
-#
-#
 
 
 # # ViewSets define the view behavior.
@@ -251,6 +231,20 @@ class RaceViewSet(DR27ViewSet):
         race = self.get_object()
         self.queryset = race.results.all()
         serializer = ResultSerializer(instance=self.queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @detail_route(methods=['get'])
+    def seats(self, request, pk=None):
+        race = self.get_object()
+        self.queryset = Seat.objects.filter(results__race=race)
+        serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @detail_route(methods=['get'], url_path='not-start-seats')
+    def no_start_seats(self, request, pk=None):
+        race = self.get_object()
+        self.queryset = Seat.objects.filter(seasons=race.season).exclude(results__race=race)
+        serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
 
