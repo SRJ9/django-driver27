@@ -121,13 +121,22 @@ class NestedContenderSerializer(ContenderSerializer):
         fields = ('url', 'driver')
 
 
-class SeatSerializer(serializers.HyperlinkedModelSerializer):
-    team = NestedTeamSerializer(many=False)
-    contender = NestedContenderSerializer(many=False)
+class SeatSerializer(serializers.ModelSerializer):
+    team_details = serializers.SerializerMethodField()
+    contender_details = serializers.SerializerMethodField()
+
+    def get_team_details(self, obj):
+        return TeamSerializer(instance=obj.team, many=False,
+                              context=self.context).data
+
+    def get_contender_details(self, obj):
+        return ContenderSerializer(instance=obj.contender, many=False,
+                                   context=self.context).data
+
 
     class Meta:
         model = Seat
-        fields = ('url', 'team', 'contender', 'current', 'seasons')
+        fields = ('url', 'team', 'team_details', 'contender', 'contender_details', 'current', 'seasons')
 #
 #
 # class NestedSeatSerializer(SeatSerializer):
