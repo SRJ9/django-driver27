@@ -135,7 +135,7 @@ class SeatSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Seat
-        fields = ('url', 'team', 'team_details', 'contender', 'contender_details', 'current', 'seasons')
+        fields = ('url', 'id', 'team', 'team_details', 'contender', 'contender_details', 'current', 'seasons')
 
 #
 #
