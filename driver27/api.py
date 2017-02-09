@@ -23,6 +23,7 @@ class DR27ViewSet(viewsets.ModelViewSet):
 
 
 class GrandPrixSerializer(DR27Serializer, serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
     country = CountryField()
 
     class Meta:
@@ -31,14 +32,16 @@ class GrandPrixSerializer(DR27Serializer, serializers.ModelSerializer):
 
 
 class CircuitSerializer(DR27Serializer, serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
     country = CountryField()
 
     class Meta:
         model = Circuit
-        fields = ('url', 'country', 'name', 'city', 'opened_in',)
+        fields = ('url', 'id', 'country', 'name', 'city', 'opened_in',)
 
 
 class SeasonSerializer(DR27Serializer, serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
     competition_details = serializers.SerializerMethodField()
     slug = serializers.SerializerMethodField(read_only=True)
     races = serializers.HyperlinkedRelatedField(view_name='race-detail',
@@ -54,27 +57,29 @@ class SeasonSerializer(DR27Serializer, serializers.ModelSerializer):
 
     class Meta:
         model = Season
-        fields = ('url', 'year', 'rounds', 'slug', 'punctuation', 'competition',
+        fields = ('url', 'id', 'year', 'rounds', 'slug', 'punctuation', 'competition',
                   'competition_details', 'races', )
         read_only_fields = ('competition_details', 'races',)
 
 
 class CompetitionSerializer(DR27Serializer, serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     # https://github.com/SmileyChris/django-countries/issues/106
     country = CountryField()
     seasons = SeasonSerializer(many=True, exclude_fields=['competition', 'competition_details', 'races'])
 
     class Meta:
         model = Competition
-        fields = ('url', 'name', 'full_name', 'country', 'slug', 'seasons')
+        fields = ('url', 'id', 'name', 'full_name', 'country', 'slug', 'seasons')
 
 
 class DriverSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     country = CountryField()
 
     class Meta:
         model = Driver
-        fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country', 'competitions')
+        fields = ('url', 'id', 'last_name', 'first_name', 'year_of_birth', 'country', 'competitions')
         read_only_fields = ('competitions', )
 
 
@@ -84,15 +89,16 @@ class NestedDriverSerializer(DriverSerializer):
         model = Driver
         fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country')
 
-#
+
 class TeamSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     country = CountryField()
 
     class Meta:
         model = Team
-        fields = ('url', 'name', 'full_name', 'competitions', 'country')
+        fields = ('url', 'id', 'name', 'full_name', 'competitions', 'country')
 
-#
+
 class NestedTeamSerializer(TeamSerializer):
 
     class Meta:
@@ -103,13 +109,14 @@ class NestedTeamSerializer(TeamSerializer):
 
 
 class ContenderSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     driver = NestedDriverSerializer(many=False)
     teams = NestedTeamSerializer(many=True)
     # competition = CompetitionSerializer(many=False)
 
     class Meta:
         model = Contender
-        fields = ('url', 'driver', 'competition', 'teams')
+        fields = ('url', 'id', 'driver', 'competition', 'teams')
 
 
 #
@@ -122,6 +129,7 @@ class NestedContenderSerializer(ContenderSerializer):
 
 
 class SeatSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
     team_details = serializers.SerializerMethodField()
     contender_details = serializers.SerializerMethodField()
 
@@ -136,15 +144,6 @@ class SeatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seat
         fields = ('url', 'id', 'team', 'team_details', 'contender', 'contender_details', 'current', 'seasons')
-
-#
-#
-# class NestedSeatSerializer(SeatSerializer):
-#     class Meta:
-#         model = Seat
-#         fields = ('url', 'team', 'contender', 'current')
-#
-#
 
 
 class SeatRecapSerializer(serializers.ModelSerializer):
@@ -177,7 +176,7 @@ class SeatRecapSerializer(serializers.ModelSerializer):
 
 
 class ResultSerializer(serializers.ModelSerializer):
-    # seat = SeatSerializer(many=False, read_only=True)
+    id = serializers.ReadOnlyField()
     seat_details = serializers.SerializerMethodField()
 
     def get_seat_details(self, obj):
@@ -188,6 +187,7 @@ class ResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = Result
         fields = ('url',
+                  'id',
                   'race',
                   'seat',
                   'seat_details',
@@ -200,7 +200,7 @@ class ResultSerializer(serializers.ModelSerializer):
 
 
 class RaceSerializer(serializers.ModelSerializer):
-
+    id = serializers.ReadOnlyField()
     grand_prix_details = serializers.SerializerMethodField()
     circuit_details = serializers.SerializerMethodField()
 
