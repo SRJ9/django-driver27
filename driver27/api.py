@@ -1,8 +1,10 @@
 from .models import Competition, Contender, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit
-from rest_framework import routers, serializers, viewsets, authentication, permissions
+from rest_framework import routers, serializers, viewsets, authentication, permissions, status
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from django_countries.serializer_fields import CountryField
+from rest_framework.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 
 class DR27Serializer(object):
@@ -175,6 +177,14 @@ class SeatRecapSerializer(serializers.ModelSerializer):
                   'team')
 
 
+class CreateResultSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Result
+        fields = ('id', 'race', 'seat',)
+
+
 class ResultSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     seat_details = serializers.SerializerMethodField()
@@ -247,6 +257,21 @@ class RaceViewSet(DR27ViewSet):
         serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
+    @detail_route(methods=['post'])
+    def create_result_from_seat(self, request, pk):
+        result_to_create = CreateResultSerializer(data=request.data)
+        if result_to_create.is_valid(raise_exception=True):
+            try:
+                result_to_create.save()
+            except DjangoValidationError as detail:
+                raise serializers.ValidationError(detail.error_dict)
+
+            result_id = result_to_create.data.get('id')
+            result = Result.objects.get(pk=result_id)
+            result_serializer = ResultSerializer(instance=result, context={'request': request})
+            return Response(result_serializer.data)
+        return Response(result_to_create.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # ViewSets define the view behavior.
 class SeasonViewSet(DR27ViewSet):
@@ -290,6 +315,7 @@ class CompetitionViewSet(DR27ViewSet):
 class ResultViewSet(DR27ViewSet):
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
+
 
 
 # ViewSets define the view behavior.

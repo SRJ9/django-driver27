@@ -593,13 +593,16 @@ class Result(models.Model):
     comment = models.CharField(max_length=250, blank=True, null=True, default=None, verbose_name=_('comment'))
 
     def clean(self, *args, **kwargs):
-        seat_errors = []
+        # seat_errors = []
         if self.seat.team not in self.race.season.teams.all():
-            seat_errors.append(_('Team is not in current season'))
+            # seat_errors.append(ValidationError(_('Team is not in current season'), code='invalid'))
+            raise ValidationError({'seat': _('Team (seat) is not in current season')})
         if self.seat not in self.race.season.seats.all():
-            seat_errors.append(_('Seat is not in current season'))
-        if seat_errors:
-            raise ValidationError(_('Invalid Seat in this race. ')+'\n'.join(seat_errors))
+            # seat_errors.append(ValidationError(_('Seat is not in current season'), code='invalid'))
+            raise ValidationError({'seat': _('Seat is not in current season')})
+        # if seat_errors:
+        #     seat_errors.append(ValidationError(_('Invalid Seat in this race.'), code='invalid'))
+        #     raise ValidationError(seat_errors, code='invalid')
         super(Result, self).clean()
 
     @property
