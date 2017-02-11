@@ -4,5 +4,5 @@ django-tabbed-admin
 python-slugify
 tox
 django-exclusivebooleanfield
-djangorestframework
+djangorestframework>=3.5.4
 django-swapfield

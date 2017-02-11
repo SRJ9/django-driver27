@@ -1,10 +1,24 @@
-from .models import Competition, Contender, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit
-from rest_framework import routers, serializers, viewsets, authentication, permissions, status
-from rest_framework.decorators import detail_route, list_route
-from rest_framework.response import Response
-from django_countries.serializer_fields import CountryField
-from rest_framework.exceptions import ValidationError
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django_countries.serializer_fields import CountryField
+from rest_framework import routers, serializers, viewsets, authentication, permissions, status
+from rest_framework.compat import set_rollback
+from rest_framework.decorators import detail_route
+from rest_framework.response import Response
+from rest_framework.views import exception_handler as rest_exception_handler
+
+from .models import Competition, Contender, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit
+
+
+# based on:
+# https://github.com/tomchristie/django-rest-framework/pull/3149/commits/413fe93dbfda41e3b7890ea9550d60bca3315761
+# https://github.com/RockHoward/django-rest-framework
+def custom_exception_handler(exc, context):
+    response = rest_exception_handler(exc, context)
+    if isinstance(exc, DjangoValidationError):
+        data = {'detail': exc.messages}
+        set_rollback()
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+    return response
 
 
 class DR27Serializer(object):
@@ -22,6 +36,9 @@ class DR27Serializer(object):
 class DR27ViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
+
+    def get_exception_handler(self):
+        return custom_exception_handler
 
 
 class GrandPrixSerializer(DR27Serializer, serializers.ModelSerializer):
@@ -60,7 +77,7 @@ class SeasonSerializer(DR27Serializer, serializers.ModelSerializer):
     class Meta:
         model = Season
         fields = ('url', 'id', 'year', 'rounds', 'slug', 'punctuation', 'competition',
-                  'competition_details', 'races', )
+                  'competition_details', 'races',)
         read_only_fields = ('competition_details', 'races',)
 
 
@@ -82,11 +99,10 @@ class DriverSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Driver
         fields = ('url', 'id', 'last_name', 'first_name', 'year_of_birth', 'country', 'competitions')
-        read_only_fields = ('competitions', )
+        read_only_fields = ('competitions',)
 
 
 class NestedDriverSerializer(DriverSerializer):
-
     class Meta:
         model = Driver
         fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country')
@@ -102,10 +118,11 @@ class TeamSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class NestedTeamSerializer(TeamSerializer):
-
     class Meta:
         model = Team
         fields = ('url', 'name', 'full_name', 'country')
+
+
 #
 #
 
@@ -114,6 +131,7 @@ class ContenderSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
     driver = NestedDriverSerializer(many=False)
     teams = NestedTeamSerializer(many=True)
+
     # competition = CompetitionSerializer(many=False)
 
     class Meta:
@@ -149,7 +167,6 @@ class SeatSerializer(serializers.ModelSerializer):
 
 
 class SeatRecapSerializer(serializers.ModelSerializer):
-
     contender = serializers.SerializerMethodField()
     team = serializers.SerializerMethodField()
 
@@ -175,14 +192,6 @@ class SeatRecapSerializer(serializers.ModelSerializer):
         model = Seat
         fields = ('contender',
                   'team')
-
-
-class CreateResultSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField()
-
-    class Meta:
-        model = Result
-        fields = ('id', 'race', 'seat',)
 
 
 class ResultSerializer(serializers.ModelSerializer):
@@ -227,7 +236,7 @@ class RaceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Race
-        fields = ('url', 'id', 'season', 'round',  'grand_prix', 'grand_prix_details',
+        fields = ('url', 'id', 'season', 'round', 'grand_prix', 'grand_prix_details',
                   'circuit', 'circuit_details', 'date', 'alter_punctuation')
 
 
@@ -256,21 +265,6 @@ class RaceViewSet(DR27ViewSet):
         self.queryset = Seat.objects.filter(seasons=race.season).exclude(results__race=race)
         serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
-
-    @detail_route(methods=['post'])
-    def create_result_from_seat(self, request, pk):
-        result_to_create = CreateResultSerializer(data=request.data)
-        if result_to_create.is_valid(raise_exception=True):
-            try:
-                result_to_create.save()
-            except DjangoValidationError as detail:
-                raise serializers.ValidationError(detail.error_dict)
-
-            result_id = result_to_create.data.get('id')
-            result = Result.objects.get(pk=result_id)
-            result_serializer = ResultSerializer(instance=result, context={'request': request})
-            return Response(result_serializer.data)
-        return Response(result_to_create.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # ViewSets define the view behavior.
@@ -317,7 +311,6 @@ class ResultViewSet(DR27ViewSet):
     serializer_class = ResultSerializer
 
 
-
 # ViewSets define the view behavior.
 class ContenderViewSet(DR27ViewSet):
     queryset = Contender.objects.all()
@@ -340,6 +333,7 @@ class TeamViewSet(DR27ViewSet):
 class SeatViewSet(DR27ViewSet):
     queryset = Seat.objects.all()
     serializer_class = SeatSerializer
+
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
