@@ -21,6 +21,20 @@ def custom_exception_handler(exc, context):
     return response
 
 
+def get_dict_from_rank_entry(entry):
+    # todo Entry tuple will be a dict in main function
+    return {
+        'points': entry[0],
+        'driver': {
+            'last_name': entry[1].last_name,
+            'first_name': entry[1].first_name,
+            'country': entry[1].country.code
+        },
+        'teams': entry[2],
+        'positions_order': entry[3]
+     }
+
+
 class DR27Serializer(object):
     def __init__(self, *args, **kwargs):
         self.exclude_fields = kwargs.pop('exclude_fields', None)
@@ -285,6 +299,15 @@ class SeasonViewSet(DR27ViewSet):
         self.queryset = season.seats.all()
         serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
+
+    @detail_route(methods=['get'])
+    def standings(self, request, pk=None):
+        season = self.get_object()
+        rank = season.points_rank()
+        serializer_rank = [
+            get_dict_from_rank_entry(standing) for standing in rank
+        ]
+        return Response(serializer_rank)
 
 
 # ViewSets define the view behavior.
