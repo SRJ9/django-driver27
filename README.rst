@@ -56,7 +56,8 @@ Versions
 
 0.19.3
 ======
--  Incompatible with Django 1.7 (adding rest_framework)
+-  Add Django Rest Framework
+-  Incompatible with Django 1.7
 
 0.19.2
 ======

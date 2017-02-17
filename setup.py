@@ -9,11 +9,11 @@ readme.close()
 
 setup(
     name='django-driver27',
-    version='0.19.3x',
+    version='0.19.3',
     include_package_data=True,
     packages=find_packages(),
     url='https://github.com/SRJ9/django-driver27.git',
-    download_url='https://github.com/SRJ9/django-driver27/archive/master.zip',
+    download_url='https://github.com/SRJ9/django-driver27/archive/develop.zip',
     license='MIT',
     author='Jose ER',
     author_email='srj9es@gmail.com',
