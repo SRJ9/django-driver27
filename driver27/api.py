@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.timezone import datetime #important if using timezones
 from django_countries.serializer_fields import CountryField
 from rest_framework import routers, serializers, viewsets, authentication, permissions, status
 from rest_framework.compat import set_rollback
@@ -281,8 +282,24 @@ class RaceViewSet(DR27ViewSet):
         return Response(serializer.data)
 
 
+class DR27CommonCompetitionViewSet(DR27ViewSet):
+    @detail_route(methods=['get'], url_path='next-race')
+    def next_race(self, request, pk=None):
+        obj = self.get_object()
+        queryset_params = {'date__gte': datetime.today()}
+        if isinstance(obj, Season):
+            self.queryset = obj.races.filter(**queryset_params).first()
+        elif isinstance(obj, Competition):
+            queryset_params['season__competition'] = obj
+            self.queryset = Race.objects.filter(**queryset_params).first()
+        else:
+            raise NotImplementedError('Not Implemented Method')
+        serializer = RaceSerializer(instance=self.queryset, many=False, context={'request': request})
+        return Response(serializer.data)
+
+
 # ViewSets define the view behavior.
-class SeasonViewSet(DR27ViewSet):
+class SeasonViewSet(DR27CommonCompetitionViewSet):
     queryset = Season.objects.all()
     serializer_class = SeasonSerializer
 
@@ -323,7 +340,7 @@ class GrandPrixViewSet(DR27ViewSet):
 
 
 # ViewSets define the view behavior.
-class CompetitionViewSet(DR27ViewSet):
+class CompetitionViewSet(DR27CommonCompetitionViewSet):
     queryset = Competition.objects.all()
     serializer_class = CompetitionSerializer
 
