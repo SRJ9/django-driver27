@@ -54,10 +54,16 @@ Versions
 -  0.19 (Ayrton Senna's Toleman's car number '84 - Debut)
 -  0.27-VIL (Gilles Villeneuve 27)
 
+0.19.4 (to-do)
+==============
+-  Refactor API in directory
+-  Race points will be saved in BD
+
 0.19.3
 ======
 -  Add Django Rest Framework
 -  Incompatible with Django 1.7
+-  Add django-swapfield in qualifying/finish field
 
 0.19.2
 ======
