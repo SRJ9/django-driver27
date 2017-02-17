@@ -10,8 +10,8 @@ def get_record_label_dict(doubles=False):
     config = get_record_config()
     if config:
         if doubles:
-            return [(record_dict.get('label'), index) for index, record_dict in config.items()
+            return [(index, record_dict.get('label')) for index, record_dict in config.items()
                     if record_dict.get('doubles')]
         else:
-            return [(record_dict.get('label'), index) for index, record_dict in config.items()]
+            return [(index, record_dict.get('label')) for index, record_dict in config.items()]
     return None
