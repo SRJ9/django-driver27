@@ -275,7 +275,10 @@ class Season(models.Model):
     def points_rank(self, scoring_code=None):
         """ Points driver rank. Scoring can be override by scoring_code param """
         contenders = self.contenders()
-        scoring = self.get_scoring(scoring_code)
+        if scoring_code is None or scoring_code == self.punctuation:
+            scoring = None
+        else:
+            scoring = self.get_scoring(scoring_code)
         rank = []
         for contender in contenders:
             contender_season = contender.get_season(self)
@@ -591,6 +594,11 @@ class Result(models.Model):
     retired = models.BooleanField(default=False, verbose_name=_('retired'))
     wildcard = models.BooleanField(default=False, verbose_name=_('wildcard'))
     comment = models.CharField(max_length=250, blank=True, null=True, default=None, verbose_name=_('comment'))
+    points = models.IntegerField(default=0, blank=True, null=True, verbose_name=_('points'))
+
+    def save(self, *args, **kwargs):
+        self.points = self.get_points()
+        super(Result, self).save(*args, **kwargs)
 
     def clean(self, *args, **kwargs):
         # seat_errors = []
@@ -603,6 +611,7 @@ class Result(models.Model):
         # if seat_errors:
         #     seat_errors.append(ValidationError(_('Invalid Seat in this race.'), code='invalid'))
         #     raise ValidationError(seat_errors, code='invalid')
+
         super(Result, self).clean()
 
     @property
@@ -641,8 +650,7 @@ class Result(models.Model):
         points += self._get_race_points(scoring)
         return points if points > 0 else None
 
-    @property
-    def points(self):
+    def get_points(self):
         """ Return points based on season scoring """
         scoring = self.race.season.get_scoring()
         return self.points_calculator(scoring)
@@ -699,11 +707,14 @@ class ContenderSeason(object):
     def get_points(self, limit_races=None, scoring=None):
         """ Get points. Can be limited. Scoring will be overwrite temporarily"""
         results = self.get_results(limit_races=limit_races)
-        points_list = []
-        for result in results.all():
-            result_points = result.points_calculator(scoring)
-            if result_points:
-                points_list.append(result_points)
+        if scoring is None:
+            points_list = [result.points for result in results.all() if result.points]
+        else:
+            points_list = []
+            for result in results.all():
+                result_points = result.points_calculator(scoring)
+                if result_points:
+                    points_list.append(result_points)
         return sum(points_list)
         
     def get_positions_list(self, limit_races=None):
