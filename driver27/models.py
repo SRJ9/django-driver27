@@ -704,12 +704,18 @@ class ContenderSeason(object):
         """ Count 1 by each result """
         return self.get_filtered_results(**filters).count()
 
+    def get_saved_points(self, limit_races=None):
+        results = self.get_results(limit_races=limit_races)
+        points = results.values_list('points', flat=True)
+        return [point for point in points if point]
+
     def get_points(self, limit_races=None, scoring=None):
         """ Get points. Can be limited. Scoring will be overwrite temporarily"""
-        results = self.get_results(limit_races=limit_races)
+
         if scoring is None:
-            points_list = [result.points for result in results.all() if result.points]
+            points_list = self.get_saved_points(limit_races=limit_races)
         else:
+            results = self.get_results(limit_races=limit_races)
             points_list = []
             for result in results.all():
                 result_points = result.points_calculator(scoring)
@@ -720,10 +726,11 @@ class ContenderSeason(object):
     def get_positions_list(self, limit_races=None):
         """ Return a list with the count of each 20 first positions """
         results = self.get_results(limit_races=limit_races)
+        finished = results.values_list('finish', flat=True)
         last_position = 20
         positions = []
         for x in range(1, last_position+1):
-            position_count = results.filter(finish=x).count()
+            position_count = len([finish for finish in finished if finish])
             positions.append(position_count)
         return positions
 
