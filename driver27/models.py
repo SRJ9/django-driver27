@@ -730,7 +730,7 @@ class ContenderSeason(object):
         last_position = 20
         positions = []
         for x in range(1, last_position+1):
-            position_count = len([finish for finish in finished if finish])
+            position_count = len([finish for finish in finished if finish==x])
             positions.append(position_count)
         return positions
 
