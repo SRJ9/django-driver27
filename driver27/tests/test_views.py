@@ -270,7 +270,11 @@ class ViewTest(FixturesTest):
         self.assertEquals(ma.print_winner(race), str(race.winner.contender.driver))
         self.assertEquals(ma.print_fastest(race), str(race.fastest.contender.driver))
         self.assertEquals(ma.clean_position('1'), 1)
-        self.assertIsNone(ma.clean_position(''))
+
+    def _check_formfield_for_foreignkey(self, ma, request_obj, dbfield):
+        request = get_request()
+        request._obj_ = request_obj
+        self.assertIsNotNone(ma.formfield_for_foreignkey(dbfield, request=request))
 
     def test_race_inline(self):
         race = Race.objects.get(pk=1)
@@ -278,8 +282,7 @@ class ViewTest(FixturesTest):
         request = get_request()
         # self.assertIsNotNone(race_ma.get_formset())
         season = race.season
-        request._obj_ = season
-        self.assertIsNotNone(race_ma.formfield_for_foreignkey(Race.grand_prix.field, request=request))
+        self._check_formfield_for_foreignkey(race_ma, request_obj=season, dbfield=Race.grand_prix.field)
 
     # Currently not exists race with no results
     # def test_race_with_no_results(self):
@@ -297,15 +300,13 @@ class ViewTest(FixturesTest):
         request = get_request()
         self.assertTrue(ma.get_form(request=request, obj=contender))
 
-    def _check_formfield_for_foreignkey(self, ma, request_obj, dbfield):
-        request = get_request()
-        request._obj_ = request_obj
-        self.assertIsNotNone(ma.formfield_for_foreignkey(dbfield, request=request))
 
     def test_seat_inline_admin(self):
         ma = SeatInline(ContenderAdmin, self.site)
         contender = Contender.objects.get(pk=1)
         self._check_formfield_for_foreignkey(ma, request_obj=contender, dbfield=Seat.team.field)
+        team = Team.objects.get(pk=1)
+        self._check_formfield_for_foreignkey(ma, request_obj=team, dbfield=Seat.team.field)
 
     def test_seat_season_admin(self):
         ma = SeatSeasonAdmin(SeatSeason, self.site)
@@ -318,11 +319,15 @@ class ViewTest(FixturesTest):
         ma = SeatSeasonInline(SeasonAdmin, self.site)
         season = Season.objects.get(pk=1)
         self._check_formfield_for_foreignkey(ma, request_obj=season, dbfield=Seat.seasons.through.seat.field)
+        seat = Seat.objects.get(pk=1)
+        self._check_formfield_for_foreignkey(ma, request_obj=seat, dbfield=Seat.seasons.through.seat.field)
 
     def test_team_season_inline_admin(self):
         ma = TeamSeasonInline(SeasonAdmin, self.site)
         season = Season.objects.get(pk=1)
         self._check_formfield_for_foreignkey(ma, request_obj=season, dbfield=TeamSeason.team.field)
+        team = Team.objects.get(pk=1)
+        self._check_formfield_for_foreignkey(ma, request_obj=team, dbfield=TeamSeason.team.field)
 
     def test_related_competition_admin(self):
         race = Race.objects.get(pk=1)

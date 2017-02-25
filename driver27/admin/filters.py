@@ -23,6 +23,6 @@ class CompetitionFilterInline(admin.TabularInline):
                 kwargs['queryset'] = Team.objects.filter(competitions__exact=obj.competition)
             elif db_field.name == 'grand_prix':
                 kwargs['queryset'] = GrandPrix.objects.filter(competitions__exact=obj.competition)
-            elif db_field.name == 'seat':
+            elif db_field.name == 'seat' and not isinstance(obj, Seat):
                 kwargs['queryset'] = self.seat_for_foreignkey(obj)
         return super(CompetitionFilterInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
