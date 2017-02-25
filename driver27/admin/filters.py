@@ -19,7 +19,7 @@ class CompetitionFilterInline(admin.TabularInline):
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if getattr(request, '_obj_', None):
             obj = request._obj_
-            if db_field.name == 'team':
+            if db_field.name == 'team' and not isinstance(obj, Team):
                 kwargs['queryset'] = Team.objects.filter(competitions__exact=obj.competition)
             elif db_field.name == 'grand_prix':
                 kwargs['queryset'] = GrandPrix.objects.filter(competitions__exact=obj.competition)
