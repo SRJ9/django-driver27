@@ -145,7 +145,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         ('Races', tab_races),
     ]
     readonly_fields = ('print_copy_season',)
-    list_display = ('__str__', 'print_copy_season')
+    list_display = ('__str__', 'print_copy_season', 'print_copy_races',)
     list_filter = ('competition',)
 
     def get_season_copy(self, copy_id):
@@ -178,12 +178,8 @@ class SeasonAdmin(CommonTabbedModelAdmin):
             season_destiny_rounds = season_destiny.rounds
             season_destiny_races = season_destiny.races.all()
 
-            # todo selector checked:
-            # check available round values
-            # check if can save all races
             list_races = list(range(1, season_destiny_rounds+1))
             list_races_exists = list(season_destiny_races.values_list('round', flat=True))
-
             list_diff = lr_diff(list_races, list_races_exists)
 
             for index, race in enumerate(races):
@@ -202,7 +198,8 @@ class SeasonAdmin(CommonTabbedModelAdmin):
 
             post_season_destiny = request.POST.get('season_destiny', None)
             season_destiny = Season.objects.get(pk=post_season_destiny)
-            season_destiny_gp = Race.objects.filter(season=season_destiny).values_list('grand_prix_id', flat=True)
+            season_destiny_races = season_destiny.races.all()
+            season_destiny_gp = season_destiny_races.values_list('grand_prix_id', flat=True)
 
             only_exists_from = lr_diff(races_gp,season_destiny_gp)
             both_exists = lr_intr(races_gp,season_destiny_gp)
@@ -214,6 +211,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
                 'season': season,
                 'season_destiny': season_destiny,
                 'only_exists_races': only_exists_races,
+                'can_save': season_destiny.rounds >= (season_destiny_races.count() + len(only_exists_races)),
                 'both_exists_races': both_exists_races,
                 'title': 'Copy races from season {season_slug} > Step 2'.format(season_slug=season),
                 'opts': self.model._meta,
@@ -249,6 +247,15 @@ class SeasonAdmin(CommonTabbedModelAdmin):
             return ''
     print_copy_season.short_description = _('copy season')
     print_copy_season.allow_tags = True
+
+    def print_copy_races(self, obj):
+        if obj.pk:
+            copy_link = reverse("admin:dr27-copy-races", kwargs={'pk': obj.pk})
+            return "<a href='{link}'>{copy_text}</a>".format(link=copy_link, copy_text=_('Copy Race'))
+        else:
+            return ''
+    print_copy_races.short_description = _('copy races')
+    print_copy_races.allow_tags = True
 
     def get_urls(self, *args, **kwargs):
         urls = super(SeasonAdmin, self).get_urls(*args, **kwargs)

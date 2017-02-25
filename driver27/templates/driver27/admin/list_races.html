@@ -11,7 +11,7 @@
             <td>{{ race.grand_prix }}</td>
             <td>{{ race.circuit }}</td>
         </tr>
-            {% if ok %}
+            {% if ok and can_save %}
                 <input type="hidden" name="races" value="{{ race.pk }}">
             {% endif %}
         {% endfor %}
