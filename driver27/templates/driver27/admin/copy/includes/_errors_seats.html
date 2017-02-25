@@ -1,0 +1,10 @@
+{% if not not_exists or not can_save or no_destiny %}
+    <ul class="errorlist">
+        <li>No seats can be copied</li>
+        {% if no_destiny %}
+        <li>
+            No destination season selected
+        </li>
+        {% endif %}
+    </ul>
+{% endif %}

@@ -162,6 +162,50 @@ class Seat(models.Model):
             )
         super(Seat, self).clean()
 
+    @staticmethod
+    def bulk_copy(seats_pk, season_pk):
+        seats = Seat.objects.filter(pk__in=seats_pk)
+
+        for seat in seats:
+            SeatSeason.objects.create(
+                seat=seat,
+                season_id=season_pk,
+            )
+
+    @staticmethod
+    def check_list_in_season(seats_pk, season_pk):
+        seats_pk = list(map(int, seats_pk))
+        seats = Seat.objects.filter(pk__in=seats_pk)
+
+        season = Season.objects.get(pk=season_pk)
+        season_teams_pk = list(season.teams.values_list('pk', flat=True))
+        season_seats_pk = list(season.seats.values_list('pk', flat=True))
+
+        not_exists = lr_diff(seats_pk, season_seats_pk)
+        both_exists = lr_intr(seats_pk, season_seats_pk)
+
+        not_exists_seats = []
+        conditional_seats = []
+        both_exists_seats = []
+
+        for seat in seats:
+            if seat.pk in both_exists:
+                both_exists_seats.append(seat)
+            elif seat.team.pk not in season_teams_pk:
+                conditional_seats.append(seat)
+            else:
+                not_exists_seats.append(seat)
+
+        can_save = True
+
+        return {
+            'not_exists': not_exists_seats,
+            'both_exists': both_exists_seats,
+            'conditional_exists': conditional_seats,
+            'can_save': can_save,
+            'season_info': season
+        }
+
     def __str__(self):
         return _('%(driver)s in %(team)s/%(competition)s') \
                % {'driver': self.contender.driver, 'team': self.team,

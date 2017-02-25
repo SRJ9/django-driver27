@@ -1,5 +1,5 @@
 {% load i18n %}
-<label for="season_destiny">Select season where we'll copy the teams</label>
+<label for="season_destiny">Select season where we'll copy the seats</label>
 {% for available_season in available_seasons %}
      <br/><input type="radio" name="season_destiny" value="{{ available_season.pk }}">
         {{ available_season }}
@@ -11,16 +11,16 @@
             <th>
     <input type="checkbox" id="select-all" value="1"/> <label for="select-all">{% trans 'all' %}</label>
             </th>
+            <th>Contender</th>
             <th>Team</th>
-            <th>Country</th>
         </tr>
     </thead>
     <tbody>
-        {% for team in items %}
+        {% for seat in items %}
             <tr>
-                <td><input type="checkbox" name="items" value="{{ team.pk }}"></td>
-                <td>{{ team.name }}</td>
-                <td>{{ team.country }}</td>
+                <td><input type="checkbox" name="items" value="{{ seat.pk }}"></td>
+                <td>{{ seat.contender.driver }}</td>
+                <td>{{ seat.team }}</td>
             </tr>
         {% endfor %}
     </tbody>

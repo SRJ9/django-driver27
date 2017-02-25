@@ -138,7 +138,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         ('Races', tab_races),
     ]
     readonly_fields = ('print_copy_season',)
-    list_display = ('__str__', 'print_copy_season', 'print_copy_races', 'print_copy_teams')
+    list_display = ('__str__', 'print_copy_season', 'print_copy_races', 'print_copy_teams', 'print_copy_seats')
     list_filter = ('competition',)
 
     def get_season_copy(self, copy_id):
@@ -191,6 +191,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
                         'season_destiny': post_season_destiny,
                         'not_exists': check_list_in_season.get('not_exists'),
                         'both_exists': check_list_in_season.get('both_exists'),
+                        'conditional_exists': check_list_in_season.get('conditional_exists', None),
                         'can_save': check_list_in_season.get('can_save'),
                         'season_destiny_info': check_list_in_season.get('season_info')
                     }
@@ -222,6 +223,9 @@ class SeasonAdmin(CommonTabbedModelAdmin):
     def get_copy_teams(self, request, pk, *args, **kwargs):
         return self.get_copy_item(request, pk, Team, 'teams', *args, **kwargs)
 
+    def get_copy_seats(self, request, pk, *args, **kwargs):
+        return self.get_copy_item(request, pk, Seat, 'seats', *args, **kwargs)
+
     def print_copy_season(self, obj):
         if obj.pk:
             copy_link = reverse("admin:driver27_season_add")
@@ -252,11 +256,21 @@ class SeasonAdmin(CommonTabbedModelAdmin):
     print_copy_teams.short_description = _('copy teams')
     print_copy_teams.allow_tags = True
 
+    def print_copy_seats(self, obj):
+        if obj.pk:
+            copy_link = reverse("admin:dr27-copy-seats", kwargs={'pk': obj.pk})
+            return "<a href='{link}'>{copy_text}</a>".format(link=copy_link, copy_text=_('Copy Seats'))
+        else:
+            return ''
+    print_copy_seats.short_description = _('copy seats')
+    print_copy_seats.allow_tags = True
+
     def get_urls(self, *args, **kwargs):
         urls = super(SeasonAdmin, self).get_urls(*args, **kwargs)
         new_urls = [
             url(r'^(?P<pk>[\d]+)/get_copy_races/$', self.admin_site.admin_view(self.get_copy_races), name='dr27-copy-races'),
-            url(r'^(?P<pk>[\d]+)/get_copy_teams/$', self.admin_site.admin_view(self.get_copy_teams), name='dr27-copy-teams')
+            url(r'^(?P<pk>[\d]+)/get_copy_teams/$', self.admin_site.admin_view(self.get_copy_teams), name='dr27-copy-teams'),
+            url(r'^(?P<pk>[\d]+)/get_copy_seats/$', self.admin_site.admin_view(self.get_copy_seats), name='dr27-copy-seats')
         ] + urls
         return new_urls
 

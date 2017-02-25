@@ -1,0 +1,21 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th>Contender</th>
+            <th>Team</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        {% for seat in seats %}
+        <tr>
+            <td>{{ seat.contender.driver }}</td>
+            <td>{{ seat.team }}</td>
+        </tr>
+            {% if ok and can_save %}
+                <input type="hidden" name="items" value="{{ seat.pk }}">
+            {% endif %}
+        {% endfor %}
+    </tbody>
+
+</table>

@@ -1,0 +1,26 @@
+{% include 'driver27/admin/copy/includes/_errors_seats.html' %}
+
+{% if not_exists %}
+    <h4>Seats that could be saved in {{ season_destiny_info }}</h4>
+    {% with seats=not_exists ok=True can_save=can_save %}
+        {% include 'driver27/admin/copy/list_seats.html' %}
+    {% endwith %}
+{% endif %}
+
+{% if conditional_exists %}
+    <h4>Seats that can not be saved because the team does not belong to {{ season_destiny_info }}</h4>
+    {% with seats=conditional_exists ok=False can_save=can_save %}
+        {% include 'driver27/admin/copy/list_seats.html' %}
+    {% endwith %}
+{% endif %}
+
+{% if both_exists %}
+    <h4>Seats that are already saved in {{ season_destiny_info }}</h4>
+    {% with seats=both_exists ok=False can_save=can_save %}
+        {% include 'driver27/admin/copy/list_seats.html' %}
+    {% endwith %}
+{% endif %}
+
+{% if not_exists or both_exists %}
+    {% include 'driver27/admin/copy/includes/_errors_seats.html' %}
+{% endif %}

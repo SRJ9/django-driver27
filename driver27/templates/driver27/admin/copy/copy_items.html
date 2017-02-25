@@ -7,7 +7,7 @@
 {% load i18n admin_urls %}
 {% block content %}
     <h3>{{ season }}</h3>
-    <form method="POST" id="copy_races_form">
+    <form method="POST" id="copy_form">
         {% csrf_token %}
 
         {% if step == 2 %}
