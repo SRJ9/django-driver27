@@ -45,12 +45,12 @@ class TeamSeasonFormSet(RelatedWithSeasonFormSet):
         delete_checked = False
         if self.is_marked_to_delete(form):
             team_season_obj = form.cleaned_data.get('id')
-            # team_season_obj = self.model.objects.get(pk=team_season_id)
-            team = team_season_obj.team
-            season = team_season_obj.season
-            seat_check = self.model.check_delete_seat_restriction(team=team, season=season)
-            if seat_check:
-                delete_checked = True
+            if team_season_obj:
+                team = team_season_obj.team
+                season = team_season_obj.season
+                seat_check = self.model.check_delete_seat_restriction(team=team, season=season)
+                if seat_check:
+                    delete_checked = True
         return delete_checked
 
     def clean(self):

@@ -1,0 +1,20 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th>Grand Prix</th>
+            <th>Circuit</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for race in races %}
+        <tr>
+            <td>{{ race.grand_prix }}</td>
+            <td>{{ race.circuit }}</td>
+        </tr>
+            {% if ok %}
+                <input type="hidden" name="races" value="{{ race.pk }}">
+            {% endif %}
+        {% endfor %}
+    </tbody>
+
+</table>

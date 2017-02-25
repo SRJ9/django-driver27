@@ -2,6 +2,7 @@ from django.conf.urls import url
 from django.shortcuts import render
 from django.utils.translation import ugettext as _
 from .common import CommonTabbedModelAdmin
+from django.shortcuts import redirect
 from .forms import *
 from .inlines import *
 from ..models import Contender, SeatsSeason
@@ -164,7 +165,79 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         copy_id = request.GET.get('copy')
         if copy_id:
             return self.get_season_copy(copy_id)
- 
+
+    def get_copy_races(self, request, pk, *args, **kwargs):
+        season = Season.objects.get(pk=pk)
+        if request.POST.get('_confirm'):
+            races_pk = request.POST.getlist('races', [])
+            races = Race.objects.filter(pk__in=races_pk)
+
+            post_season_destiny = request.POST.get('season_destiny', None)
+            season_destiny = Season.objects.get(pk=post_season_destiny)
+
+            season_destiny_rounds = season_destiny.rounds
+            season_destiny_races = season_destiny.races.all()
+
+            # todo selector checked:
+            # check available round values
+            # check if can save all races
+            list_races = list(range(1, season_destiny_rounds+1))
+            list_races_exists = list(season_destiny_races.values_list('round', flat=True))
+
+            list_diff = lr_diff(list_races, list_races_exists)
+
+            for index, race in enumerate(races):
+                Race.objects.create(
+                    round= list_diff[index],
+                    season=season_destiny,
+                    grand_prix=race.grand_prix,
+                    circuit=race.circuit,
+                )
+            return redirect('admin:driver27_season_change', season_destiny.pk)
+
+        elif request.POST.get('_selector'):
+            races_pk = request.POST.getlist('races', [])
+            races = Race.objects.filter(pk__in=races_pk)
+            races_gp = races.values_list('grand_prix_id', flat=True)
+
+            post_season_destiny = request.POST.get('season_destiny', None)
+            season_destiny = Season.objects.get(pk=post_season_destiny)
+            season_destiny_gp = Race.objects.filter(season=season_destiny).values_list('grand_prix_id', flat=True)
+
+            only_exists_from = lr_diff(races_gp,season_destiny_gp)
+            both_exists = lr_intr(races_gp,season_destiny_gp)
+
+            only_exists_races = [race for race in races if race.grand_prix_id in only_exists_from]
+            both_exists_races = [race for race in races if race.grand_prix_id in both_exists]
+
+            context = {
+                'season': season,
+                'season_destiny': season_destiny,
+                'only_exists_races': only_exists_races,
+                'both_exists_races': both_exists_races,
+                'title': 'Copy races from season {season_slug} > Step 2'.format(season_slug=season),
+                'opts': self.model._meta,
+                'app_label': self.model._meta.app_label,
+                'change': True,
+                'step': 2
+            }
+        else:
+            races = season.races.all()
+            available_seasons = Season.objects.filter(competition=season.competition).exclude(pk=pk)
+
+            context = {
+                'season': season,
+                'races': races,
+                'available_seasons':  available_seasons,
+                'title': 'Copy races from season {season_slug}'.format(season_slug=season),
+                'opts': self.model._meta,
+                'app_label': self.model._meta.app_label,
+                'change': True,
+                'step': 1
+            }
+
+        return render(request, 'driver27/admin/copy_races.html', context)
+
     def print_copy_season(self, obj):
         if obj.pk:
             copy_link = reverse("admin:driver27_season_add")
@@ -176,6 +249,13 @@ class SeasonAdmin(CommonTabbedModelAdmin):
             return ''
     print_copy_season.short_description = _('copy season')
     print_copy_season.allow_tags = True
+
+    def get_urls(self, *args, **kwargs):
+        urls = super(SeasonAdmin, self).get_urls(*args, **kwargs)
+        new_urls = [
+            url(r'^(?P<pk>[\d]+)/get_copy_races/$', self.admin_site.admin_view(self.get_copy_races), name='dr27-copy-races')
+        ] + urls
+        return new_urls
 
 
 class RaceAdmin(CommonTabbedModelAdmin):
