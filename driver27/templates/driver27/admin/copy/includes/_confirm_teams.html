@@ -1,0 +1,19 @@
+{% include 'driver27/admin/copy/includes/_errors_teams.html' %}
+
+{% if not_exists %}
+    <h4>Teams that could be saved in {{ season_destiny_info }}</h4>
+    {% with teams=not_exists ok=True can_save=can_save %}
+        {% include 'driver27/admin/copy/list_teams.html' %}
+    {% endwith %}
+{% endif %}
+
+{% if both_exists %}
+    <h4>Teams that are already saved in {{ season_destiny_info }}</h4>
+    {% with teams=both_exists ok=False can_save=can_save %}
+        {% include 'driver27/admin/copy/list_teams.html' %}
+    {% endwith %}
+{% endif %}
+
+{% if not_exists or both_exists %}
+    {% include 'driver27/admin/copy/includes/_errors_teams.html' %}
+{% endif %}

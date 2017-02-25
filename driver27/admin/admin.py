@@ -8,14 +8,7 @@ from .inlines import *
 from ..models import Contender, SeatsSeason
 from ..models import ContenderSeason
 from ..models import Driver, Competition, Circuit, Season, Result
-
-
-def lr_diff(l, r):
-    return list(set(l).difference(r))
-
-
-def lr_intr(l, r):
-    return list(set(l).intersection(r))
+from .. import lr_diff, lr_intr
 
 
 class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
@@ -166,35 +159,16 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         if copy_id:
             return self.get_season_copy(copy_id)
 
-    def get_copy_races(self, request, pk, *args, **kwargs):
+
+    def get_copy_item(self, request, pk, item_cls, items_plural, *args, **kwargs):
         season = Season.objects.get(pk=pk)
         if request.POST.get('_confirm'):
-            races_pk = request.POST.getlist('races', [])
-            races = Race.objects.filter(pk__in=races_pk)
-
+            post_items_pk = request.POST.getlist('items', [])
             post_season_destiny = request.POST.get('season_destiny', None)
-            season_destiny = Season.objects.get(pk=post_season_destiny)
-
-            season_destiny_rounds = season_destiny.rounds
-            season_destiny_races = season_destiny.races.all()
-
-            list_races = list(range(1, season_destiny_rounds+1))
-            list_races_exists = list(season_destiny_races.values_list('round', flat=True))
-            list_diff = lr_diff(list_races, list_races_exists)
-
-            for index, race in enumerate(races):
-                Race.objects.create(
-                    round= list_diff[index],
-                    season=season_destiny,
-                    grand_prix=race.grand_prix,
-                    circuit=race.circuit,
-                )
-            return redirect('admin:driver27_season_change', season_destiny.pk)
+            item_cls.bulk_copy(post_items_pk, post_season_destiny)
+            return redirect('admin:driver27_season_change', post_season_destiny)
 
         elif request.POST.get('_selector'):
-            races_pk = request.POST.getlist('races', [])
-            races = Race.objects.filter(pk__in=races_pk)
-            races_gp = list(races.values_list('grand_prix_id', flat=True))
 
             post_season_destiny = request.POST.get('season_destiny', None)
             context = {
@@ -202,116 +176,51 @@ class SeasonAdmin(CommonTabbedModelAdmin):
                 'opts': self.model._meta,
                 'app_label': self.model._meta.app_label,
                 'change': True,
-                'title': 'Copy races from season {season_slug} > Step 2'.format(season_slug=season),
+                'items_plural': items_plural,
+                'title': 'Copy {items_plural} from season {season_slug} > Step 2'.format(items_plural=items_plural,
+                                                                               season_slug=season),
                 'step': 2
             }
             if post_season_destiny:
-                season_destiny = Season.objects.get(pk=post_season_destiny)
-                season_destiny_races = season_destiny.races.all()
-                season_destiny_gp = list(season_destiny_races.values_list('grand_prix_id', flat=True))
+                post_items_pk = request.POST.getlist('items', [])
+                check_list_in_season = item_cls.check_list_in_season(post_items_pk, post_season_destiny)
 
-                only_exists_from = lr_diff(races_gp,season_destiny_gp)
-                both_exists = lr_intr(races_gp,season_destiny_gp)
-
-                only_exists_races = [race for race in races if race.grand_prix_id in only_exists_from]
-                both_exists_races = [race for race in races if race.grand_prix_id in both_exists]
 
                 context.update(
                     {
-                        'season_destiny': season_destiny,
-                        'only_exists_races': only_exists_races,
-                        'can_save': season_destiny.rounds >= (season_destiny_races.count() + len(only_exists_races)),
-                        'both_exists_races': both_exists_races,
+                        'season_destiny': post_season_destiny,
+                        'not_exists': check_list_in_season.get('not_exists'),
+                        'both_exists': check_list_in_season.get('both_exists'),
+                        'can_save': check_list_in_season.get('can_save'),
+                        'season_destiny_info': check_list_in_season.get('season_info')
                     }
                 )
             else:
                 context['no_destiny'] = True;
         else:
-            races = season.races.all()
+            items = getattr(season, items_plural).all()
             available_seasons = Season.objects.filter(competition=season.competition).exclude(pk=pk)
 
             context = {
                 'season': season,
-                'races': races,
+                'items': items,
                 'available_seasons':  available_seasons,
-                'title': 'Copy races from season {season_slug}'.format(season_slug=season),
                 'opts': self.model._meta,
                 'app_label': self.model._meta.app_label,
                 'change': True,
+                'items_plural': items_plural,
+                'title': 'Copy {items_plural} from season {season_slug}'.format(items_plural=items_plural,
+                                                                               season_slug=season),
                 'step': 1
             }
 
-        return render(request, 'driver27/admin/copy_races.html', context)
+        return render(request, 'driver27/admin/copy/copy_items.html', context)
 
-    # todo refactor
+    def get_copy_races(self, request, pk, *args, **kwargs):
+        return self.get_copy_item(request, pk, Race, 'races', *args, **kwargs)
+
     def get_copy_teams(self, request, pk, *args, **kwargs):
-        season = Season.objects.get(pk=pk)
-        if request.POST.get('_confirm'):
-            teams_pk = request.POST.getlist('teams', [])
-            teams = Team.objects.filter(pk__in=teams_pk)
-
-            post_season_destiny = request.POST.get('season_destiny', None)
-            season_destiny = Season.objects.get(pk=post_season_destiny)
-
-            for team in teams:
-                TeamSeason.objects.create(
-                    team=team,
-                    season=season_destiny,
-                )
-            return redirect('admin:driver27_season_change', season_destiny.pk)
-
-        elif request.POST.get('_selector'):
-            post_teams_pk = request.POST.getlist('teams', [])
-            teams_pk = list(map(int, post_teams_pk))
-            teams = Team.objects.filter(pk__in=teams_pk)
-            # teams_pk = (teams.values_list('pk', flat=True))
-
-            post_season_destiny = request.POST.get('season_destiny', None)
-            context = {
-                'season': season,
-                'opts': self.model._meta,
-                'app_label': self.model._meta.app_label,
-                'change': True,
-                'title': 'Copy teams from season {season_slug} > Step 2'.format(season_slug=season),
-                'step': 2
-            }
-            if post_season_destiny:
-                season_destiny = Season.objects.get(pk=post_season_destiny)
-                season_destiny_teams = season_destiny.teams.all()
-                season_destiny_teams_pk = list(season_destiny_teams.values_list('pk', flat=True))
-
-                only_exists_from = lr_diff(teams_pk, season_destiny_teams_pk)
-                both_exists = lr_intr(teams_pk, season_destiny_teams_pk)
-
-                only_exists_teams = [team for team in teams if team.pk in only_exists_from]
-                both_exists_teams = [team for team in teams if team.pk in both_exists]
-
-                context.update(
-                    {
-                        'season_destiny': season_destiny,
-                        'only_exists_teams': only_exists_teams,
-                        'both_exists_teams': both_exists_teams,
-                        'can_save': True,
-                    }
-                )
-            else:
-                context['no_destiny'] = True;
-        else:
-            teams = season.teams.all()
-            available_seasons = Season.objects.filter(competition=season.competition).exclude(pk=pk)
-
-            context = {
-                'season': season,
-                'teams': teams,
-                'available_seasons': available_seasons,
-                'title': 'Copy team from season {season_slug}'.format(season_slug=season),
-                'opts': self.model._meta,
-                'app_label': self.model._meta.app_label,
-                'change': True,
-                'step': 1
-            }
-
-        return render(request, 'driver27/admin/copy_teams.html', context)
+        return self.get_copy_item(request, pk, Team, 'teams', *args, **kwargs)
 
     def print_copy_season(self, obj):
         if obj.pk:

@@ -1,0 +1,58 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_static admin_modify admin_urls %}
+
+
+{% include 'driver27/admin/copy/includes/_breadcrumbs.html' %}
+
+{% load i18n admin_urls %}
+{% block content %}
+    <h3>{{ season }}</h3>
+    <form method="POST" id="copy_races_form">
+        {% csrf_token %}
+
+        {% if step == 2 %}
+            {% include 'driver27/admin/copy/confirm.html' %}
+
+            <div class="submit-row">
+                {% if not_exists and can_save %}
+                    <input type="hidden" name="season_destiny" value="{{ season_destiny_info.pk }}"/>
+                    <input type="submit" name="_confirm" value="Confirm"/>
+                {% endif %}
+                {% include 'driver27/admin/copy/back_step1.html' %}
+            </div>
+
+
+
+        {% else %}
+
+            {% if available_seasons and items %}
+
+                {% include 'driver27/admin/copy/selector.html' %}
+                <input type="submit" name="_selector" value="Next step"/>
+            {% else %}
+                No items or no available seasons
+                <div class="submit-row">
+                <p class="deletelink-box">
+                    <a href="{% url 'admin:driver27_season_change' season.pk %}" class="deletelink">Back to Season {{ season }}</a>
+                </p>
+                </div>
+            {% endif %}
+
+
+        {% endif %}
+
+    </form>
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $('#select-all').click(function() {
+                var c = this.checked;
+                $('input[name="items"]').prop('checked',c);
+            });
+        });
+    </script>
+{% endblock %}

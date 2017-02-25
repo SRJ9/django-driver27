@@ -1,0 +1,19 @@
+{% include 'driver27/admin/copy/includes/_errors_races.html' %}
+
+{% if not_exists %}
+    <h4>Races that could be saved in {{ season_destiny_info }} if the limit is not exceeded</h4>
+    {% with races=not_exists ok=True can_save=can_save %}
+        {% include 'driver27/admin/copy/list_races.html' %}
+    {% endwith %}
+{% endif %}
+
+{% if both_exists %}
+    <h4>Races that are already saved in {{ season_destiny_info }}</h4>
+    {% with races=both_exists ok=False can_save=can_save %}
+        {% include 'driver27/admin/copy/list_races.html' %}
+    {% endwith %}
+{% endif %}
+
+{% if not_exists or both_exists %}
+    {% include 'driver27/admin/copy/includes/_errors_races.html' %}
+{% endif %}

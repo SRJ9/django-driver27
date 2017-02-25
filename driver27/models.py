@@ -12,6 +12,7 @@ from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField
 from swapfield.fields import SwapIntegerField
+from . import lr_intr, lr_diff
 
 
 @python_2_unicode_compatible
@@ -99,6 +100,39 @@ class Team(models.Model):
     full_name = models.CharField(max_length=200, unique=True, verbose_name=_('full name'))
     competitions = models.ManyToManyField('Competition', related_name='teams', verbose_name=_('competitions'))
     country = CountryField(verbose_name=_('country'))
+
+    @staticmethod
+    def bulk_copy(teams_pk, season_pk):
+        teams = Team.objects.filter(pk__in=teams_pk)
+
+        for team in teams:
+            TeamSeason.objects.create(
+                team=team,
+                season_id=season_pk,
+            )
+
+    @staticmethod
+    def check_list_in_season(teams_pk, season_pk):
+        teams_pk = list(map(int, teams_pk))
+        teams = Team.objects.filter(pk__in=teams_pk)
+        season = Season.objects.get(pk=season_pk)
+        season_teams_pk = list(season.teams.values_list('pk', flat=True))
+
+        not_exists = lr_diff(teams_pk, season_teams_pk)
+        both_exists = lr_intr(teams_pk, season_teams_pk)
+
+        not_exists_teams = [team for team in teams if team.pk in not_exists]
+        both_exists_teams = [team for team in teams if team.pk in both_exists]
+
+        can_save = True
+
+
+        return {
+            'not_exists': not_exists_teams,
+            'both_exists': both_exists_teams,
+            'can_save': can_save,
+            'season_info': season
+        }
 
     def __str__(self):
         return self.name
@@ -414,6 +448,54 @@ class Race(models.Model):
     def fastest(self):
         """ get_result_seat(fastest) """
         return self.get_result_seat(fastest_lap=True)
+
+    @staticmethod
+    def bulk_copy(races_pk, season_pk):
+        races = Race.objects.filter(pk__in=races_pk)
+        season = Season.objects.get(pk=season_pk)
+
+        season_rounds = season.rounds
+        season_races = season.races.all()
+
+        # As the value of race.round is limited from 1 to season.rounds value,
+        # we will find the values available for the races that we are going to incorporate.
+        season_rounds_range = list(range(1, season_rounds + 1))
+        season_unavailable_rounds = list(season_races.values_list('round', flat=True))
+        season_available_rounds = lr_diff(season_rounds_range, season_unavailable_rounds)
+
+        for index, race in enumerate(races):
+            # copy the grand_prix and circuit for each original race
+            # and set round value between the available values
+            Race.objects.create(
+                round=season_available_rounds[index],
+                season=season,
+                grand_prix=race.grand_prix,
+                circuit=race.circuit,
+            )
+
+    @staticmethod
+    def check_list_in_season(races_pk, season_pk):
+        # To consider that a race is included in a season, the grand prize has to be in it.
+        races = Race.objects.filter(pk__in=races_pk)
+        races_gp = list(races.values_list('grand_prix_id', flat=True))
+
+        season = Season.objects.get(pk=season_pk)
+        season_races = season.races.all()
+        season_races_gp = list(season_races.values_list('grand_prix_id', flat=True))
+
+        not_exists = lr_diff(races_gp, season_races_gp)
+        both_exists = lr_intr(races_gp, season_races_gp)
+
+        not_exists_races = [race for race in races if race.grand_prix_id in not_exists]
+        both_exists_races = [race for race in races if race.grand_prix_id in both_exists]
+        can_save = season.rounds >= (season_races.count() + len(not_exists_races))
+
+        return {
+            'not_exists': not_exists_races,
+            'both_exists': both_exists_races,
+            'can_save': can_save,
+            'season_info': season
+        }
 
     def __str__(self):
         race_str = '{season}-{round}'.format(season=self.season, round=self.round)

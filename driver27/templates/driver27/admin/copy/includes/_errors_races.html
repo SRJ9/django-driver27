@@ -1,11 +1,11 @@
-{% if not only_exists_races or not can_save %}
+{% if not not_exists or not can_save or no_destiny %}
     <ul class="errorlist">
         <li>No race can be copied
             {% if season_destiny and not can_save %}
-                because limit races in {{ season_destiny }} is {{ season_destiny.rounds }} races and if they were all saved, it would be exceeded.
+                because limit races in {{ season_destiny_info }} is {{ season_destiny_info.rounds }} races and if they were all saved, it would be exceeded.
             {% endif %}
         </li>
-        {% if not season_destiny %}
+        {% if no_destiny %}
         <li>
             No destination season selected
         </li>

@@ -1,0 +1,31 @@
+{% load i18n %}
+<label for="season_destiny">Select season where we'll copy the races</label>
+{% for available_season in available_seasons %}
+     <br/><input type="radio" name="season_destiny" value="{{ available_season.pk }}">
+        {{ available_season }}
+{% endfor %}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+    <input type="checkbox" id="select-all" value="1"/> <label for="select-all">{% trans 'all' %}</label>
+            </th>
+            <th>Round</th>
+            <th>Grand Prix</th>
+            <th>Circuit</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for race in items %}
+            <tr>
+                <td><input type="checkbox" name="items" value="{{ race.pk }}"></td>
+                <td>{{ race.round }}</td>
+                <td>{{ race.grand_prix }}</td>
+                <td>{{ race.circuit }}</td>
+                <td>{{ race.date }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
