@@ -197,28 +197,35 @@ class SeasonAdmin(CommonTabbedModelAdmin):
             races_gp = races.values_list('grand_prix_id', flat=True)
 
             post_season_destiny = request.POST.get('season_destiny', None)
-            season_destiny = Season.objects.get(pk=post_season_destiny)
-            season_destiny_races = season_destiny.races.all()
-            season_destiny_gp = season_destiny_races.values_list('grand_prix_id', flat=True)
-
-            only_exists_from = lr_diff(races_gp,season_destiny_gp)
-            both_exists = lr_intr(races_gp,season_destiny_gp)
-
-            only_exists_races = [race for race in races if race.grand_prix_id in only_exists_from]
-            both_exists_races = [race for race in races if race.grand_prix_id in both_exists]
-
             context = {
                 'season': season,
-                'season_destiny': season_destiny,
-                'only_exists_races': only_exists_races,
-                'can_save': season_destiny.rounds >= (season_destiny_races.count() + len(only_exists_races)),
-                'both_exists_races': both_exists_races,
-                'title': 'Copy races from season {season_slug} > Step 2'.format(season_slug=season),
                 'opts': self.model._meta,
                 'app_label': self.model._meta.app_label,
                 'change': True,
+                'title': 'Copy races from season {season_slug} > Step 2'.format(season_slug=season),
                 'step': 2
             }
+            if post_season_destiny:
+                season_destiny = Season.objects.get(pk=post_season_destiny)
+                season_destiny_races = season_destiny.races.all()
+                season_destiny_gp = season_destiny_races.values_list('grand_prix_id', flat=True)
+
+                only_exists_from = lr_diff(races_gp,season_destiny_gp)
+                both_exists = lr_intr(races_gp,season_destiny_gp)
+
+                only_exists_races = [race for race in races if race.grand_prix_id in only_exists_from]
+                both_exists_races = [race for race in races if race.grand_prix_id in both_exists]
+
+                context.update(
+                    {
+                        'season_destiny': season_destiny,
+                        'only_exists_races': only_exists_races,
+                        'can_save': season_destiny.rounds >= (season_destiny_races.count() + len(only_exists_races)),
+                        'both_exists_races': both_exists_races,
+                    }
+                )
+            else:
+                context['no_destiny'] = True;
         else:
             races = season.races.all()
             available_seasons = Season.objects.filter(competition=season.competition).exclude(pk=pk)

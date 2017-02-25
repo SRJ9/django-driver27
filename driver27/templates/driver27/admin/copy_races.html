@@ -35,7 +35,10 @@
                 {% endwith %}
             {% endif %}
 
-            {% include 'driver27/admin/copy_races_errors.html' %}
+            {% if season_destiny %}
+                {% include 'driver27/admin/copy_races_errors.html' %}
+            {% endif %}
+
             <div class="submit-row">
                 {% if only_exists_races and can_save %}
                     <input type="hidden" name="season_destiny" value="{{ season_destiny.pk }}"/>
