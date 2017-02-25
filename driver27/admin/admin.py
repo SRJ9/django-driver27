@@ -145,7 +145,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         ('Races', tab_races),
     ]
     readonly_fields = ('print_copy_season',)
-    list_display = ('__str__', 'print_copy_season', 'print_copy_races',)
+    list_display = ('__str__', 'print_copy_season', 'print_copy_races', 'print_copy_teams')
     list_filter = ('competition',)
 
     def get_season_copy(self, copy_id):
@@ -194,7 +194,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         elif request.POST.get('_selector'):
             races_pk = request.POST.getlist('races', [])
             races = Race.objects.filter(pk__in=races_pk)
-            races_gp = races.values_list('grand_prix_id', flat=True)
+            races_gp = list(races.values_list('grand_prix_id', flat=True))
 
             post_season_destiny = request.POST.get('season_destiny', None)
             context = {
@@ -208,7 +208,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
             if post_season_destiny:
                 season_destiny = Season.objects.get(pk=post_season_destiny)
                 season_destiny_races = season_destiny.races.all()
-                season_destiny_gp = season_destiny_races.values_list('grand_prix_id', flat=True)
+                season_destiny_gp = list(season_destiny_races.values_list('grand_prix_id', flat=True))
 
                 only_exists_from = lr_diff(races_gp,season_destiny_gp)
                 both_exists = lr_intr(races_gp,season_destiny_gp)
@@ -243,6 +243,76 @@ class SeasonAdmin(CommonTabbedModelAdmin):
 
         return render(request, 'driver27/admin/copy_races.html', context)
 
+    # todo refactor
+    def get_copy_teams(self, request, pk, *args, **kwargs):
+        season = Season.objects.get(pk=pk)
+        if request.POST.get('_confirm'):
+            teams_pk = request.POST.getlist('teams', [])
+            teams = Team.objects.filter(pk__in=teams_pk)
+
+            post_season_destiny = request.POST.get('season_destiny', None)
+            season_destiny = Season.objects.get(pk=post_season_destiny)
+
+            for team in teams:
+                TeamSeason.objects.create(
+                    team=team,
+                    season=season_destiny,
+                )
+            return redirect('admin:driver27_season_change', season_destiny.pk)
+
+        elif request.POST.get('_selector'):
+            post_teams_pk = request.POST.getlist('teams', [])
+            teams_pk = list(map(int, post_teams_pk))
+            teams = Team.objects.filter(pk__in=teams_pk)
+            # teams_pk = (teams.values_list('pk', flat=True))
+
+            post_season_destiny = request.POST.get('season_destiny', None)
+            context = {
+                'season': season,
+                'opts': self.model._meta,
+                'app_label': self.model._meta.app_label,
+                'change': True,
+                'title': 'Copy teams from season {season_slug} > Step 2'.format(season_slug=season),
+                'step': 2
+            }
+            if post_season_destiny:
+                season_destiny = Season.objects.get(pk=post_season_destiny)
+                season_destiny_teams = season_destiny.teams.all()
+                season_destiny_teams_pk = list(season_destiny_teams.values_list('pk', flat=True))
+
+                only_exists_from = lr_diff(teams_pk, season_destiny_teams_pk)
+                both_exists = lr_intr(teams_pk, season_destiny_teams_pk)
+
+                only_exists_teams = [team for team in teams if team.pk in only_exists_from]
+                both_exists_teams = [team for team in teams if team.pk in both_exists]
+
+                context.update(
+                    {
+                        'season_destiny': season_destiny,
+                        'only_exists_teams': only_exists_teams,
+                        'both_exists_teams': both_exists_teams,
+                        'can_save': True,
+                    }
+                )
+            else:
+                context['no_destiny'] = True;
+        else:
+            teams = season.teams.all()
+            available_seasons = Season.objects.filter(competition=season.competition).exclude(pk=pk)
+
+            context = {
+                'season': season,
+                'teams': teams,
+                'available_seasons': available_seasons,
+                'title': 'Copy team from season {season_slug}'.format(season_slug=season),
+                'opts': self.model._meta,
+                'app_label': self.model._meta.app_label,
+                'change': True,
+                'step': 1
+            }
+
+        return render(request, 'driver27/admin/copy_teams.html', context)
+
     def print_copy_season(self, obj):
         if obj.pk:
             copy_link = reverse("admin:driver27_season_add")
@@ -258,16 +328,26 @@ class SeasonAdmin(CommonTabbedModelAdmin):
     def print_copy_races(self, obj):
         if obj.pk:
             copy_link = reverse("admin:dr27-copy-races", kwargs={'pk': obj.pk})
-            return "<a href='{link}'>{copy_text}</a>".format(link=copy_link, copy_text=_('Copy Race'))
+            return "<a href='{link}'>{copy_text}</a>".format(link=copy_link, copy_text=_('Copy Races'))
         else:
             return ''
     print_copy_races.short_description = _('copy races')
     print_copy_races.allow_tags = True
 
+    def print_copy_teams(self, obj):
+        if obj.pk:
+            copy_link = reverse("admin:dr27-copy-teams", kwargs={'pk': obj.pk})
+            return "<a href='{link}'>{copy_text}</a>".format(link=copy_link, copy_text=_('Copy Teams'))
+        else:
+            return ''
+    print_copy_teams.short_description = _('copy teams')
+    print_copy_teams.allow_tags = True
+
     def get_urls(self, *args, **kwargs):
         urls = super(SeasonAdmin, self).get_urls(*args, **kwargs)
         new_urls = [
-            url(r'^(?P<pk>[\d]+)/get_copy_races/$', self.admin_site.admin_view(self.get_copy_races), name='dr27-copy-races')
+            url(r'^(?P<pk>[\d]+)/get_copy_races/$', self.admin_site.admin_view(self.get_copy_races), name='dr27-copy-races'),
+            url(r'^(?P<pk>[\d]+)/get_copy_teams/$', self.admin_site.admin_view(self.get_copy_teams), name='dr27-copy-teams')
         ] + urls
         return new_urls
 

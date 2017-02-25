@@ -1,43 +1,42 @@
 {% extends "admin/change_form.html" %}
 {% load i18n admin_static admin_modify admin_urls %}
 
-
 {% include 'driver27/admin/_breadcrumbs.html' %}
 
 {% load i18n admin_urls %}
 {% block content %}
     <h3>{{ season }}</h3>
-    <form method="POST" id="copy_races_form">
+    <form method="POST" id="copy_teams_form">
         {% csrf_token %}
 
         {% if step == 2 %}
-            {% include 'driver27/admin/copy_races_errors.html' %}
+            {% include 'driver27/admin/copy_teams_errors.html' %}
 
-            {% if only_exists_races %}
-                <h4>Races that could be saved in {{ season_destiny }} if the limit is not exceeded</h4>
-                {% with races=only_exists_races ok=True can_save=can_save %}
-                    {% include 'driver27/admin/list_races.html' %}
+            {% if only_exists_teams %}
+                <h4>Teams that could be saved in {{ season_destiny }}</h4>
+                {% with teams=only_exists_teams ok=True can_save=can_save %}
+                    {% include 'driver27/admin/list_teams.html' %}
                 {% endwith %}
             {% endif %}
 
-            {% if both_exists_races %}
-                <h4>Races that are already saved in {{ season_destiny }}</h4>
-                {% with races=both_exists_races ok=False can_save=can_save %}
-                    {% include 'driver27/admin/list_races.html' %}
+            {% if both_exists_teams %}
+                <h4>Teams that are already saved in {{ season_destiny }}</h4>
+                {% with teams=both_exists_teams ok=False can_save=can_save %}
+                    {% include 'driver27/admin/list_teams.html' %}
                 {% endwith %}
             {% endif %}
 
             {% if season_destiny %}
-                {% include 'driver27/admin/copy_races_errors.html' %}
+                {% include 'driver27/admin/copy_teams_errors.html' %}
             {% endif %}
 
             <div class="submit-row">
-                {% if only_exists_races and can_save %}
+                {% if only_exists_teams and can_save %}
                     <input type="hidden" name="season_destiny" value="{{ season_destiny.pk }}"/>
                     <input type="submit" name="_confirm" value="Confirm"/>
                 {% endif %}
                 <p class="deletelink-box">
-                    <a href="{% url 'admin:dr27-copy-races' pk=season.pk %}" class="deletelink">Back to Step 1</a>
+                    <a href="{% url 'admin:dr27-copy-teams' pk=season.pk %}" class="deletelink">Back to Step 1</a>
                 </p>
             </div>
 
@@ -45,41 +44,37 @@
 
         {% else %}
 
-            {% if available_seasons and races %}
+            {% if available_seasons and teams %}
 
-                <label for="season_destiny">Select season where we'll copy the races</label>
+                <label for="season_destiny">Select season where we'll copy the teams</label>
                 {% for available_season in available_seasons %}
                      <br/><input type="radio" name="season_destiny" value="{{ available_season.pk }}">
                         {{ available_season }}
                 {% endfor %}
 
-                <table class="table">
+                <table class="teams">
                     <thead>
                         <tr>
                             <th>
                     <input type="checkbox" id="select-all" value="1"/> <label for="select-all">{% trans 'all' %}</label>
                             </th>
-                            <th>Round</th>
-                            <th>Grand Prix</th>
-                            <th>Circuit</th>
-                            <th>Date</th>
+                            <th>Team</th>
+                            <th>Country</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for race in races %}
+                        {% for team in teams %}
                             <tr>
-                                <td><input type="checkbox" name="races" value="{{ race.pk }}"></td>
-                                <td>{{ race.round }}</td>
-                                <td>{{ race.grand_prix }}</td>
-                                <td>{{ race.circuit }}</td>
-                                <td>{{ race.date }}</td>
+                                <td><input type="checkbox" name="teams" value="{{ team.pk }}"></td>
+                                <td>{{ team.name }}</td>
+                                <td>{{ team.country }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
                 <input type="submit" name="_selector" value="Next step"/>
             {% else %}
-                No races or no available seasons
+                No teams or no available seasons
                 <div class="submit-row">
                 <p class="deletelink-box">
                     <a href="{% url 'admin:driver27_season_change' season.pk %}" class="deletelink">Back to Season {{ season }}</a>
@@ -100,7 +95,7 @@
         $(function() {
             $('#select-all').click(function() {
                 var c = this.checked;
-                $('input[name="races"]').prop('checked',c);
+                $('input[name="teams"]').prop('checked',c);
             });
         });
     </script>

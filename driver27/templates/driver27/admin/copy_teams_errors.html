@@ -1,0 +1,10 @@
+{% if not only_exists_teams or not can_save %}
+    <ul class="errorlist">
+        <li>No teams can be copied</li>
+        {% if not season_destiny %}
+        <li>
+            No destination season selected
+        </li>
+        {% endif %}
+    </ul>
+{% endif %}
