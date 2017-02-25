@@ -1,0 +1,1 @@
+[{"model": "driver27.season", "pk": 1, "fields": {"year": 2016, "competition": 1, "rounds": 21, "punctuation": "F1-25"}}, {"model": "driver27.season", "pk": 2, "fields": {"year": 2016, "competition": 2, "rounds": 18, "punctuation": "MotoGP"}}, {"model": "driver27.season", "pk": 3, "fields": {"year": 2017, "competition": 1, "rounds": 20, "punctuation": "F1-25"}}]

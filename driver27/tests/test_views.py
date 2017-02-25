@@ -34,10 +34,10 @@ def get_fixtures_test():
     if hasattr(settings, 'PYTEST_SETTING') and settings.PYTEST_SETTING:
         return None
     else:
-        return ['circuits-2016.json', 'competition.json', 'drivers-2016.json', 'grands-prix.json',
-                'seasons-2016.json', 'teams-2016.json', 'teams-season.json', 'driver-competition-2016.json',
-                'driver-competition-team-2016.json',
-                'races-2016.json', 'results-2016.json']
+        return ['circuits.json', 'competitions.json', 'drivers.json', 'grands-prix.json',
+                'seasons.json', 'teams.json', 'teams-season.json', 'contenders.json',
+                'seats.json',
+                'races.json', 'results.json']
 
 
 class FixturesTest(TestCase):
