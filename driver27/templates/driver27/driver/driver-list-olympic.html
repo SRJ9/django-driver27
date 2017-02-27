@@ -1,4 +1,5 @@
 {% load champion_filter i18n %}
+{% if rank %}
 <table class="table table-condensed table-striped table-hover">
     <thead>
         <tr>
@@ -21,3 +22,6 @@
     {% endfor %}
 
     </table>
+{% else %}
+    <p>No drivers</p>
+{% endif %}

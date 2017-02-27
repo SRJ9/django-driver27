@@ -1,4 +1,5 @@
 {% load i18n %}
+{% if rank %}
     <table class="table table-condensed table-striped table-hover">
     <tr>
         <th class="col-md-4">{%  trans 'Points' %}</th>
@@ -12,3 +13,6 @@
     {% endfor %}
 
     </table>
+{% else %}
+    <p>No teams</p>
+{% endif %}
