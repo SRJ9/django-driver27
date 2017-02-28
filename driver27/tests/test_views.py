@@ -198,8 +198,8 @@ class ViewTest(FixturesTest):
         season_form = ma.get_form(request=request, obj=season)
         self.assertTrue(ma.print_copy_season(obj=season))
         self.assertIsNotNone(SeasonAdminForm(season_form))
-        request = self.factory.request(QUERY_STRING='copy=1')
-        self.assertTrue(ma.get_changeform_initial_data(request=request))
+        # request = self.factory.request(QUERY_STRING='copy=1')
+        # self.assertTrue(ma.get_changeform_initial_data(request=request))
 
     def test_driver_admin(self):
         ma = DriverAdmin(Driver, self.site)
@@ -233,9 +233,9 @@ class ViewTest(FixturesTest):
 
     def _test_season_formset_copy(self, child_model, formset, fields, data=None):
         inline_formset = self._test_season_formset(child_model, formset, fields)
-        inline_formset.request = self.factory.request(QUERY_STRING='copy=1')
+        # inline_formset.request = self.factory.request(QUERY_STRING='copy=1')
         related_formset = inline_formset(data)
-        self.assertTrue(related_formset.get_copy(copy_id=1))
+        # self.assertTrue(related_formset.get_copy(copy_id=1))
         # self.assertFalse(related_formset.is_empty_form())
         self.assertFalse(related_formset.has_changed())
         return related_formset
@@ -257,7 +257,7 @@ class ViewTest(FixturesTest):
             'teams_season-0-DELETE': True
         }
         formset = self._test_season_formset(TeamSeason, formset=TeamSeasonFormSet, fields=('team', 'season',))
-        formset.request = self.factory.request(QUERY_STRING='copy=1')
+        # formset.request = self.factory.request(QUERY_STRING='copy=1')
         team_season_formset = formset(season_post)
         # Invalid form. Team contains seats in that season.
         self.assertFalse(team_season_formset.is_valid())
