@@ -256,9 +256,10 @@ class ViewTest(FixturesTest):
         seats = [seat.pk for seat in season.seats.all()]
         self._test_copy_items(COPY_SEATS_URL, 'get_copy_seats', new_season, seats)
 
-
-
-
+        ma = SeasonAdmin(Season, self.site)
+        self.assertIn(COPY_RACES_URL, ma.print_copy_races(season))
+        self.assertIn(COPY_TEAMS_URL, ma.print_copy_teams(season))
+        self.assertIn(COPY_SEATS_URL, ma.print_copy_seats(season))
 
     def test_driver_admin(self):
         ma = DriverAdmin(Driver, self.site)
