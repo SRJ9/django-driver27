@@ -197,7 +197,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
                     }
                 )
             else:
-                context['no_destiny'] = True;
+                context['no_destiny'] = True
         else:
             items = getattr(season, items_plural).all()
             available_seasons = Season.objects.filter(competition=season.competition).exclude(pk=pk)

@@ -198,8 +198,50 @@ class ViewTest(FixturesTest):
         season_form = ma.get_form(request=request, obj=season)
         self.assertTrue(ma.print_copy_season(obj=season))
         self.assertIsNotNone(SeasonAdminForm(season_form))
+
+
         # request = self.factory.request(QUERY_STRING='copy=1')
         # self.assertTrue(ma.get_changeform_initial_data(request=request))
+
+    def _test_copy_url(self, COPY_URL, data={}):
+        season = Season.objects.get(pk=1)
+        if data:
+            request = self.factory.post(COPY_URL, data)
+        else:
+            request = self.factory.get(COPY_URL)
+        ma = SeasonAdmin(Season, self.site)
+        ma.get_copy_races(request, season.pk)
+
+    def test_season_copy_races(self):
+        Season.objects.create(
+            competition_id=1,
+            year=2099,
+            punctuation='F1-25',
+            rounds=30
+        )
+        # todo check rounds
+        new_season = Season.objects.get(competition_id=1, year=2099)
+
+        season = Season.objects.get(pk=1)
+        COPY_RACES_URL=reverse('admin:dr27-copy-races', kwargs={'pk': season.pk})
+
+        races = [race.pk for race in season.races.all()]
+
+        self._test_copy_url(COPY_RACES_URL)
+
+        post_destiny = {
+            'season_destiny': new_season.pk,
+            'items': races,
+            '_selector': True
+        }
+
+        self._test_copy_url(COPY_RACES_URL, post_destiny)
+
+        del post_destiny['_selector']
+        post_destiny['_confirm'] = True
+
+
+        self._test_copy_url(COPY_RACES_URL, post_destiny)
 
     def test_driver_admin(self):
         ma = DriverAdmin(Driver, self.site)
@@ -334,3 +376,5 @@ class ViewTest(FixturesTest):
         related_competition = RelatedCompetitionAdmin()
         # maybe exception
         self.assertIsNone(related_competition.print_competitions(race))
+
+
