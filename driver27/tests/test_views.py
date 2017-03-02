@@ -203,16 +203,33 @@ class ViewTest(FixturesTest):
         # request = self.factory.request(QUERY_STRING='copy=1')
         # self.assertTrue(ma.get_changeform_initial_data(request=request))
 
-    def _test_copy_url(self, COPY_URL, data={}):
+    def _test_copy_url(self, COPY_URL, method_to_copy, data=None):
         season = Season.objects.get(pk=1)
         if data:
             request = self.factory.post(COPY_URL, data)
         else:
             request = self.factory.get(COPY_URL)
         ma = SeasonAdmin(Season, self.site)
-        ma.get_copy_races(request, season.pk)
+        getattr(ma, method_to_copy)(request, season.pk)
 
-    def test_season_copy_races(self):
+    def _test_copy_items(self, COPY_URL, method_to_copy, new_season, items):
+        self._test_copy_url(COPY_URL, method_to_copy)
+
+        post_destiny = {
+            'season_destiny': new_season.pk,
+            'items': items,
+            '_selector': True
+        }
+
+        self._test_copy_url(COPY_URL, method_to_copy, post_destiny)
+
+        del post_destiny['_selector']
+        post_destiny['_confirm'] = True
+
+        self._test_copy_url(COPY_URL, method_to_copy, post_destiny)
+
+
+    def test_season_copy_items(self):
         Season.objects.create(
             competition_id=1,
             year=2099,
@@ -223,25 +240,25 @@ class ViewTest(FixturesTest):
         new_season = Season.objects.get(competition_id=1, year=2099)
 
         season = Season.objects.get(pk=1)
+
+        # races
         COPY_RACES_URL=reverse('admin:dr27-copy-races', kwargs={'pk': season.pk})
-
         races = [race.pk for race in season.races.all()]
+        self._test_copy_items(COPY_RACES_URL, 'get_copy_races', new_season, races)
 
-        self._test_copy_url(COPY_RACES_URL)
+        # teams
+        COPY_TEAMS_URL=reverse('admin:dr27-copy-teams', kwargs={'pk': season.pk})
+        teams = [team.pk for team in season.teams.all()]
+        self._test_copy_items(COPY_TEAMS_URL, 'get_copy_teams', new_season, teams)
 
-        post_destiny = {
-            'season_destiny': new_season.pk,
-            'items': races,
-            '_selector': True
-        }
-
-        self._test_copy_url(COPY_RACES_URL, post_destiny)
-
-        del post_destiny['_selector']
-        post_destiny['_confirm'] = True
+        # seats
+        COPY_SEATS_URL=reverse('admin:dr27-copy-seats', kwargs={'pk': season.pk})
+        seats = [seat.pk for seat in season.seats.all()]
+        self._test_copy_items(COPY_SEATS_URL, 'get_copy_seats', new_season, seats)
 
 
-        self._test_copy_url(COPY_RACES_URL, post_destiny)
+
+
 
     def test_driver_admin(self):
         ma = DriverAdmin(Driver, self.site)
