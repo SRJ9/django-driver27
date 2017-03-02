@@ -3,19 +3,22 @@ from rest_framework import viewsets, authentication, permissions, status
 from rest_framework.compat import set_rollback
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as rest_exception_handler
+from collections import namedtuple
 
 
 def get_dict_from_rank_entry(entry):
-    # todo Entry tuple will be a dict in main function
+    RankEntry = namedtuple('RankEntry', 'points driver teams positions_order')
+    rank_entry = RankEntry(*entry)
+
     return {
-        'points': entry[0],
+        'points': rank_entry.points,
         'driver': {
-            'last_name': entry[1].last_name,
-            'first_name': entry[1].first_name,
-            'country': entry[1].country.code
+            'last_name': rank_entry.driver.last_name,
+            'first_name': rank_entry.driver.first_name,
+            'country': rank_entry.driver.country.code
         },
-        'teams': entry[2],
-        'positions_order': entry[3]
+        'teams': rank_entry.teams,
+        'positions_order': rank_entry.positions_order
      }
 
 
