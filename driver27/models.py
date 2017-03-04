@@ -7,12 +7,49 @@ from django.db.models.signals import m2m_changed, pre_save, pre_delete
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
+from .points_calculator import PointsCalculator
 from .punctuation import get_punctuation_config
 from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField
 from swapfield.fields import SwapIntegerField
 from . import lr_intr, lr_diff
+
+from collections import namedtuple
+
+ResultTuple = namedtuple('ResultTuple', 'qualifying finish fastest_lap wildcard alter_punctuation')
+
+
+def get_results(seat=None, contender=None, team=None, race=None, season=None, competition=None, **extra_filters):
+    filter_params = {}
+    if seat:
+        filter_params['seat'] = seat
+    if contender:
+        filter_params['seat__contender'] = contender
+    if team:
+        filter_params['seat__team'] = team
+    if race:
+        filter_params['race'] = race
+    if season:
+        filter_params['race__season'] = season
+    if competition:
+        filter_params['race__season__competition'] = competition
+    filter_params.update(**extra_filters)
+    results = Result.objects.filter(**filter_params)
+    results = results.order_by('race__season', 'race__round')
+    return results
+
+
+def get_results_tuples(seat=None, contender=None, team=None, race=None, season=None, competition=None,
+                       results=None, **extra_filters):
+
+    if not results:
+        results = get_results(seat=seat, contender=contender, team=team, race=race,
+                              season=season, competition=competition, **extra_filters)
+
+    results = results.values_list('qualifying', 'finish', 'fastest_lap', 'wildcard', 'race__alter_punctuation')
+
+    return results
 
 
 @python_2_unicode_compatible
@@ -353,10 +390,7 @@ class Season(models.Model):
     def points_rank(self, scoring_code=None):
         """ Points driver rank. Scoring can be override by scoring_code param """
         contenders = self.contenders()
-        if scoring_code is None or scoring_code == self.punctuation:
-            scoring = None
-        else:
-            scoring = self.get_scoring(scoring_code)
+        scoring = self.get_scoring(scoring_code) if scoring_code and scoring_code != self.punctuation else None
         rank = []
         for contender in contenders:
             contender_season = contender.get_season(self)
@@ -653,37 +687,32 @@ class TeamSeason(models.Model):
         return bool(seats_count)
         # return {'team': _('Seats with %(team)s exists in this season. Delete seats before.' % {'team': team})}
 
-    def get_results(self, limit_races=None):
+    def get_results(self, limit_races=None, **extra_filter):
         """ Return all results of team in season """
-        results = Result.objects.filter(race__season=self.season, seat__team=self.team)
-        if isinstance(limit_races, int):
-            results = results.filter(race__round__lte=limit_races)
-        results = results.order_by('race__round')
-        return results
+        if limit_races:
+            extra_filter['race__round__lte'] = limit_races
+        return get_results(team=self.team, season=self.season, **extra_filter)
 
     def get_races(self, **filters):
         """ Return only race id of team in season """
-        results = self.get_results().filter(**filters)\
+        results = self.get_results(**filters)\
             .values('race').annotate(count_race=models.Count('race'))\
             .order_by()
         return results
 
-    def get_points(self):
-        """ Get points. Exclude wildcards """
-        results = self.get_results().exclude(wildcard=True).order_by('race__round')
-        points_list = [result.points for result in results.all() if result.points is not None]
+    def get_points(self, limit_races=None):
+        results = self.get_results(limit_races=limit_races)
+        points_list = [result.points for result in results if not result.wildcard and result.points is not None]
         return sum(points_list)
 
     def get_filtered_results(self, **filters):
         """ Filter results """
-        results = self.get_results()
-        return results.filter(**filters)
+        return self.get_results(**filters)
 
     def get_filtered_races(self, **filters):
         """ Filter races"""
         # @todo Check if filter in return line is necessary
-        races = self.get_races()
-        return races.filter(**filters)
+        return self.get_races(**filters)
 
     def get_total_races(self, **filters):
         """ Only count 1 by race with any driver in filter """
@@ -813,22 +842,19 @@ class ContenderSeason(object):
         self.teams = Team.objects.filter(seats__in=self.seats)
         self.teams_verbose = ', '.join([team.name for team in self.teams])
 
-    def get_results(self, limit_races=None):
+    def get_results(self, limit_races=None, **extra_filter):
         """ Return results. Can be limited."""
-        results = Result.objects.filter(race__season=self.season, seat__contender=self.contender)
-        if isinstance(limit_races, int):
-            results = results.filter(race__round__lte=limit_races)
-        results = results.order_by('race__round')
-        return results
+        if limit_races:
+            extra_filter['race__round__lte'] = limit_races
+        return get_results(contender=self.contender, season=self.season, **extra_filter)
 
     def get_filtered_results(self, **filters):
         """ Apply filters to contender-season results """
-        results = self.get_results()
-        return results.filter(**filters)
+        return self.get_results(**filters)
 
     def get_stats(self, **filters):
         """ Count 1 by each result """
-        return self.get_filtered_results(**filters).count()
+        return self.get_results(**filters).count()
 
     def get_saved_points(self, limit_races=None):
         results = self.get_results(limit_races=limit_races)
@@ -841,12 +867,13 @@ class ContenderSeason(object):
         if scoring is None:
             points_list = self.get_saved_points(limit_races=limit_races)
         else:
-            results = self.get_results(limit_races=limit_races)
             points_list = []
-            for result in results.all():
-                result_points = result.points_calculator(scoring)
-                if result_points:
-                    points_list.append(result_points)
+            results = self.get_results(limit_races=limit_races)
+            for result in get_results_tuples(results=results):
+                result_tuple = ResultTuple(*result)
+                points = PointsCalculator(scoring).calculator(result_tuple)
+                if points:
+                    points_list.append(points)
         return sum(points_list)
         
     def get_positions_list(self, limit_races=None):
