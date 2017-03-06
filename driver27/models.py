@@ -40,6 +40,11 @@ def get_results(seat=None, contender=None, team=None, race=None, season=None, co
     return results
 
 
+def get_tuple_from_result(result):
+    return ResultTuple(result.qualifying, result.finish, result.fastest_lap,
+                       result.wildcard, result.race.alter_punctuation)
+
+
 def get_results_tuples(seat=None, contender=None, team=None, race=None, season=None, competition=None,
                        results=None, **extra_filters):
 
@@ -305,7 +310,7 @@ class Season(models.Model):
                                    verbose_name=_('teams'))
     punctuation = models.CharField(max_length=20, null=True, default=None, verbose_name=_('punctuation'))
 
-    def get_scoring(self, code=None):
+    def get_punctuation_config(self, code=None):
         """ Getting the punctuation config. Chosen punctuation will be override temporarily by code kwarg """
         if not code:
             code = self.punctuation
@@ -320,8 +325,8 @@ class Season(models.Model):
     def pending_points(self):
         """ Return the maximum of available points taking into account the number of pending races"""
         # @todo fastest_lap and pole points are not counted
-        scoring = self.get_scoring()
-        max_score_by_race = sorted(scoring['finish'], reverse=True)[0]
+        punctuation_config = self.get_punctuation_config()
+        max_score_by_race = sorted(punctuation_config.get('finish'), reverse=True)[0]
         pending_races = self.pending_races()
         return pending_races * max_score_by_race
 
@@ -390,11 +395,11 @@ class Season(models.Model):
     def points_rank(self, scoring_code=None):
         """ Points driver rank. Scoring can be override by scoring_code param """
         contenders = self.contenders()
-        scoring = self.get_scoring(scoring_code) if scoring_code and scoring_code != self.punctuation else None
+        punctuation_config = self.get_punctuation_config(scoring_code) if scoring_code and scoring_code != self.punctuation else None
         rank = []
         for contender in contenders:
             contender_season = contender.get_season(self)
-            rank.append((contender_season.get_points(scoring=scoring), contender.driver, contender_season.teams_verbose,
+            rank.append((contender_season.get_points(punctuation_config=punctuation_config), contender.driver, contender_season.teams_verbose,
                          contender_season.get_positions_str()))
         rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
         return rank
@@ -777,38 +782,14 @@ class Result(models.Model):
     def team(self):
         return self.seat.team
 
-    def _get_fastest_lap_points(self, scoring):
-        """ Return fastest_lap point if fastest lap is scoring and driver get fastest lap """
-        if 'fastest_lap' in scoring and self.fastest_lap:
-            return scoring['fastest_lap']
-        else:
-            return 0
-
-    def _get_race_points(self, scoring):
-        """ Return race points with factor depending of alter_punctuation field"""
-        race = self.race
-        points_factor = {'double': 2, 'half': 0.5}
-        factor = points_factor[race.alter_punctuation] if race.alter_punctuation in points_factor else 1
-        points_scoring = sorted(scoring['finish'], reverse=True)
-        if self.finish:
-            scoring_len = len(points_scoring)
-            if not self.finish > scoring_len:
-                return points_scoring[self.finish - 1] * factor
-        return 0
-
-    def points_calculator(self, scoring):
-        """ Return points. Scoring can be the season scoring or scoring param"""
-        points = 0
-        if not scoring:
-            scoring = self.race.season.get_scoring()
-        points += self._get_fastest_lap_points(scoring)
-        points += self._get_race_points(scoring)
-        return points if points > 0 else None
+    def points_calculator(self, punctuation_config):
+        result_tuple = get_tuple_from_result(self)
+        return PointsCalculator(punctuation_config).calculator(result_tuple)
 
     def get_points(self):
         """ Return points based on season scoring """
-        scoring = self.race.season.get_scoring()
-        return self.points_calculator(scoring)
+        punctuation_config = self.race.season.get_punctuation_config()
+        return self.points_calculator(punctuation_config)
 
     def __str__(self):
         string = '{seat} ({race})'.format(seat=self.seat, race=self.race)
@@ -861,17 +842,17 @@ class ContenderSeason(object):
         points = results.values_list('points', flat=True)
         return [point for point in points if point]
 
-    def get_points(self, limit_races=None, scoring=None):
-        """ Get points. Can be limited. Scoring will be overwrite temporarily"""
+    def get_points(self, limit_races=None, punctuation_config=None):
+        """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
 
-        if scoring is None:
+        if punctuation_config is None:
             points_list = self.get_saved_points(limit_races=limit_races)
         else:
             points_list = []
             results = self.get_results(limit_races=limit_races)
             for result in get_results_tuples(results=results):
                 result_tuple = ResultTuple(*result)
-                points = PointsCalculator(scoring).calculator(result_tuple)
+                points = PointsCalculator(punctuation_config).calculator(result_tuple)
                 if points:
                     points_list.append(points)
         return sum(points_list)

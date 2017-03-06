@@ -49,9 +49,9 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertIsNone(result.save())
 
         # modify scoring to check if fastest_lap scoring is counted
-        scoring = season.get_scoring()
-        scoring['fastest_lap'] = 1
-        self.assertGreater(result.points_calculator(scoring), race_points)
+        punctuation_config = season.get_punctuation_config()
+        punctuation_config['fastest_lap'] = 1
+        self.assertGreater(result.points_calculator(punctuation_config), race_points)
         self.assertEquals(race.fastest, result.seat)
 
     def test_result_str(self):

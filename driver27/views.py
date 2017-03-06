@@ -103,14 +103,14 @@ def driver_road_view(request, competition_slug, year):
         rank = season.points_rank()
         minimum_points_to_road = season.leader[0] - pending_points
         road_rank = [position for position in rank if minimum_points_to_road <= position[0]]
-        scoring = season.get_scoring()
+        punctuation_config = season.get_punctuation_config()
         title = _('%(season)s - Road to the championship') % {'season': season}
         tpl = 'driver27/driver/driver-list.html'
 
         context = {'rank': road_rank,
                    'season': season,
                    'title': title,
-                   'scoring': scoring['finish'],
+                   'scoring': punctuation_config.get('finish'),
                    'pending_races': range(1, pending_races+1),
                    'road_to_championship': True}
     else:

@@ -7,14 +7,15 @@ try:
 except ImportError:
     from django.core.urlresolvers import reverse
 from django.forms.models import inlineformset_factory, formset_factory
-from ..models import Season, Driver, Team, Competition, Circuit, Result
-from ..models import GrandPrix, Race, Contender, Seat, SeatSeason, TeamSeason
+from ..models import Season, Driver, Team, Competition, Circuit, Result, get_results_tuples
+from ..models import GrandPrix, Race, Contender, Seat, SeatSeason, TeamSeason, ContenderSeason
 from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, SeatSeasonAdmin, TeamAdmin
 from ..admin import CompetitionAdmin, CircuitAdmin, GrandPrixAdmin
 from ..admin import RaceAdmin, ContenderAdmin, RelatedCompetitionAdmin
 from ..admin import RaceInline, SeatInline, SeatSeasonInline, TeamSeasonInline
 from ..admin.formsets import RaceFormSet, SeatSeasonFormSet, TeamSeasonFormSet
 from ..admin.common import AlwaysChangedModelForm
+from ..punctuation import get_punctuation_config
 
 class MockRequest(object):
     pass
@@ -85,6 +86,10 @@ class ViewTest(FixturesTest):
         response = self.client.get(reverse('dr27-season-driver-road', kwargs={'competition_slug': 'f1', 'year': 2016}))
         # Check that the response is 404.
         self.assertEqual(response.status_code, 404)
+
+        response = self.client.get(reverse('dr27-season-driver-road', kwargs={'competition_slug': 'f1', 'year': 2017}))
+        # Check that the response is 200.
+        self.assertEqual(response.status_code, 200)
 
         response = self.client.get(reverse('dr27-season-team', kwargs={'competition_slug': 'f1', 'year': 2016}))
         # Check that the response is 200 OK.
@@ -158,30 +163,21 @@ class ViewTest(FixturesTest):
         # Check that the response is 200 OK.
         self.assertEqual(response.status_code, 404)
 
-    # def test_admin(self):
-    #     response = self.client.get(reverse('admin:driver27_driver_changelist'))
-    #     # Check that the response is 200 OK.
-    #     self.assertEqual(response.status_code, 302)
-    #
-    #     response = self.client.get(reverse('admin:driver27_driver_change', args=[1]))
-    #     # Check that the response is 200 OK.
-    #     self.assertEqual(response.status_code, 302)
-    #
-    #     response = self.client.get(reverse('admin:driver27_season_changelist'))
-    #     # Check that the response is 200 OK.
-    #     self.assertEqual(response.status_code, 302)
-    #
-    #     response = self.client.get(reverse('admin:driver27_season_change', args=[1]))
-    #     # Check that the response is 200 OK.
-    #     self.assertEqual(response.status_code, 302)
-    #
-    #     response = self.client.get(reverse('admin:driver27_race_changelist'))
-    #     # Check that the response is 200 OK.
-    #     self.assertEqual(response.status_code, 302)
-    #
-    #     response = self.client.get(reverse('admin:driver27_race_change', args=[1]))
-    #     # Check that the response is 200 OK.
-    #     self.assertEqual(response.status_code, 302)
+    def test_contender_season_points(self):
+        contender = Contender.objects.get(pk=1)
+        season = Season.objects.get(pk=1)
+        contender_season = ContenderSeason(contender=contender, season=season)
+
+        punctuation_config_A = get_punctuation_config('F1-25')
+        contender_season_points_A = contender_season.get_points(punctuation_config=punctuation_config_A)
+        punctuation_config_B = get_punctuation_config('F1-10+6')
+        contender_season_points_B = contender_season.get_points(punctuation_config=punctuation_config_B)
+        self.assertGreater(contender_season_points_A, contender_season_points_B)
+
+    def test_result_tuple(self):
+        seat = Seat.objects.get(pk=1)
+        self.assertIsNotNone(get_results_tuples(seat=seat))
+
 
     def _check_get_changelist(self, ma):
         request = get_request()
@@ -227,7 +223,6 @@ class ViewTest(FixturesTest):
         post_destiny['_confirm'] = True
 
         self._test_copy_url(COPY_URL, method_to_copy, post_destiny)
-
 
     def test_season_copy_items(self):
         Season.objects.create(

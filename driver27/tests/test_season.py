@@ -17,10 +17,10 @@ class SeasonTestCase(TestCase, CommonSeasonTestCase, CommonSeatTestCase):
     def test_season_scoring(self):
         competition = self.get_test_competition_a()
         season = self.get_test_season(competition)
-        self.assertIsInstance(season.get_scoring(), dict)
+        self.assertIsInstance(season.get_punctuation_config(), dict)
         season.punctuation = 'BLABLABLA'
         self.assertIsNone(season.save())
-        self.assertIsNone(season.get_scoring())
+        self.assertIsNone(season.get_punctuation_config())
 
     def test_season_has_champion(self):
         competition = self.get_test_competition_a()
