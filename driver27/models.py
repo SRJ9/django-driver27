@@ -322,21 +322,38 @@ class Season(models.Model):
         pending_races = (self.rounds - past_races)
         return pending_races
 
-    def pending_points(self):
+    def pending_points(self, punctuation_code=None):
         """ Return the maximum of available points taking into account the number of pending races"""
         # @todo fastest_lap and pole points are not counted
-        punctuation_config = self.get_punctuation_config()
+        if not punctuation_code:
+            punctuation_code = self.punctuation
+        punctuation_config = self.get_punctuation_config(code=punctuation_code)
         max_score_by_race = sorted(punctuation_config.get('finish'), reverse=True)[0]
         pending_races = self.pending_races()
         return pending_races * max_score_by_race
 
-    def has_champion(self):
-        """ If pending points is less than different between leader and runner-up, there is a champions """
-        leader_points = self.leader[0] if self.leader else 0
-        runner_up_points = self.runner_up[0] if self.runner_up else 0
-        pending_points = self.pending_points()
-        leader_distance = leader_points - runner_up_points
-        return leader_distance >= pending_points
+    def leader_window(self, punctuation_code=None):
+        """ Substraction between leader points and pending points"""
+        pending_points = self.pending_points(punctuation_code=punctuation_code)
+        leader = self.get_leader(punctuation_code=punctuation_code)
+        return leader[0] - pending_points if leader else None
+
+    def only_title_contenders(self, punctuation_code=None):
+        """ They are only candidates for the title if they can reach the leader by adding all the outstanding points."""
+        rank = self.points_rank(scoring_code=punctuation_code)
+        leader_window = self.leader_window(punctuation_code=punctuation_code)
+
+        title_rank = []
+        if leader_window:
+            title_rank = [entry for entry in rank if entry[0] >= leader_window]
+        return title_rank
+
+    def has_champion(self, punctuation_code=None):
+        """ If only exists one title contender, it has champion """
+        leader_is_champions = False
+        if len(self.only_title_contenders(punctuation_code=punctuation_code)) == 1:
+            leader_is_champions = True
+        return leader_is_champions
 
     def contenders(self):
         """ As season is related with seats, this method is a shorcut to get contenders """
@@ -393,6 +410,8 @@ class Season(models.Model):
         return self.team_rank('get_doubles_races', **filters)
 
     def points_rank(self, scoring_code=None):
+        if not scoring_code:
+            scoring_code = self.punctuation
         """ Points driver rank. Scoring can be override by scoring_code param """
         contenders = self.contenders()
         punctuation_config = self.get_punctuation_config(scoring_code) if scoring_code and scoring_code != self.punctuation else None
@@ -431,12 +450,14 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
-    def get_leader(self, team=False):
+    def get_leader(self, team=False, punctuation_code=None):
         """ Get driver leader or team leader """
+        if not punctuation_code:
+            punctuation_code = self.punctuation
         if team:
             rank = self.team_points_rank()
         else:
-            rank = self.points_rank()
+            rank = self.points_rank(scoring_code=punctuation_code)
         return rank[0] if len(rank) else None
 
     @property

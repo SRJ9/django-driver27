@@ -6,7 +6,7 @@ from django.utils.translation import ugettext as _
 
 from .models import Competition, Season, Race
 from .records import get_record_config, get_record_label_dict
-from .punctuation import get_punctuation_label_dict
+from .punctuation import get_punctuation_config, get_punctuation_label_dict
 
 
 def get_season(slug, year):
@@ -52,10 +52,10 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
     scoring = get_punctuation_label_dict()
     if rank_model == 'driver':
         rank = season.points_rank(scoring_code=scoring_code)
+        has_champion = season.has_champion(punctuation_code=scoring_code)
+        access_to_road = (not has_champion)
         rank_title = _('DRIVERS')
         tpl = 'driver27/driver/driver-list.html'
-        has_champion = season.has_champion()
-        access_to_road = (not has_champion and season.pending_races() <= 5)
     elif rank_model == 'team':
         rank = season.team_points_rank()
         rank_title = _('TEAMS')
@@ -99,10 +99,7 @@ def driver_road_view(request, competition_slug, year):
     season = get_season(competition_slug, year)
     if not season.has_champion():
         pending_races = season.pending_races()
-        pending_points = season.pending_points()
-        rank = season.points_rank()
-        minimum_points_to_road = season.leader[0] - pending_points
-        road_rank = [position for position in rank if minimum_points_to_road <= position[0]]
+        road_rank = season.only_title_contenders()
         punctuation_config = season.get_punctuation_config()
         title = _('%(season)s - Road to the championship') % {'season': season}
         tpl = 'driver27/driver/driver-list.html'
@@ -124,7 +121,7 @@ def team_rank_view(request, competition_slug, year):
 
 def race_list(request, competition_slug, year):
     season = get_season(competition_slug, year)
-    races = season.races.all().order_by('round')
+    races = season.races.all()
     title = _('%(season)s [RACES]') % {'season': season}
     context = {'races': races, 'season': season, 'title': title}
     tpl = 'driver27/race/race-list.html'
