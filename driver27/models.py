@@ -143,9 +143,9 @@ class Team(models.Model):
     competitions = models.ManyToManyField('Competition', related_name='teams', verbose_name=_('competitions'))
     country = CountryField(verbose_name=_('country'))
 
-    @staticmethod
-    def bulk_copy(teams_pk, season_pk):
-        teams = Team.objects.filter(pk__in=teams_pk)
+    @classmethod
+    def bulk_copy(cls, teams_pk, season_pk):
+        teams = cls.objects.filter(pk__in=teams_pk)
 
         for team in teams:
             TeamSeason.objects.create(
@@ -153,10 +153,10 @@ class Team(models.Model):
                 season_id=season_pk,
             )
 
-    @staticmethod
-    def check_list_in_season(teams_pk, season_pk):
+    @classmethod
+    def check_list_in_season(cls, teams_pk, season_pk):
         teams_pk = list(map(int, teams_pk))
-        teams = Team.objects.filter(pk__in=teams_pk)
+        teams = cls.objects.filter(pk__in=teams_pk)
         season = Season.objects.get(pk=season_pk)
         season_teams_pk = list(season.teams.values_list('pk', flat=True))
 
@@ -204,9 +204,9 @@ class Seat(models.Model):
             )
         super(Seat, self).clean()
 
-    @staticmethod
-    def bulk_copy(seats_pk, season_pk):
-        seats = Seat.objects.filter(pk__in=seats_pk)
+    @classmethod
+    def bulk_copy(cls, seats_pk, season_pk):
+        seats = cls.objects.filter(pk__in=seats_pk)
 
         for seat in seats:
             SeatSeason.objects.create(
@@ -214,10 +214,10 @@ class Seat(models.Model):
                 season_id=season_pk,
             )
 
-    @staticmethod
-    def check_list_in_season(seats_pk, season_pk):
+    @classmethod
+    def check_list_in_season(cls, seats_pk, season_pk):
         seats_pk = list(map(int, seats_pk))
-        seats = Seat.objects.filter(pk__in=seats_pk)
+        seats = cls.objects.filter(pk__in=seats_pk)
 
         season = Season.objects.get(pk=season_pk)
         season_teams_pk = list(season.teams.values_list('pk', flat=True))
@@ -553,9 +553,9 @@ class Race(models.Model):
         """ get_result_seat(fastest) """
         return self.get_result_seat(fastest_lap=True)
 
-    @staticmethod
-    def bulk_copy(races_pk, season_pk):
-        races = Race.objects.filter(pk__in=races_pk)
+    @classmethod
+    def bulk_copy(cls, races_pk, season_pk):
+        races = cls.objects.filter(pk__in=races_pk)
         season = Season.objects.get(pk=season_pk)
 
         season_rounds = season.rounds
@@ -570,17 +570,17 @@ class Race(models.Model):
         for index, race in enumerate(races):
             # copy the grand_prix and circuit for each original race
             # and set round value between the available values
-            Race.objects.create(
+            cls.objects.create(
                 round=season_available_rounds[index],
                 season=season,
                 grand_prix=race.grand_prix,
                 circuit=race.circuit,
             )
 
-    @staticmethod
-    def check_list_in_season(races_pk, season_pk):
+    @classmethod
+    def check_list_in_season(cls, races_pk, season_pk):
         # To consider that a race is included in a season, the grand prize has to be in it.
-        races = Race.objects.filter(pk__in=races_pk)
+        races = cls.objects.filter(pk__in=races_pk)
         races_gp = list(races.values_list('grand_prix_id', flat=True))
 
         season = Season.objects.get(pk=season_pk)
@@ -700,10 +700,10 @@ class TeamSeason(models.Model):
                 )
         super(TeamSeason, self).clean()
 
-    @staticmethod
-    def delete_seat_exception(team, season):
+    @classmethod
+    def delete_seat_exception(cls, team, season):
         """ Force IntegrityError when delete a team with seats in season """
-        if TeamSeason.check_delete_seat_restriction(team=team, season=season):
+        if cls.check_delete_seat_restriction(team=team, season=season):
             raise IntegrityError('You cannot delete a team with seats in this season.'
                                  'Delete seats before')
 
