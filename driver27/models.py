@@ -332,16 +332,18 @@ class Season(models.Model):
         pending_races = self.pending_races()
         return pending_races * max_score_by_race
 
-    def leader_window(self, punctuation_code=None):
-        """ Substraction between leader points and pending points"""
+    def leader_window(self, rank=None, punctuation_code=None):
+        """ Minimum of current points a contestant must have to have any chance to be a champion.
+        This is the subtraction of the points of the leader and the maximum of points that
+        can be obtained in the remaining races."""
         pending_points = self.pending_points(punctuation_code=punctuation_code)
-        leader = self.get_leader(punctuation_code=punctuation_code)
+        leader = self.get_leader(rank=rank, punctuation_code=punctuation_code)
         return leader[0] - pending_points if leader else None
 
     def only_title_contenders(self, punctuation_code=None):
-        """ They are only candidates for the title if they can reach the leader by adding all the outstanding points."""
+        """ They are only candidates for the title if they can reach the leader by adding all the pending points."""
         rank = self.points_rank(scoring_code=punctuation_code)
-        leader_window = self.leader_window(punctuation_code=punctuation_code)
+        leader_window = self.leader_window(rank=rank, punctuation_code=punctuation_code)
 
         title_rank = []
         if leader_window:
@@ -450,14 +452,12 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
-    def get_leader(self, team=False, punctuation_code=None):
+    def get_leader(self, rank=None, team=False, punctuation_code=None):
         """ Get driver leader or team leader """
-        if not punctuation_code:
-            punctuation_code = self.punctuation
-        if team:
-            rank = self.team_points_rank()
-        else:
-            rank = self.points_rank(scoring_code=punctuation_code)
+        if not rank:
+            if not punctuation_code:
+                punctuation_code = self.punctuation
+            rank = self.team_points_rank() if team else self.points_rank(scoring_code=punctuation_code)
         return rank[0] if len(rank) else None
 
     @property
