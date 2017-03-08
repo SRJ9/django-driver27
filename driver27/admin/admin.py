@@ -238,30 +238,25 @@ class SeasonAdmin(CommonTabbedModelAdmin):
     print_copy_season.short_description = _('copy season')
     print_copy_season.allow_tags = True
 
-    def print_copy_races(self, obj):
+    def print_copy_link(self, obj, reverse_link, copy_text):
         if obj.pk:
-            copy_link = reverse("admin:dr27-copy-races", kwargs={'pk': obj.pk})
-            return "<a href='{link}'>{copy_text}</a>".format(link=copy_link, copy_text=_('Copy Races'))
+            copy_link = reverse(reverse_link, kwargs={'pk': obj.pk})
+            return "<a href='{link}'>{copy_text}</a>".format(link=copy_link, copy_text=copy_text)
         else:
             return ''
+
+    def print_copy_races(self, obj):
+        return self.print_copy_link(obj, "admin:dr27-copy-races", _('Copy Races'))
     print_copy_races.short_description = _('copy races')
     print_copy_races.allow_tags = True
 
     def print_copy_teams(self, obj):
-        if obj.pk:
-            copy_link = reverse("admin:dr27-copy-teams", kwargs={'pk': obj.pk})
-            return "<a href='{link}'>{copy_text}</a>".format(link=copy_link, copy_text=_('Copy Teams'))
-        else:
-            return ''
+        return self.print_copy_link(obj, "admin:dr27-copy-teams", _('Copy Teams'))
     print_copy_teams.short_description = _('copy teams')
     print_copy_teams.allow_tags = True
 
     def print_copy_seats(self, obj):
-        if obj.pk:
-            copy_link = reverse("admin:dr27-copy-seats", kwargs={'pk': obj.pk})
-            return "<a href='{link}'>{copy_text}</a>".format(link=copy_link, copy_text=_('Copy Seats'))
-        else:
-            return ''
+        return self.print_copy_link(obj, "admin:dr27-copy-seats", _('Copy Seats'))
     print_copy_seats.short_description = _('copy seats')
     print_copy_seats.allow_tags = True
 
