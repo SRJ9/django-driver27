@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 import os
 import sys
+from . import import_driver27
 
-try:
-    import driver27
-except ImportError:
-    sys.path.append(os.path.abspath(os.path.join(os.path.abspath(__file__), '../../')))
-    import driver27
+import_driver27()
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dr27_demo.settings")
