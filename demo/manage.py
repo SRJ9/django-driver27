@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import os
 import sys
-from . import import_driver27
 
-import_driver27()
 
 if __name__ == "__main__":
+    from . import import_driver27
+    import_driver27()
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dr27_demo.settings")
     try:
         from django.core.management import execute_from_command_line

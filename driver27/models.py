@@ -13,7 +13,7 @@ from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField
 from swapfield.fields import SwapIntegerField
-from . import lr_intr, lr_diff
+from . import lr_intr, lr_diff, season_bulk_copy
 
 from collections import namedtuple
 
@@ -135,6 +135,9 @@ class Contender(models.Model):
         verbose_name_plural = _('Contenders')
 
 
+
+
+
 @python_2_unicode_compatible
 class Team(models.Model):
     """ Team model, unique if is the same in different competition """
@@ -145,13 +148,7 @@ class Team(models.Model):
 
     @classmethod
     def bulk_copy(cls, teams_pk, season_pk):
-        teams = cls.objects.filter(pk__in=teams_pk)
-
-        for team in teams:
-            TeamSeason.objects.create(
-                team=team,
-                season_id=season_pk,
-            )
+        season_bulk_copy(cls=cls, cls_to_save=TeamSeason, pks=teams_pk, pks_name='team', season_pk=season_pk)
 
     @classmethod
     def check_list_in_season(cls, teams_pk, season_pk):
@@ -206,13 +203,8 @@ class Seat(models.Model):
 
     @classmethod
     def bulk_copy(cls, seats_pk, season_pk):
-        seats = cls.objects.filter(pk__in=seats_pk)
+        season_bulk_copy(cls=cls, cls_to_save=SeatSeason, pks=seats_pk, pks_name='seat', season_pk=season_pk)
 
-        for seat in seats:
-            SeatSeason.objects.create(
-                seat=seat,
-                season_id=season_pk,
-            )
 
     @classmethod
     def check_list_in_season(cls, seats_pk, season_pk):
