@@ -9,31 +9,39 @@ from .common import get_dict_from_rank_entry
 from ..models import Competition, Contender, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit
 
 
+class CommonDetailViewSet(object):
+    def get_common_detail_route(self, request, rel_model, serializer_cls, filters=None):
+        obj = self.get_object()
+        self.queryset = getattr(obj, rel_model).filter(**filters)
+        serializer = serializer_cls(instance=self.queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def get_seat_detail_route(self, request, filter=None, exclude=None):
+        """ Seat can not be directly accessed from Race """
+        self.queryset = Seat.objects.filter(**filter).exclude(**exclude)
+        serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
 # ViewSets define the view behavior.
-class RaceViewSet(DR27ViewSet):
+class RaceViewSet(DR27ViewSet, CommonDetailViewSet):
     queryset = Race.objects.all()
     serializer_class = RaceSerializer
 
     @detail_route(methods=['get'])
     def results(self, request, pk=None):
-        race = self.get_object()
-        self.queryset = race.results.all()
-        serializer = ResultSerializer(instance=self.queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+        return self.get_common_detail_route(request, 'results', ResultSerializer)
 
     @detail_route(methods=['get'])
     def seats(self, request, pk=None):
-        race = self.get_object()
-        self.queryset = Seat.objects.filter(results__race=race)
-        serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+        obj = self.get_object()
+        return self.get_seat_detail_route(request, filter={'results__race': obj})
 
-    @detail_route(methods=['get'], url_path='not-start-seats')
+    @detail_route(methods=['get'], url_path='no-start-seats')
     def no_start_seats(self, request, pk=None):
-        race = self.get_object()
-        self.queryset = Seat.objects.filter(seasons=race.season).exclude(results__race=race)
-        serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+        """ Seats in this season that are not part of the race """
+        obj = self.get_object()
+        return self.get_seat_detail_route(request, filter={'seasons': obj.season}, exclude={'results__race': obj})
 
 
 class DR27CommonCompetitionViewSet(DR27ViewSet):
@@ -53,23 +61,17 @@ class DR27CommonCompetitionViewSet(DR27ViewSet):
 
 
 # ViewSets define the view behavior.
-class SeasonViewSet(DR27CommonCompetitionViewSet):
+class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
     queryset = Season.objects.all()
     serializer_class = SeasonSerializer
 
     @detail_route(methods=['get'])
     def races(self, request, pk=None):
-        season = self.get_object()
-        self.queryset = season.races.all()
-        serializer = RaceSerializer(instance=self.queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+        return self.get_common_detail_route(request, 'races', RaceSerializer)
 
     @detail_route(methods=['get'])
     def seats(self, request, pk=None):
-        season = self.get_object()
-        self.queryset = season.seats.all()
-        serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+        return self.get_common_detail_route(request, 'seats', SeatSerializer)
 
     @detail_route(methods=['get'])
     def standings(self, request, pk=None):
