@@ -20,8 +20,10 @@ from collections import namedtuple
 ResultTuple = namedtuple('ResultTuple', 'qualifying finish fastest_lap wildcard alter_punctuation')
 
 
-def get_results(seat=None, contender=None, team=None, race=None, season=None, competition=None, **extra_filters):
+def get_results(seat=None, contender=None, team=None, race=None, season=None, competition=None, limit_races=None, **extra_filters):
     filter_params = {}
+    if limit_races:
+        filter_params['race__round__lte'] = limit_races
     if seat:
         filter_params['seat'] = seat
     if contender:
@@ -707,9 +709,7 @@ class TeamSeason(models.Model):
 
     def get_results(self, limit_races=None, **extra_filter):
         """ Return all results of team in season """
-        if limit_races:
-            extra_filter['race__round__lte'] = limit_races
-        return get_results(team=self.team, season=self.season, **extra_filter)
+        return get_results(team=self.team, season=self.season, limit_races=limit_races, **extra_filter)
 
     def get_races(self, **filters):
         """ Return only race id of team in season """
@@ -838,9 +838,7 @@ class ContenderSeason(object):
 
     def get_results(self, limit_races=None, **extra_filter):
         """ Return results. Can be limited."""
-        if limit_races:
-            extra_filter['race__round__lte'] = limit_races
-        return get_results(contender=self.contender, season=self.season, **extra_filter)
+        return get_results(contender=self.contender, season=self.season, limit_races=limit_races, **extra_filter)
 
     def get_filtered_results(self, **filters):
         """ Apply filters to contender-season results """
