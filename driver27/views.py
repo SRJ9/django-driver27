@@ -8,13 +8,16 @@ from .models import Competition, Season, Race
 from .records import get_record_config, get_record_label_dict
 from .punctuation import get_punctuation_config, get_punctuation_label_dict
 
+def get_or_404(cls, conditions, raise_text):
+    try:
+        obj = cls.objects.get(**conditions)
+    except cls.DoesNotExist:
+        raise Http404(raise_text)
+    return obj
+
 
 def get_season(slug, year):
-    try:
-        season = Season.objects.get(year=year, competition__slug=slug)
-    except Season.DoesNotExist:
-        raise Http404(_('Season does not exist'))
-    return season
+    return get_or_404(Season, {'year': year, 'competition__slug': slug}, _('Season does not exist'))
 
 
 def competition_view(request, competition_slug=None):
@@ -130,10 +133,7 @@ def race_list(request, competition_slug, year):
 
 def race_view(request, competition_slug, year, race_id=None):
     season = get_season(competition_slug, year)
-    try:
-        race = season.races.get(round=race_id)
-    except Race.DoesNotExist:
-        raise Http404(_('Race does not exist'))
+    race = get_or_404(Race, {'season': season.pk, 'round': race_id}, _('Race does not exist'))
     results = race.results.all()\
         .annotate(null_position=Count('finish')).order_by('-null_position', 'finish', 'qualifying')
     title = _('Results of %(race)s') % {'race': race}
