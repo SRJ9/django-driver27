@@ -21,22 +21,25 @@ ResultTuple = namedtuple('ResultTuple', 'qualifying finish fastest_lap wildcard 
 
 
 def get_results(seat=None, contender=None, team=None, race=None, season=None, competition=None, limit_races=None, **extra_filters):
+    key_in_filters = {
+        'limit_races': 'race__round__lte',
+        'contender': 'seat__contender',
+        'team': 'seat__team',
+        'season': 'race__season',
+        'competition': 'race__season__competition',
+        'seat': 'seat',
+        'race': 'race'
+    }
+
     filter_params = {}
-    if limit_races:
-        filter_params['race__round__lte'] = limit_races
-    if seat:
-        filter_params['seat'] = seat
-    if contender:
-        filter_params['seat__contender'] = contender
-    if team:
-        filter_params['seat__team'] = team
-    if race:
-        filter_params['race'] = race
-    if season:
-        filter_params['race__season'] = season
-    if competition:
-        filter_params['race__season__competition'] = competition
+    # kwarg is each param with custom filter
+    for kwarg in key_in_filters.keys():
+        value = locals().get(kwarg) # get the value of kwarg
+        if value:
+            key = key_in_filters.get(kwarg) # the key of filter is the value of kwarg in key_in_filter
+            filter_params[key] = value
     filter_params.update(**extra_filters)
+
     results = Result.objects.filter(**filter_params)
     results = results.order_by('race__season', 'race__round')
     return results
