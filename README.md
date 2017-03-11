@@ -57,10 +57,11 @@ Versions
 -   0.19 (Ayrton Senna's Toleman's car number '84 - Debut)
 -   0.27-VIL (Gilles Villeneuve 27)
 
-0.19.4 (to-do)
-=============
--   Refactor API in directory
+0.19.4
+======
 -   Race points will be saved in BD
+-   Improve Points Calculator. Much faster than before
+-   Improve copy season (seats, teams and races)
 
 0.19.3
 ======

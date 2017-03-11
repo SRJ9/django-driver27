@@ -235,7 +235,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
                                                                     copy_text=_('Copy'))
         else:
             return ''
-    print_copy_season.short_description = _('copy season')
+    print_copy_season.short_description = _('Create new season from this')
     print_copy_season.allow_tags = True
 
     def print_copy_link(self, obj, reverse_link, copy_text):
@@ -246,17 +246,17 @@ class SeasonAdmin(CommonTabbedModelAdmin):
             return ''
 
     def print_copy_races(self, obj):
-        return self.print_copy_link(obj, "admin:dr27-copy-races", _('Copy Races'))
+        return self.print_copy_link(obj, "admin:dr27-copy-races", _('copy races'))
     print_copy_races.short_description = _('copy races')
     print_copy_races.allow_tags = True
 
     def print_copy_teams(self, obj):
-        return self.print_copy_link(obj, "admin:dr27-copy-teams", _('Copy Teams'))
+        return self.print_copy_link(obj, "admin:dr27-copy-teams", _('copy teams'))
     print_copy_teams.short_description = _('copy teams')
     print_copy_teams.allow_tags = True
 
     def print_copy_seats(self, obj):
-        return self.print_copy_link(obj, "admin:dr27-copy-seats", _('Copy Seats'))
+        return self.print_copy_link(obj, "admin:dr27-copy-seats", _('copy seats'))
     print_copy_seats.short_description = _('copy seats')
     print_copy_seats.allow_tags = True
 
