@@ -173,8 +173,13 @@ def get_record_common_context(request, competition_slug, year, record=None):
     }
     if record:
         record_config = get_safe_record_config(record)
-        title = _('%(record_label)s Record, %(season)s') \
-            % {'record_label': record_config.get('label'), 'season': season}
+        record_label = record_config.get('label')
+        if season:
+            title = _('%(record_label)s Record, %(season)s') \
+            % {'record_label': record_label, 'season': season}
+        else:
+            title = _('%(record_label)s Record, %(competition)s') \
+                    % {'record_label': record_label, 'competition': competition_slug}
         context['record_filter'] = record_config.get('filter')
     elif season:
         title = _('Select a %(season)s record') % {'season': season}
@@ -188,16 +193,19 @@ def get_record_common_context(request, competition_slug, year, record=None):
 
 def driver_record_view(request, competition_slug, year=None, record=None):
     context = get_record_common_context(request, competition_slug, year, record)
-
-    rank = None
+    competition = rank = None
     if record:
         season = context.get('season')
         if season:
             rank = season.stats_rank(**context.get('record_filter')) if 'record_filter' in context else None
+            competition = season.competition
         else:
             competition = Competition.objects.get(slug=competition_slug)
             rank = competition.stats_rank(**context.get('record_filter')) if 'record_filter' in context else None
+    else:
+        competition = Competition.objects.get(slug=competition_slug)
     context.pop('record_filter', None)
+    context['competition'] = competition
     context['rank'] = rank
     tpl = 'driver27/driver/driver-record.html'
     return render(request, tpl, context)
