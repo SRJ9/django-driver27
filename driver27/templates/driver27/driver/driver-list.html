@@ -1,7 +1,11 @@
 {% extends 'driver27/base.html' %}
 {% load i18n %}
 {% block dr27_menu %}
-    {% include 'driver27/season/season-menu-pre.html' %}
+    {% if season %}
+        {% include 'driver27/season/season-menu-pre.html' %}
+    {% else %}
+        {% include 'driver27/competition/competition-menu-pre.html' %}
+    {% endif %}
     {% include 'driver27/driver/driver-menu.html' %}
 {% endblock %}
 {% block dr27_content %}

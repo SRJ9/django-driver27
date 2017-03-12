@@ -17,7 +17,10 @@ def get_or_404(cls, conditions, raise_text):
 
 
 def get_season(slug, year):
-    return get_or_404(Season, {'year': year, 'competition__slug': slug}, _('Season does not exist'))
+    if year:
+        return get_or_404(Season, {'year': year, 'competition__slug': slug}, _('Season does not exist'))
+    else:
+        return None
 
 
 def competition_view(request, competition_slug=None):
@@ -50,13 +53,19 @@ def season_view(request, competition_slug, year):
 
 def _rank_view(request, competition_slug, year, rank_model='driver'):
     season = get_season(competition_slug, year)
-    scoring_code = request.POST.get('scoring', season.punctuation)
+    default_punctuation = season.punctuation if season else None
+    scoring_code = request.POST.get('scoring', default_punctuation)
     has_champion = access_to_road = False
     scoring = get_punctuation_label_dict()
+    competition = None
     if rank_model == 'driver':
-        rank = season.points_rank(scoring_code=scoring_code)
-        has_champion = season.has_champion(punctuation_code=scoring_code)
-        access_to_road = (not has_champion)
+        if season:
+            rank = season.points_rank(scoring_code=scoring_code)
+            has_champion = season.has_champion(punctuation_code=scoring_code)
+            access_to_road = (not has_champion)
+        else:
+            competition = Competition.objects.get(slug=competition_slug)
+            rank = competition.points_rank(scoring_code=scoring_code)
         rank_title = _('DRIVERS')
         tpl = 'driver27/driver/driver-list.html'
     elif rank_model == 'team':
@@ -66,10 +75,16 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
     else:
         raise Http404(_('Impossible rank'))
 
-    title = u'{season} [{title}]'.format(season=season, title=rank_title)
+    if season:
+        title = u'{season} [{title}]'.format(season=season, title=rank_title)
+    elif competition:
+        title = u'{competition} [{title}]'.format(competition=competition, title=rank_title)
+    else:
+        title = u'[{title}]'.format(title=rank_title)
 
     context = {'rank': rank,
                'season': season,
+               'competition': season.competition if season else competition,
                'title': title,
                'access_to_road': access_to_road,
                'has_champion': has_champion,
@@ -78,7 +93,7 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
     return render(request, tpl, context)
 
 
-def driver_rank_view(request, competition_slug, year):
+def driver_rank_view(request, competition_slug, year=None):
     return _rank_view(request, competition_slug, year, rank_model='driver')
 
 
@@ -161,21 +176,27 @@ def get_record_common_context(request, competition_slug, year, record=None):
         title = _('%(record_label)s Record, %(season)s') \
             % {'record_label': record_config.get('label'), 'season': season}
         context['record_filter'] = record_config.get('filter')
-    else:
+    elif season:
         title = _('Select a %(season)s record') % {'season': season}
+    else:
+        title = _('Select a %(competition)s record') % {'competition': competition_slug}
 
     context['title'] = title
     context['record_codes'] = get_record_label_dict()
     return context
 
 
-def driver_record_view(request, competition_slug, year, record=None):
+def driver_record_view(request, competition_slug, year=None, record=None):
     context = get_record_common_context(request, competition_slug, year, record)
 
     rank = None
     if record:
         season = context.get('season')
-        rank = season.stats_rank(**context.get('record_filter')) if 'record_filter' in context else None
+        if season:
+            rank = season.stats_rank(**context.get('record_filter')) if 'record_filter' in context else None
+        else:
+            competition = Competition.objects.get(slug=competition_slug)
+            rank = competition.stats_rank(**context.get('record_filter')) if 'record_filter' in context else None
     context.pop('record_filter', None)
     context['rank'] = rank
     tpl = 'driver27/driver/driver-record.html'

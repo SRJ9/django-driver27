@@ -2,10 +2,8 @@
 {% load bootstrap3 champion_filter i18n %}
 
 {% block dr27_menu %}
-    {{ block.super }}
-        <li class="nav-item">
-        <a class="nav-link" href="{% url 'dr27-competition-view' competition.slug %}">{{ competition }}</a>
-    </li>
+    {% include 'driver27/competition/competition-menu-pre.html' %}
+    {% include 'driver27/competition/competition-menu.html' %}
 {% endblock %}
 
 {% block dr27_content %}

@@ -51,9 +51,12 @@ def get_tuple_from_result(result):
 
 
 def get_results_tuples(seat=None, contender=None, team=None, race=None, season=None, competition=None,
-                       results=None, **extra_filters):
+                       results=None, skip_results_if_false=False, **extra_filters):
 
-    if not results:
+    # Result can be the only param passed to get_results_tuple.
+    # If results=false, get_results will be calculate without params, return all results of all competitions.
+    # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
+    if not results and not skip_results_if_false:
         results = get_results(seat=seat, contender=contender, team=team, race=race,
                               season=season, competition=competition, **extra_filters)
 
@@ -148,7 +151,7 @@ class Contender(models.Model):
             return None
 
     def get_points(self, punctuation_config=None):
-        seasons = Season.objects.filter(seats__contender=self)
+        seasons = Season.objects.filter(seats__contender=self).distinct()
         points = 0
         for season in seasons:
             contender_season = self.get_season(season)
@@ -924,7 +927,10 @@ class ContenderSeason(object):
         else:
             points_list = []
             results = self.get_results(limit_races=limit_races)
-            for result in get_results_tuples(results=results):
+            # Result can be the only param passed to get_results_tuple.
+            # If results=false, get_results will be calculate without params, return all results of all competitions.
+            # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
+            for result in get_results_tuples(results=results, skip_results_if_false=True):
                 result_tuple = ResultTuple(*result)
                 points = PointsCalculator(punctuation_config).calculator(result_tuple)
                 if points:

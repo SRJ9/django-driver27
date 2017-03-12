@@ -1,4 +1,5 @@
 {% load i18n %}
+    {% if season %}
     <li class="nav-item">
         <a class="nav-link" href="{% url 'dr27-season-driver' season.competition.slug season.year %}">{%  trans 'Drivers' %}</a>
     </li>
@@ -18,4 +19,9 @@
             <a class="nav-link"
                href="{% url 'dr27-season-driver-road' season.competition.slug season.year %}">{%  trans 'Road to championship' %}</a>
         </li>
+    {% endif %}
+    {% else %}
+            <li class="nav-item">
+        <a class="nav-link" href="{% url 'dr27-competition-driver' competition.slug %}">{%  trans 'Drivers' %}</a>
+    </li>
     {% endif %}
