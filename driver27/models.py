@@ -95,6 +95,28 @@ class Competition(models.Model):
     country = CountryField(null=True, blank=True, default=None, verbose_name=_('country'))
     slug = models.SlugField(null=True, blank=True, default=None)
 
+    def points_rank(self, scoring_code=None):
+        """ Points driver rank. Scoring can be override by scoring_code param """
+        punctuation_config = None
+        if scoring_code:
+           punctuation_config = get_punctuation_config(punctuation_code=scoring_code)
+        contenders = self.contenders.all()
+        rank = []
+        for contender in contenders:
+            rank.append((contender.get_points(punctuation_config=punctuation_config), contender.driver,
+                         contender.teams_verbose,contender.get_positions_str()))
+        rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
+        return rank
+
+    def stats_rank(self, **filters):
+        """ Get driver rank based on record filter """
+        contenders = self.contenders.all()
+        rank = []
+        for contender in contenders:
+            rank.append((contender.get_stats(**filters), contender.driver, contender.teams_verbose))
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        return rank
+
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super(Competition, self).save(*args, **kwargs)
@@ -125,6 +147,47 @@ class Contender(models.Model):
         except ValidationError:
             return None
 
+    def get_points(self, punctuation_config=None):
+        seasons = Season.objects.filter(seats__contender=self)
+        points = 0
+        for season in seasons:
+            contender_season = self.get_season(season)
+            season_points = contender_season.get_points(punctuation_config=punctuation_config)
+            points += season_points if season_points else 0
+        return points
+
+    def get_results(self, limit_races=None, **extra_filter):
+        """ Return all results of team in season """
+        return get_results(contender=self, limit_races=limit_races, **extra_filter)
+
+    def get_races(self, **filters):
+        """ Return only race id of team in season """
+        results = self.get_results(**filters).values('race').annotate(count_race=models.Count('race')).order_by()
+        return results
+
+    def get_positions_list(self, limit_races=None):
+        """ Return a list with the count of each 20 first positions """
+        results = self.get_results(limit_races=limit_races)
+        finished = results.values_list('finish', flat=True)
+        last_position = 20
+        positions = []
+        for x in range(1, last_position+1):
+            position_count = len([finish for finish in finished if finish==x])
+            positions.append(position_count)
+        return positions
+
+    def get_positions_str(self, position_list=None, limit_races=None):
+        """ Return a str with position_list to order """
+        " Each list item will be filled to zeros until get three digits e.g. 1 => 001, 12 => 012 "
+        if not position_list:
+            position_list = self.get_positions_list(limit_races=limit_races)
+        positions_str = ''.join([str(x).zfill(3) for x in position_list])
+        return positions_str
+
+    def get_stats(self, **filters):
+        """ Count 1 by each result """
+        return self.get_results(**filters).count()
+
     @property
     def teams_verbose(self):
         teams = self.teams
@@ -138,9 +201,6 @@ class Contender(models.Model):
         ordering = ['competition__name', 'driver__last_name', 'driver__first_name']
         verbose_name = _('Contender')
         verbose_name_plural = _('Contenders')
-
-
-
 
 
 @python_2_unicode_compatible
