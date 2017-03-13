@@ -8,6 +8,7 @@ from .models import Competition, Season, Race
 from .records import get_record_config, get_record_label_dict
 from .punctuation import get_punctuation_config, get_punctuation_label_dict
 
+
 def get_or_404(cls, conditions, raise_text):
     try:
         obj = cls.objects.get(**conditions)
@@ -17,19 +18,23 @@ def get_or_404(cls, conditions, raise_text):
 
 
 def get_season(slug, year):
+    return get_or_404(Season, {'year': year, 'competition__slug': slug}, _('Season does not exist'))
+
+
+def get_competition(slug):
+    return get_or_404(Competition, {'slug': slug}, _('Competition does not exist'))
+
+
+def get_season_or_competition(slug, year=None):
     if year:
-        return get_or_404(Season, {'year': year, 'competition__slug': slug}, _('Season does not exist'))
+        return get_season(slug, year)
     else:
-        return None
+        return get_competition(slug)
 
 
 def competition_view(request, competition_slug=None):
     if competition_slug is not None:
-        try:
-            competition_obj = Competition.objects.get(slug=competition_slug)
-        except Competition.DoesNotExist:
-            raise Http404(_('Competition does not exist'))
-
+        competition_obj = get_competition(slug=competition_slug)
         title = '{competition}'.format(competition=competition_obj)
         context = {'competition': competition_obj, 'title': title}
         tpl = 'driver27/competition/competition-view.html'
@@ -43,53 +48,59 @@ def competition_view(request, competition_slug=None):
 
 def season_view(request, competition_slug, year):
     season = get_season(competition_slug, year)
-    title = '{competition}/{year:d}'.format(competition=season.competition, year=season.year)
     driver_rank = season.points_rank()[:5]
     team_rank = season.team_points_rank()[:5]
+    title = '{competition}/{year:d}'.format(competition=season.competition, year=season.year)
     context = {'season': season, 'title': title, 'driver_rank': driver_rank, 'team_rank': team_rank}
     tpl = 'driver27/season/season-view.html'
     return render(request, tpl, context)
 
 
+def split_season_and_competition(season_or_competition):
+    # if season_or_competition does not have 'competition' attr, season_or_competition is competition
+    if hasattr(season_or_competition, 'competition'):
+        season = season_or_competition
+        competition = season.competition
+    else:
+        season = None
+        competition = season_or_competition
+    return season, competition
+
+
 def _rank_view(request, competition_slug, year, rank_model='driver'):
-    season = get_season(competition_slug, year)
-    default_punctuation = season.punctuation if season else None
+    season_or_competition = get_season_or_competition(competition_slug, year)
+    season, competition = split_season_and_competition(season_or_competition)
+    default_punctuation = getattr(season_or_competition, 'punctuation', None)
     scoring_code = request.POST.get('scoring', default_punctuation)
+
     has_champion = access_to_road = False
-    scoring = get_punctuation_label_dict()
-    competition = None
+    punctuation_selector = get_punctuation_label_dict()
     if rank_model == 'driver':
-        if season:
-            rank = season.points_rank(scoring_code=scoring_code)
-            has_champion = season.has_champion(punctuation_code=scoring_code)
+        rank = season_or_competition.points_rank(scoring_code=scoring_code)
+        if hasattr(season_or_competition, 'has_champion'):
+            has_champion = season_or_competition.has_champion(punctuation_code=scoring_code)
             access_to_road = (not has_champion)
-        else:
-            competition = Competition.objects.get(slug=competition_slug)
-            rank = competition.points_rank(scoring_code=scoring_code)
         rank_title = _('DRIVERS')
         tpl = 'driver27/driver/driver-list.html'
     elif rank_model == 'team':
-        rank = season.team_points_rank()
+        rank = season_or_competition.team_points_rank()
         rank_title = _('TEAMS')
         tpl = 'driver27/team/team-list.html'
     else:
         raise Http404(_('Impossible rank'))
 
-    if season:
-        title = u'{season} [{title}]'.format(season=season, title=rank_title)
-    elif competition:
-        title = u'{competition} [{title}]'.format(competition=competition, title=rank_title)
-    else:
-        title = u'[{title}]'.format(title=rank_title)
+    title = u'{season_or_competition} [{title}]'.format(season_or_competition=season_or_competition,
+                                                            title=rank_title)
 
     context = {'rank': rank,
                'season': season,
-               'competition': season.competition if season else competition,
+               'competition': competition,
                'title': title,
                'access_to_road': access_to_road,
                'has_champion': has_champion,
-               'scoring_list': scoring,
+               'scoring_list': punctuation_selector,
                'scoring_code': scoring_code}
+
     return render(request, tpl, context)
 
 
@@ -166,25 +177,23 @@ def get_safe_record_config(record):
 
 
 def get_record_common_context(request, competition_slug, year, record=None):
-    season = get_season(competition_slug, year)
+    season_or_competition = get_season_or_competition(competition_slug, year)
+    season, competition = split_season_and_competition(season_or_competition)
+
     context = {
+        'season_or_competition': season_or_competition,
         'season': season,
+        'competition': competition,
         'record': record,
     }
     if record:
         record_config = get_safe_record_config(record)
         record_label = record_config.get('label')
-        if season:
-            title = _('%(record_label)s Record, %(season)s') \
-            % {'record_label': record_label, 'season': season}
-        else:
-            title = _('%(record_label)s Record, %(competition)s') \
-                    % {'record_label': record_label, 'competition': competition_slug}
+        title = _('%(record_label)s Record, %(season_or_competition)s') \
+            % {'record_label': record_label, 'season_or_competition': season_or_competition}
         context['record_filter'] = record_config.get('filter')
-    elif season:
-        title = _('Select a %(season)s record') % {'season': season}
     else:
-        title = _('Select a %(competition)s record') % {'competition': competition_slug}
+        title = _('Select a %(season_or_competition)s record') % {'season_or_competition': season_or_competition}
 
     context['title'] = title
     context['record_codes'] = get_record_label_dict()
@@ -193,19 +202,11 @@ def get_record_common_context(request, competition_slug, year, record=None):
 
 def driver_record_view(request, competition_slug, year=None, record=None):
     context = get_record_common_context(request, competition_slug, year, record)
-    competition = rank = None
+    rank = None
+    season_or_competition = context.get('season_or_competition')
     if record:
-        season = context.get('season')
-        if season:
-            rank = season.stats_rank(**context.get('record_filter')) if 'record_filter' in context else None
-            competition = season.competition
-        else:
-            competition = Competition.objects.get(slug=competition_slug)
-            rank = competition.stats_rank(**context.get('record_filter')) if 'record_filter' in context else None
-    else:
-        competition = Competition.objects.get(slug=competition_slug)
+        rank = season_or_competition.stats_rank(**context.get('record_filter')) if 'record_filter' in context else None
     context.pop('record_filter', None)
-    context['competition'] = competition
     context['rank'] = rank
     tpl = 'driver27/driver/driver-record.html'
     return render(request, tpl, context)
