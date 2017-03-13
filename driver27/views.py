@@ -212,15 +212,15 @@ def driver_record_view(request, competition_slug, year=None, record=None):
     return render(request, tpl, context)
 
 
-def team_record_doubles_view(request, competition_slug, year, record=None):
+def team_record_doubles_view(request, competition_slug, year=None, record=None):
     return team_record_view(request, competition_slug, year, record=record, rank_type='DOUBLES')
 
 
-def team_record_races_view(request, competition_slug, year, record=None):
+def team_record_races_view(request, competition_slug, year=None, record=None):
     return team_record_view(request, competition_slug, year, record=record, rank_type='RACES')
 
 
-def team_record_stats_view(request, competition_slug, year, record=None):
+def team_record_stats_view(request, competition_slug, year=None, record=None):
     return team_record_view(request, competition_slug, year, record=record, rank_type='STATS')
 
 
@@ -228,12 +228,11 @@ def team_record_view(request, competition_slug, year, rank_type, record=None):
     context = get_record_common_context(request, competition_slug, year, record)
 
     rank = None
+    season_or_competition = context.get('season_or_competition')
     if record:
-        season = context.get('season')
-        rank = season.get_team_rank(rank_type, **context.get('record_filter')) if 'record_filter' in context else None
+        rank = season_or_competition.get_team_rank(rank_type, **context.get('record_filter')) if 'record_filter' in context else None
     context['rank'] = rank
     context['rank_type'] = rank_type
-
     context['doubles_record_codes'] = get_record_label_dict(doubles=True)
     # context['races'] = (rank_type in ('RACES', 'RACES-DOUBLES'))
     tpl = 'driver27/team/team-record.html'

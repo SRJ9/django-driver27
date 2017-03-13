@@ -120,6 +120,45 @@ class Competition(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
+    @staticmethod
+    def get_team_rank_method(rank_type):
+        """ Dict with distinct teams rank method, depending of rank_type param """
+        " STATS: Count 1 by each time that driver get record "
+        " RACES: Count 1 by each race that any driver get record "
+        " DOUBLES: Count 1 by each race that at least two drivers get record "
+        rank_dict = {
+            'STATS': 'team_stats_rank',
+            'RACES': 'team_races_rank',
+            'DOUBLES': 'team_doubles_rank'
+        }
+
+        return rank_dict.get(rank_type)
+
+    def get_team_rank(self, rank_type, **filters):
+        """ Return team rank calling returned method by get_team_rank_method """
+        rank_method = self.get_team_rank_method(rank_type)
+        return getattr(self, rank_method)(**filters) if rank_method else None
+
+    def team_rank(self, total_method, **filters):
+        """ Collect the records of each team calling the method of Team passed by total_method param """
+        rank = []
+        teams = self.teams.all()
+        for team in teams:
+            total = getattr(team, total_method)(self, **filters)
+            rank.append((total, team))
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        return rank
+
+    def team_stats_rank(self, **filters):
+        return self.team_rank('get_total_stats', **filters)
+
+    def team_races_rank(self, **filters):
+        return self.team_rank('get_total_races', **filters)
+
+    def team_doubles_rank(self, **filters):
+        return self.team_rank('get_doubles_races', **filters)
+
+
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super(Competition, self).save(*args, **kwargs)
@@ -240,6 +279,29 @@ class Team(models.Model):
             'can_save': can_save,
             'season_info': season
         }
+
+    def get_results(self, competition, **extra_filter):
+        """ Return all results of team in season """
+        return get_results(team=self, competition=competition, **extra_filter)
+
+    def get_races(self, **filters):
+        """ Return only race id of team in season """
+        results = self.get_results(**filters)\
+            .values('race').annotate(count_race=models.Count('race'))\
+            .order_by()
+        return results
+
+    def get_total_races(self, competition, **filters):
+        """ Only count 1 by race with any driver in filter """
+        return self.get_races(competition=competition, **filters).count()
+
+    def get_doubles_races(self, competition, **filters):
+        """ Only count 1 by race with at least two drivers in filter """
+        return self.get_races(competition=competition, **filters).filter(count_race__gte=2).count()
+
+    def get_total_stats(self, competition, **filters):  # noqa
+        """ Count 1 by each result """
+        return self.get_results(competition=competition, **filters).count()
 
     def __str__(self):
         return self.name
@@ -459,7 +521,7 @@ class Season(models.Model):
             team_season = TeamSeason.objects.get(season=self, team=team)
             total = getattr(team_season, total_method)(**filters)
             rank.append((total, team))
-            rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
     def team_stats_rank(self, **filters):

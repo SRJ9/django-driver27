@@ -134,6 +134,12 @@ class ViewTest(FixturesTest):
 
     def test_driver_records_competition_view(self):
         kwargs = {'competition_slug': 'f1'}
+
+        # Issue a GET request.
+        response = self.client.get(reverse('dr27-competition-driver', kwargs=kwargs))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+
         # Issue a GET request.
         response = self.client.get(reverse('dr27-competition-driver-record-index', kwargs=kwargs))
         # Check that the response is 200 OK.
@@ -177,6 +183,35 @@ class ViewTest(FixturesTest):
         # Issue a GET request.
         kwargs['record'] = 'FFF'
         response = self.client.get(reverse('dr27-season-team-record', kwargs=kwargs))
+        # Check that the response is 404 KO.
+        self.assertEqual(response.status_code, 404)
+
+    def test_team_records_competition_view(self):
+        kwargs = {'competition_slug': 'f1'}
+        # Issue a GET request.
+        response = self.client.get(reverse('dr27-competition-team-record-index', kwargs=kwargs))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+
+        # Issue a GET request.
+        kwargs['record'] = 'POLE'
+        response = self.client.get(reverse('dr27-competition-team-record', kwargs=kwargs))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+
+        # Issue a GET request.
+        response = self.client.get(reverse('dr27-competition-team-record-races', kwargs=kwargs))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+
+        # Issue a GET request.
+        response = self.client.get(reverse('dr27-competition-team-record-doubles', kwargs=kwargs))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+
+        # Issue a GET request.
+        kwargs['record'] = 'FFF'
+        response = self.client.get(reverse('dr27-competition-team-record', kwargs=kwargs))
         # Check that the response is 404 KO.
         self.assertEqual(response.status_code, 404)
 
