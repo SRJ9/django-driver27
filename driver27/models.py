@@ -98,11 +98,11 @@ class Competition(models.Model):
     country = CountryField(null=True, blank=True, default=None, verbose_name=_('country'))
     slug = models.SlugField(null=True, blank=True, default=None)
 
-    def points_rank(self, scoring_code=None):
+    def points_rank(self, punctuation_code=None):
         """ Points driver rank. Scoring can be override by scoring_code param """
         punctuation_config = None
-        if scoring_code:
-           punctuation_config = get_punctuation_config(punctuation_code=scoring_code)
+        if punctuation_code:
+            punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
         contenders = self.contenders.all()
         rank = []
         for contender in contenders:
@@ -111,12 +111,15 @@ class Competition(models.Model):
         rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
         return rank
 
-    def team_points_rank(self):
+    def team_points_rank(self, punctuation_code=None):
         """ Same that points_rank by count both team drivers """
+        punctuation_config = None
+        if punctuation_code:
+            punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
         teams = self.teams.all()
         rank = []
         for team in teams:
-            rank.append((team.get_points(competition=self), team))
+            rank.append((team.get_points(competition=self, punctuation_config=punctuation_config), team))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
@@ -289,12 +292,12 @@ class Team(models.Model):
             'season_info': season
         }
 
-    def get_points(self, competition):
+    def get_points(self, competition, punctuation_config=None):
         seasons = Season.objects.filter(teams=self, competition=competition)
         points = 0
         for season in seasons:
             team_season = TeamSeason.objects.get(season=season, team=self)
-            season_points = team_season.get_points()
+            season_points = team_season.get_points(punctuation_config=punctuation_config)
             points += season_points if season_points else 0
         return points
 
@@ -482,7 +485,7 @@ class Season(models.Model):
 
     def only_title_contenders(self, punctuation_code=None):
         """ They are only candidates for the title if they can reach the leader by adding all the pending points."""
-        rank = self.points_rank(scoring_code=punctuation_code)
+        rank = self.points_rank(punctuation_code=punctuation_code)
         leader_window = self.leader_window(rank=rank, punctuation_code=punctuation_code)
 
         title_rank = []
@@ -551,12 +554,12 @@ class Season(models.Model):
     def team_doubles_rank(self, **filters):
         return self.team_rank('get_doubles_races', **filters)
 
-    def points_rank(self, scoring_code=None):
-        if not scoring_code:
-            scoring_code = self.punctuation
+    def points_rank(self, punctuation_code=None):
         """ Points driver rank. Scoring can be override by scoring_code param """
+        if not punctuation_code:
+            punctuation_code = self.punctuation
         contenders = self.contenders()
-        punctuation_config = self.get_punctuation_config(scoring_code) if scoring_code and scoring_code != self.punctuation else None
+        punctuation_config = self.get_punctuation_config(punctuation_code) if punctuation_code and punctuation_code != self.punctuation else None
         rank = []
         for contender in contenders:
             contender_season = contender.get_season(self)
@@ -582,13 +585,14 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
-    def team_points_rank(self):
+    def team_points_rank(self, punctuation_code=None):
         """ Same that points_rank by count both team drivers """
         teams = self.teams.all()
+        punctuation_config = self.get_punctuation_config(punctuation_code) if punctuation_code and punctuation_code != self.punctuation else None
         rank = []
         for team in teams:
             team_season = TeamSeason.objects.get(season=self, team=team)
-            rank.append((team_season.get_points(), team))
+            rank.append((team_season.get_points(punctuation_config=punctuation_config), team))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
@@ -597,7 +601,7 @@ class Season(models.Model):
         if not rank:
             if not punctuation_code:
                 punctuation_code = self.punctuation
-            rank = self.team_points_rank() if team else self.points_rank(scoring_code=punctuation_code)
+            rank = self.team_points_rank() if team else self.points_rank(punctuation_code=punctuation_code)
         return rank[0] if len(rank) else None
 
     @property
@@ -864,10 +868,28 @@ class TeamSeason(models.Model):
             .order_by()
         return results
 
-    def get_points(self, limit_races=None):
+    def get_saved_points(self, limit_races=None):
         results = self.get_results(limit_races=limit_races)
-        points_list = [result.points for result in results if not result.wildcard and result.points is not None]
+        return [result.points for result in results if not result.wildcard and result.points is not None]
+
+    def get_points(self, limit_races=None, punctuation_config=None):
+        """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
+
+        if punctuation_config is None:
+            points_list = self.get_saved_points(limit_races=limit_races)
+        else:
+            points_list = []
+            results = self.get_results(limit_races=limit_races)
+            # Result can be the only param passed to get_results_tuple.
+            # If results=false, get_results will be calculate without params, return all results of all competitions.
+            # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
+            for result in get_results_tuples(results=results, skip_results_if_false=True):
+                result_tuple = ResultTuple(*result)
+                points = PointsCalculator(punctuation_config).calculator(result_tuple, skip_wildcard=True)
+                if points:
+                    points_list.append(points)
         return sum(points_list)
+
 
     def get_filtered_results(self, **filters):
         """ Filter results """

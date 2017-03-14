@@ -76,14 +76,14 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
     has_champion = access_to_road = False
     punctuation_selector = get_punctuation_label_dict()
     if rank_model == 'driver':
-        rank = season_or_competition.points_rank(scoring_code=scoring_code)
+        rank = season_or_competition.points_rank(punctuation_code=scoring_code)
         if hasattr(season_or_competition, 'has_champion'):
             has_champion = season_or_competition.has_champion(punctuation_code=scoring_code)
             access_to_road = (not has_champion)
         rank_title = _('DRIVERS')
         tpl = 'driver27/driver/driver-list.html'
     elif rank_model == 'team':
-        rank = season_or_competition.team_points_rank()
+        rank = season_or_competition.team_points_rank(punctuation_code=scoring_code)
         rank_title = _('TEAMS')
         tpl = 'driver27/team/team-list.html'
     else:

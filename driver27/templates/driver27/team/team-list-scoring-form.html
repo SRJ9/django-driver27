@@ -1,0 +1,24 @@
+    {% if scoring_list %}
+        <div class="change_punctuation">
+            {% if season %}
+                <form method="POST" action="{% url 'dr27-season-team' season.competition.slug season.year %}">
+             {% else %}
+                <form method="POST" action="{% url 'dr27-competition-team' competition.slug %}">
+             {% endif %}
+            {% csrf_token %}
+                <div class="form-group">
+                    <select name="scoring" class="form-control input-sm" >
+                    {% if not season %}
+                        <option value="">---</option>
+                    {% endif %}
+                    {% for sc_code, sc_label in scoring_list %}
+                    <option value="{{ sc_code }}" {% if sc_code == scoring_code %}selected{% endif %}>{{ sc_label }}</option>
+                    {% endfor %}
+                    </select>
+                    <input type="submit" value="Change punctuation" class="btn btn-xs btn-primary">
+                </div>
+
+            </form>
+        </div>
+
+    {% endif %}

@@ -26,10 +26,11 @@ class PointsCalculator(object):
         else:
             return 0
 
-    def calculator(self, result):
+    def calculator(self, result, skip_wildcard=False):
         points = 0
+        if result.wildcard and skip_wildcard:
+            return points
         points += self.get_points_qualifying(result.qualifying)
         points += self.get_points_finish(result.finish, result.alter_punctuation)
         points += self.get_points_fastest_lap(result.fastest_lap)
-
         return points
