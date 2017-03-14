@@ -48,8 +48,8 @@ def competition_view(request, competition_slug=None):
 
 def season_view(request, competition_slug, year):
     season = get_season(competition_slug, year)
-    driver_rank = season.points_rank()[:5]
-    team_rank = season.team_points_rank()[:5]
+    driver_rank = season.points_rank()
+    team_rank = season.team_points_rank()
     title = '{competition}/{year:d}'.format(competition=season.competition, year=season.year)
     context = {'season': season, 'title': title, 'driver_rank': driver_rank, 'team_rank': team_rank}
     tpl = 'driver27/season/season-view.html'

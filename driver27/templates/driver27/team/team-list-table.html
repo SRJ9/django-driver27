@@ -1,10 +1,12 @@
 {% load i18n %}
 {% if rank %}
     <table class="table table-condensed table-striped table-hover">
+    <thead>
     <tr>
         <th class="col-md-4">{%  trans 'Points' %}</th>
         <th class="col-md-8">{%  trans 'Team' %}</th>
     </tr>
+    </thead>
     {% for points,team in rank %}
         <tr>
         <td>{{ points }}</td>

@@ -7,11 +7,19 @@
 {% block dr27_content %}
     {{ block.super }}
 
+    <div class="row">
+    <div class="col-md-6">
     {% with rank=driver_rank %}
         {% include 'driver27/driver/driver-list-table.html' %}
     {% endwith %}
+    </div>
+
+    <div class="col-md-6">
 
     {% with rank=team_rank %}
         {% include 'driver27/team/team-list-table.html' %}
     {% endwith %}
+
+    </div>
+    </div>
 {% endblock %}
