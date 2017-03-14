@@ -1,4 +1,6 @@
 build:
+    environment:
+        python: '2.7.7'
     tests:
         override:
             -
