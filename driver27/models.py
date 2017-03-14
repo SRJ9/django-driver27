@@ -111,6 +111,15 @@ class Competition(models.Model):
         rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
         return rank
 
+    def team_points_rank(self):
+        """ Same that points_rank by count both team drivers """
+        teams = self.teams.all()
+        rank = []
+        for team in teams:
+            rank.append((team.get_points(competition=self), team))
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        return rank
+
     def stats_rank(self, **filters):
         """ Get driver rank based on record filter """
         contenders = self.contenders.all()
@@ -279,6 +288,15 @@ class Team(models.Model):
             'can_save': can_save,
             'season_info': season
         }
+
+    def get_points(self, competition):
+        seasons = Season.objects.filter(teams=self, competition=competition)
+        points = 0
+        for season in seasons:
+            team_season = TeamSeason.objects.get(season=season, team=self)
+            season_points = team_season.get_points()
+            points += season_points if season_points else 0
+        return points
 
     def get_results(self, competition, **extra_filter):
         """ Return all results of team in season """

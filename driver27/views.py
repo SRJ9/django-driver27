@@ -144,7 +144,7 @@ def driver_road_view(request, competition_slug, year):
     return render(request, tpl, context)
 
 
-def team_rank_view(request, competition_slug, year):
+def team_rank_view(request, competition_slug, year=None):
     return _rank_view(request, competition_slug, year, rank_model='team')
 
 

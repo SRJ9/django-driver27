@@ -1,7 +1,11 @@
 {% extends 'driver27/base.html' %}
 {% load i18n %}
 {% block dr27_menu %}
-    {% include 'driver27/season/season-menu-pre.html' %}
+    {% if season %}
+        {% include 'driver27/season/season-menu-pre.html' %}
+    {% else %}
+        {% include 'driver27/competition/competition-menu-pre.html' %}
+    {% endif %}
     {% include 'driver27/team/team-menu.html' %}
 
 {% endblock %}
@@ -17,6 +21,7 @@
                 <option value="">---</option>
             {% endif %}
 
+            {% if season %}
             <optgroup label="{% trans 'Total' %}">
                 {% with rank_group='STATS' record_url='dr27-season-team-record' %}
                     {% include 'driver27/team/team-record-optgroup.html' %}
@@ -34,7 +39,25 @@
                     {% include 'driver27/team/team-record-optgroup.html' %}
                 {% endwith %}
             </optgroup>
+            {% else %}
+                <optgroup label="{% trans 'Total' %}">
+                {% with rank_group='STATS' record_url='dr27-competition-team-record' %}
+                    {% include 'driver27/team/team-record-optgroup.html' %}
+                {% endwith %}
+                </optgroup>
 
+            <optgroup label="{% trans 'Races with at least one' %}">
+                {% with rank_group='RACES' record_url='dr27-competition-team-record-races' %}
+                    {% include 'driver27/team/team-record-optgroup.html' %}
+                {% endwith %}
+            </optgroup>
+
+            <optgroup label="{% trans 'Races with doubles' %}">
+                {% with rank_group='DOUBLES' record_url='dr27-competition-team-record-doubles' record_codes=doubles_record_codes %}
+                    {% include 'driver27/team/team-record-optgroup.html' %}
+                {% endwith %}
+            </optgroup>
+            {% endif %}
             </select>
         </div>
         <div class="clear"></div>
