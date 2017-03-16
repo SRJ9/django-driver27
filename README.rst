@@ -52,7 +52,14 @@ Versions
 -  0.14c (Fernando Alonso 14)
 -  0.16c (Race to Championship '16)
 -  0.19 (Ayrton Senna's Toleman's car number '84 - Debut)
+-  0.22 (HAM McLaren 2008/BUT Brawn 2009)
 -  0.27-VIL (Gilles Villeneuve 27)
+
+0.22
+====
+-  Calculate team standing with a different punctuation system (like driver ranking)
+-  All ranks in season are available in competition.
+-  Refactor.
 
 0.19.4
 ======
