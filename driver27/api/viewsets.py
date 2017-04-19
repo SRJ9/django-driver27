@@ -16,7 +16,7 @@ class CommonDetailViewSet(object):
         serializer = serializer_cls(instance=self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
-    def get_seat_detail_route(self, request, filter=None, exclude=None):
+    def get_seat_detail_route(self, request, filter={}, exclude={}):
         """ Seat can not be directly accessed from Race """
         self.queryset = Seat.objects.filter(**filter).exclude(**exclude)
         serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
