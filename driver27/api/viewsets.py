@@ -10,7 +10,7 @@ from ..models import Competition, Contender, Driver, Race, Result, Season, Seat,
 
 
 class CommonDetailViewSet(object):
-    def get_common_detail_route(self, request, rel_model, serializer_cls, filters=None):
+    def get_common_detail_route(self, request, rel_model, serializer_cls, filters={}):
         obj = self.get_object()
         self.queryset = getattr(obj, rel_model).filter(**filters)
         serializer = serializer_cls(instance=self.queryset, many=True, context={'request': request})
