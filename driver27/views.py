@@ -212,6 +212,18 @@ def driver_record_view(request, competition_slug, year=None, record=None):
     return render(request, tpl, context)
 
 
+def driver_streak_view(request, competition_slug, year=None, record=None):
+    context = get_record_common_context(request, competition_slug, year, record)
+    rank = None
+    season_or_competition = context.get('season_or_competition')
+    if record:
+        rank = season_or_competition.streak_rank(**context.get('record_filter')) if 'record_filter' in context else None
+    context.pop('record_filter', None)
+    context['rank'] = rank
+    tpl = 'driver27/driver/driver-streak.html'
+    return render(request, tpl, context)
+
+
 def team_record_doubles_view(request, competition_slug, year=None, record=None):
     return team_record_view(request, competition_slug, year, record=record, rank_type='DOUBLES')
 

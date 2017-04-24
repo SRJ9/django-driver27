@@ -1,0 +1,62 @@
+{% extends 'driver27/base.html' %}
+{% load i18n %}
+{% block dr27_menu %}
+    {% if season %}
+        {% include 'driver27/season/season-menu-pre.html' %}
+    {% else %}
+        {% include 'driver27/competition/competition-menu-pre.html' %}
+    {% endif %}
+    {% include 'driver27/driver/driver-menu.html' %}
+{% endblock %}
+{% block dr27_content %}
+    {{ block.super }}
+{% load champion_filter i18n %}
+    <form method="POST" class="form-inline">
+    {% csrf_token %}
+        <div class="col-md-4 form-group">
+        <label for="record" class="control-label">Record:</label>
+        <select id="record" name="record" onchange="change_record()" class="form-control input-sm">
+            {% if not record %}
+                <option value="">---</option>
+            {% endif %}
+            {% for record_code, record_label in record_codes %}
+            <option value="
+                {% if season %}
+                    {% url 'dr27-season-driver-record' season.competition.slug season.year record_code %}
+                {% else %}
+                    {% url 'dr27-competition-driver-record' competition.slug record_code %}
+                {% endif %}"
+            {% if record_code == record %}selected{% endif %}
+            >{{ record_label }}</option>
+            {% endfor %}
+        </select>
+        </div>
+    </form>
+    {% if rank %}
+<table class="table table-condensed table-striped table-hover">
+    <tr>
+        <th>{%  trans 'Count' %}</th>
+        <th>{%  trans 'Driver' %}</th>
+        <th>{%  trans 'Team' %}</th>
+    </tr>
+    {% for count,driver,team in rank %}
+        <tr>
+        <td>{{ count }}</td>
+        <td>{{ driver }}</td>
+        <td>{{ team }}</td>
+        </tr>
+    {% endfor %}
+
+    </table>
+    {% endif %}
+{% endblock %}
+
+{% block bootstrap3_extra_script %}
+    {{ block.super }}
+    <script type="text/javascript">
+        function change_record(){
+            var record = $('#record').val();
+            location.href = record;
+        }
+    </script>
+{% endblock %}

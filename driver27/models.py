@@ -9,18 +9,24 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
 from .points_calculator import PointsCalculator
 from .punctuation import get_punctuation_config
+from .streak import Streak
 from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField
 from swapfield.fields import SwapIntegerField
 from . import lr_intr, lr_diff, season_bulk_copy
+from django.db.models.sql import constants
 
 from collections import namedtuple
 
 ResultTuple = namedtuple('ResultTuple', 'qualifying finish fastest_lap wildcard alter_punctuation')
 
 
-def get_results(seat=None, contender=None, team=None, race=None, season=None, competition=None, limit_races=None, **extra_filters):
+def get_results(seat=None, contender=None, team=None,
+                race=None, season=None, competition=None,
+                limit_races=None,
+                reverse_order=False,
+                **extra_filters):
     key_in_filters = {
         'limit_races': 'race__round__lte',
         'contender': 'seat__contender',
@@ -30,9 +36,10 @@ def get_results(seat=None, contender=None, team=None, race=None, season=None, co
         'seat': 'seat',
         'race': 'race'
     }
-
     filter_params = {}
+
     # kwarg is each param with custom filter
+
     for kwarg in key_in_filters.keys():
         value = locals().get(kwarg) # get the value of kwarg
         if value:
@@ -40,8 +47,12 @@ def get_results(seat=None, contender=None, team=None, race=None, season=None, co
             filter_params[key] = value
     filter_params.update(**extra_filters)
 
+
     results = Result.objects.filter(**filter_params)
-    results = results.order_by('race__season', 'race__round')
+
+    order_by_args = ('race__season', 'race__round') if not reverse_order else ('-race__season', '-race__round')
+
+    results = results.order_by(*order_by_args)
     return results
 
 
@@ -515,6 +526,16 @@ class Season(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
+    def streak_rank(self, **filters):
+        """ Get driver rank based on record filter """
+        contenders = self.contenders()
+        rank = []
+        for contender in contenders:
+            contender_season = contender.get_season(self)
+            rank.append((contender_season.get_streak(**filters), contender.driver, contender_season.teams_verbose))
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        return rank
+
     @staticmethod
     def get_team_rank_method(rank_type):
         """ Dict with distinct teams rank method, depending of rank_type param """
@@ -890,27 +911,17 @@ class TeamSeason(models.Model):
                     points_list.append(points)
         return sum(points_list)
 
-
-    def get_filtered_results(self, **filters):
-        """ Filter results """
-        return self.get_results(**filters)
-
-    def get_filtered_races(self, **filters):
-        """ Filter races"""
-        # @todo Check if filter in return line is necessary
-        return self.get_races(**filters)
-
     def get_total_races(self, **filters):
         """ Only count 1 by race with any driver in filter """
-        return self.get_filtered_races(**filters).count()
+        return self.get_races(**filters).count()
 
     def get_doubles_races(self, **filters):
         """ Only count 1 by race with at least two drivers in filter """
-        return self.get_filtered_races(**filters).filter(count_race__gte=2).count()
+        return self.get_races(**filters).filter(count_race__gte=2).count()
 
     def get_total_stats(self, **filters):  # noqa
         """ Count 1 by each result """
-        return self.get_filtered_results(**filters).count()
+        return self.get_results(**filters).count()
 
     def __str__(self):
         str_team = self.team.name
@@ -1008,9 +1019,13 @@ class ContenderSeason(object):
         """ Return results. Can be limited."""
         return get_results(contender=self.contender, season=self.season, limit_races=limit_races, **extra_filter)
 
-    def get_filtered_results(self, **filters):
-        """ Apply filters to contender-season results """
-        return self.get_results(**filters)
+    def get_reverse_results(self, limit_races=None, **extra_filter):
+        return self.get_results(limit_races=limit_races, reverse_order=True, **extra_filter)
+
+    def get_streak(self, **filters):
+        results = self.get_reverse_results()
+        counter = 0
+        return Streak(results=results).run(filters)
 
     def get_stats(self, **filters):
         """ Count 1 by each result """
