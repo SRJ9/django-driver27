@@ -1,4 +1,4 @@
-from operator import le, ge
+from operator import le, ge, eq
 import re
 
 
@@ -11,7 +11,9 @@ class Streak(object):
     @staticmethod
     def get_builtin_function(builtin_key):
         return {'lte': le,
-                'gte': ge
+                'gte': ge,
+                'eq': eq,
+                'exact': eq
                 }.get(builtin_key, None)
 
     @staticmethod
@@ -36,7 +38,7 @@ class Streak(object):
     @classmethod
     def exists_comparison(cls, filter_list):
         comparison_position = cls.get_comparison_position(filter_list)
-        return filter_list[comparison_position] in ['lte', 'gte']
+        return filter_list[comparison_position] in ['lte', 'gte', 'eq', 'exact']
 
     @classmethod
     def exec_comparison(cls, result, filter_list, filter_value):

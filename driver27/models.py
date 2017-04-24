@@ -143,6 +143,15 @@ class Competition(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
+    def streak_rank(self, **filters):
+        """ Get driver rank based on record filter """
+        contenders = self.contenders.all()
+        rank = []
+        for contender in contenders:
+            rank.append((contender.get_streak(**filters), contender.driver, contender.teams_verbose))
+        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        return rank
+
     @staticmethod
     def get_team_rank_method(rank_type):
         """ Dict with distinct teams rank method, depending of rank_type param """
@@ -224,6 +233,14 @@ class Contender(models.Model):
     def get_results(self, limit_races=None, **extra_filter):
         """ Return all results of team in season """
         return get_results(contender=self, limit_races=limit_races, **extra_filter)
+
+    def get_reverse_results(self, limit_races=None, **extra_filter):
+        return self.get_results(limit_races=limit_races, reverse_order=True, **extra_filter)
+
+    def get_streak(self, **filters):
+        results = self.get_reverse_results()
+        counter = 0
+        return Streak(results=results).run(filters)
 
     def get_races(self, **filters):
         """ Return only race id of team in season """
