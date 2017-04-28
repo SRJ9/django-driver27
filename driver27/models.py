@@ -16,6 +16,8 @@ from exclusivebooleanfield.fields import ExclusiveBooleanField
 from swapfield.fields import SwapIntegerField
 from . import lr_intr, lr_diff, season_bulk_copy
 from django.db.models.sql import constants
+from .stats import AbstractStatsModel, TeamStatsModel
+from .rank import AbstractRankModel
 
 from collections import namedtuple
 
@@ -102,94 +104,25 @@ class Driver(models.Model):
 
 
 @python_2_unicode_compatible
-class Competition(models.Model):
+class Competition(AbstractRankModel):
     """ Competition model. Season, races, results... are grouped by competition """
     name = models.CharField(max_length=30, verbose_name=_('competition'), unique=True)
     full_name = models.CharField(max_length=100, unique=True, verbose_name=_('full name'))
     country = CountryField(null=True, blank=True, default=None, verbose_name=_('country'))
     slug = models.SlugField(null=True, blank=True, default=None)
 
-    def points_rank(self, punctuation_code=None):
-        """ Points driver rank. Scoring can be override by scoring_code param """
-        punctuation_config = None
-        if punctuation_code:
-            punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
-        contenders = self.contenders.all()
-        rank = []
-        for contender in contenders:
-            rank.append((contender.get_points(punctuation_config=punctuation_config), contender.driver,
-                         contender.teams_verbose,contender.get_positions_str()))
-        rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
-        return rank
-
-    def team_points_rank(self, punctuation_code=None):
-        """ Same that points_rank by count both team drivers """
-        punctuation_config = None
-        if punctuation_code:
-            punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
-        teams = self.teams.all()
-        rank = []
-        for team in teams:
-            rank.append((team.get_points(competition=self, punctuation_config=punctuation_config), team))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
-        return rank
-
-    def stats_rank(self, **filters):
-        """ Get driver rank based on record filter """
-        contenders = self.contenders.all()
-        rank = []
-        for contender in contenders:
-            rank.append((contender.get_stats(**filters), contender.driver, contender.teams_verbose))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
-        return rank
-
-    def streak_rank(self, **filters):
-        """ Get driver rank based on record filter """
-        contenders = self.contenders.all()
-        rank = []
-        for contender in contenders:
-            rank.append((contender.get_streak(**filters), contender.driver, contender.teams_verbose))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
-        return rank
-
-    @staticmethod
-    def get_team_rank_method(rank_type):
-        """ Dict with distinct teams rank method, depending of rank_type param """
-        " STATS: Count 1 by each time that driver get record "
-        " RACES: Count 1 by each race that any driver get record "
-        " DOUBLES: Count 1 by each race that at least two drivers get record "
-        rank_dict = {
-            'STATS': 'team_stats_rank',
-            'RACES': 'team_races_rank',
-            'DOUBLES': 'team_doubles_rank'
-        }
-
-        return rank_dict.get(rank_type)
-
     def get_team_rank(self, rank_type, **filters):
-        """ Return team rank calling returned method by get_team_rank_method """
-        rank_method = self.get_team_rank_method(rank_type)
-        return getattr(self, rank_method)(**filters) if rank_method else None
+        return super(Competition, self).get_team_rank(rank_type=rank_type, competition=self, **filters)
 
-    def team_rank(self, total_method, **filters):
-        """ Collect the records of each team calling the method of Team passed by total_method param """
-        rank = []
-        teams = self.teams.all()
-        for team in teams:
-            total = getattr(team, total_method)(self, **filters)
-            rank.append((total, team))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
-        return rank
+    def get_stats_cls(self, contender):
+        return contender
 
-    def team_stats_rank(self, **filters):
-        return self.team_rank('get_total_stats', **filters)
+    def get_team_stats_cls(self, team):
+        return team
 
-    def team_races_rank(self, **filters):
-        return self.team_rank('get_total_races', **filters)
-
-    def team_doubles_rank(self, **filters):
-        return self.team_rank('get_doubles_races', **filters)
-
+    @property
+    def stats_filter_kwargs(self):
+        return {'competition': self}
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
@@ -205,7 +138,7 @@ class Competition(models.Model):
 
 
 @python_2_unicode_compatible
-class Contender(models.Model):
+class Contender(AbstractStatsModel):
     """ Contender are used to ranks or individual stats"""
     " Contender only can be related with teams of same competition "
     " If driver is related with same team in different competition, it is necessary to create new contender "
@@ -213,13 +146,6 @@ class Contender(models.Model):
     competition = models.ForeignKey('Competition', related_name='contenders', verbose_name=_('competition'))
     teams = models.ManyToManyField('Team', through='Seat', related_name='contenders',
                                    verbose_name=_('teams'))
-
-    def get_season(self, season):
-        try:
-            contender_season = ContenderSeason(self, season)
-            return contender_season
-        except ValidationError:
-            return None
 
     def get_points(self, punctuation_config=None):
         seasons = Season.objects.filter(seats__contender=self).distinct()
@@ -232,48 +158,15 @@ class Contender(models.Model):
 
     def get_results(self, limit_races=None, **extra_filter):
         """ Return all results of team in season """
-        return get_results(contender=self, limit_races=limit_races, **extra_filter)
-
-    def get_reverse_results(self, limit_races=None, **extra_filter):
-        return self.get_results(limit_races=limit_races, reverse_order=True, **extra_filter)
-
-    def get_streak(self, **filters):
-        results = self.get_reverse_results()
-        counter = 0
-        return Streak(results=results).run(filters)
-
-    def get_races(self, **filters):
-        """ Return only race id of team in season """
-        results = self.get_results(**filters).values('race').annotate(count_race=models.Count('race')).order_by()
-        return results
-
-    def get_positions_list(self, limit_races=None):
-        """ Return a list with the count of each 20 first positions """
-        results = self.get_results(limit_races=limit_races)
-        finished = results.values_list('finish', flat=True)
-        last_position = 20
-        positions = []
-        for x in range(1, last_position+1):
-            position_count = len([finish for finish in finished if finish==x])
-            positions.append(position_count)
-        return positions
-
-    def get_positions_str(self, position_list=None, limit_races=None):
-        """ Return a str with position_list to order """
-        " Each list item will be filled to zeros until get three digits e.g. 1 => 001, 12 => 012 "
-        if not position_list:
-            position_list = self.get_positions_list(limit_races=limit_races)
-        positions_str = ''.join([str(x).zfill(3) for x in position_list])
-        return positions_str
-
-    def get_stats(self, **filters):
-        """ Count 1 by each result """
-        return self.get_results(**filters).count()
+        return get_results(contender=self, **extra_filter)
 
     @property
     def teams_verbose(self):
         teams = self.teams
         return ', '.join([team.name for team in teams.all()]) if teams.count() else None
+
+    def season_stats_cls(self, season):
+        return ContenderSeason(contender=self, season=season)
 
     def __str__(self):
         return _(u'%(driver)s in %(competition)s') % {'driver': self.driver, 'competition': self.competition}
@@ -286,12 +179,30 @@ class Contender(models.Model):
 
 
 @python_2_unicode_compatible
-class Team(models.Model):
+class Team(TeamStatsModel):
     """ Team model, unique if is the same in different competition """
     name = models.CharField(max_length=75, verbose_name=_('team'), unique=True)
     full_name = models.CharField(max_length=200, unique=True, verbose_name=_('full name'))
     competitions = models.ManyToManyField('Competition', related_name='teams', verbose_name=_('competitions'))
     country = CountryField(verbose_name=_('country'))
+
+
+    def get_results(self, competition, **extra_filter):
+        """ Return all results of team in season """
+        return get_results(team=self, competition=competition, **extra_filter)
+
+    def season_stats_cls(self, season):
+        return TeamSeason.objects.get(season=season, team=self)
+
+    def get_total_races(self, competition, **filters):
+        return super(Team, self).get_total_races(competition=competition, **filters)
+
+    def get_doubles_races(self, competition, **filters):
+        return super(Team, self).get_doubles_races(competition=competition, **filters)
+
+    def get_total_stats(self, competition, **filters):
+        return super(Team, self).get_total_stats(competition=competition, **filters)
+
 
     @classmethod
     def bulk_copy(cls, teams_pk, season_pk):
@@ -324,33 +235,9 @@ class Team(models.Model):
         seasons = Season.objects.filter(teams=self, competition=competition)
         points = 0
         for season in seasons:
-            team_season = TeamSeason.objects.get(season=season, team=self)
-            season_points = team_season.get_points(punctuation_config=punctuation_config)
+            season_points = self.get_season(season).get_points(punctuation_config=punctuation_config)
             points += season_points if season_points else 0
         return points
-
-    def get_results(self, competition, **extra_filter):
-        """ Return all results of team in season """
-        return get_results(team=self, competition=competition, **extra_filter)
-
-    def get_races(self, **filters):
-        """ Return only race id of team in season """
-        results = self.get_results(**filters)\
-            .values('race').annotate(count_race=models.Count('race'))\
-            .order_by()
-        return results
-
-    def get_total_races(self, competition, **filters):
-        """ Only count 1 by race with any driver in filter """
-        return self.get_races(competition=competition, **filters).count()
-
-    def get_doubles_races(self, competition, **filters):
-        """ Only count 1 by race with at least two drivers in filter """
-        return self.get_races(competition=competition, **filters).filter(count_race__gte=2).count()
-
-    def get_total_stats(self, competition, **filters):  # noqa
-        """ Count 1 by each result """
-        return self.get_results(competition=competition, **filters).count()
 
     def __str__(self):
         return self.name
@@ -472,7 +359,7 @@ class GrandPrix(models.Model):
 
 
 @python_2_unicode_compatible
-class Season(models.Model):
+class Season(AbstractRankModel):
     """ Season model. The main model to restrict races, results and punctuation """
     year = models.IntegerField(verbose_name=_('year'))
     competition = models.ForeignKey(Competition, related_name='seasons', verbose_name=_('competition'))
@@ -481,11 +368,27 @@ class Season(models.Model):
                                    verbose_name=_('teams'))
     punctuation = models.CharField(max_length=20, null=True, default=None, verbose_name=_('punctuation'))
 
-    def get_punctuation_config(self, code=None):
+    @property
+    def stats_filter_kwargs(self):
+        return {}
+
+    @property
+    def contenders(self):
+        """ As season is related with seats, this method is a shorcut to get contenders """
+        seats = [seat.pk for seat in self.seats.all()]
+        return Contender.objects.filter(seats__pk__in=seats).distinct()
+
+    def get_stats_cls(self, contender):
+        return contender.get_season(self)
+
+    def get_team_stats_cls(self, team):
+        return TeamSeason.objects.get(season=self, team=team)
+
+    def get_punctuation_config(self, punctuation_code=None):
         """ Getting the punctuation config. Chosen punctuation will be override temporarily by code kwarg """
-        if not code:
-            code = self.punctuation
-        return get_punctuation_config(code)
+        if not punctuation_code:
+            punctuation_code = self.punctuation
+        return get_punctuation_config(punctuation_code)
 
     def pending_races(self):
         """ Based on rounds field, return races count when race doesn't have any result """
@@ -498,7 +401,7 @@ class Season(models.Model):
         # @todo fastest_lap and pole points are not counted
         if not punctuation_code:
             punctuation_code = self.punctuation
-        punctuation_config = self.get_punctuation_config(code=punctuation_code)
+        punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
         max_score_by_race = sorted(punctuation_config.get('finish'), reverse=True)[0]
         pending_races = self.pending_races()
         return pending_races * max_score_by_race
@@ -527,112 +430,6 @@ class Season(models.Model):
         if len(self.only_title_contenders(punctuation_code=punctuation_code)) == 1:
             leader_is_champions = True
         return leader_is_champions
-
-    def contenders(self):
-        """ As season is related with seats, this method is a shorcut to get contenders """
-        seats = [seat.pk for seat in self.seats.all()]
-        return Contender.objects.filter(seats__pk__in=seats).distinct()
-
-    def stats_rank(self, **filters):
-        """ Get driver rank based on record filter """
-        contenders = self.contenders()
-        rank = []
-        for contender in contenders:
-            contender_season = contender.get_season(self)
-            rank.append((contender_season.get_stats(**filters), contender.driver, contender_season.teams_verbose))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
-        return rank
-
-    def streak_rank(self, **filters):
-        """ Get driver rank based on record filter """
-        contenders = self.contenders()
-        rank = []
-        for contender in contenders:
-            contender_season = contender.get_season(self)
-            rank.append((contender_season.get_streak(**filters), contender.driver, contender_season.teams_verbose))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
-        return rank
-
-    @staticmethod
-    def get_team_rank_method(rank_type):
-        """ Dict with distinct teams rank method, depending of rank_type param """
-        " STATS: Count 1 by each time that driver get record "
-        " RACES: Count 1 by each race that any driver get record "
-        " DOUBLES: Count 1 by each race that at least two drivers get record "
-        rank_dict = {
-            'STATS': 'team_stats_rank',
-            'RACES': 'team_races_rank',
-            'DOUBLES': 'team_doubles_rank'
-        }
-
-        return rank_dict.get(rank_type)
-
-    def get_team_rank(self, rank_type, **filters):
-        """ Return team rank calling returned method by get_team_rank_method """
-        rank_method = self.get_team_rank_method(rank_type)
-        return getattr(self, rank_method)(**filters) if rank_method else None
-
-    def team_rank(self, total_method, **filters):
-        """ Collect the records of each team calling the method of TeamSeason passed by total_method param """
-        rank = []
-        teams = self.teams.all()
-        for team in teams:
-            team_season = TeamSeason.objects.get(season=self, team=team)
-            total = getattr(team_season, total_method)(**filters)
-            rank.append((total, team))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
-        return rank
-
-    def team_stats_rank(self, **filters):
-        return self.team_rank('get_total_stats', **filters)
-
-    def team_races_rank(self, **filters):
-        return self.team_rank('get_total_races', **filters)
-
-    def team_doubles_rank(self, **filters):
-        return self.team_rank('get_doubles_races', **filters)
-
-    def points_rank(self, punctuation_code=None):
-        """ Points driver rank. Scoring can be override by scoring_code param """
-        if not punctuation_code:
-            punctuation_code = self.punctuation
-        contenders = self.contenders()
-        punctuation_config = self.get_punctuation_config(punctuation_code) if punctuation_code and punctuation_code != self.punctuation else None
-        rank = []
-        for contender in contenders:
-            contender_season = contender.get_season(self)
-            rank.append((contender_season.get_points(punctuation_config=punctuation_config), contender.driver, contender_season.teams_verbose,
-                         contender_season.get_positions_str()))
-        rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
-        return rank
-
-    def olympic_rank(self):
-        """ The driver
-        with superior race results (based on descending order, from number of
-        wins to numbers of second-places down) will gain precedence. """
-        contenders = self.contenders()
-        rank = []
-        for contender in contenders:
-            contender_season = contender.get_season(self)
-            position_list = contender_season.get_positions_list()
-            position_str = contender_season.get_positions_str(position_list=position_list)
-            rank.append((position_str,
-                         contender.driver,
-                         contender_season.teams_verbose,
-                         position_list))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
-        return rank
-
-    def team_points_rank(self, punctuation_code=None):
-        """ Same that points_rank by count both team drivers """
-        teams = self.teams.all()
-        punctuation_config = self.get_punctuation_config(punctuation_code) if punctuation_code and punctuation_code != self.punctuation else None
-        rank = []
-        for team in teams:
-            team_season = TeamSeason.objects.get(season=self, team=team)
-            rank.append((team_season.get_points(punctuation_config=punctuation_config), team))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
-        return rank
 
     def get_leader(self, rank=None, team=False, punctuation_code=None):
         """ Get driver leader or team leader """
@@ -863,12 +660,40 @@ m2m_changed.connect(seat_seasons, sender=SeatSeason)
 
 
 @python_2_unicode_compatible
-class TeamSeason(models.Model):
+class TeamSeason(TeamStatsModel):
     """ TeamSeason model, only for validation although it is saved in DB"""
     season = models.ForeignKey('Season', related_name='teams_season', verbose_name=_('season'))
     team = models.ForeignKey('Team', related_name='seasons_team', verbose_name=_('team'))
     sponsor_name = models.CharField(max_length=75, null=True, blank=True, default=None,
                                     verbose_name=_('sponsor name'))
+
+    @property
+    def stats_filter_kwargs(self):
+        return {'season': self.season, 'team': self.team}
+
+    def get_results(self, limit_races=None, **extra_filter):
+        """ Return all results of team in season """
+        results_filter = self.stats_filter_kwargs
+        return get_results(limit_races=limit_races, **dict(results_filter, **extra_filter))
+
+
+    def get_points(self, limit_races=None, punctuation_config=None):
+        """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
+
+        if punctuation_config is None:
+            points_list = self.get_saved_points(limit_races=limit_races)
+        else:
+            points_list = []
+            results = self.get_results(limit_races=limit_races)
+            # Result can be the only param passed to get_results_tuple.
+            # If results=false, get_results will be calculate without params, return all results of all competitions.
+            # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
+            for result in get_results_tuples(results=results, skip_results_if_false=True):
+                result_tuple = ResultTuple(*result)
+                points = PointsCalculator(punctuation_config).calculator(result_tuple, skip_wildcard=True)
+                if points:
+                    points_list.append(points)
+        return sum(points_list)
 
     def clean(self, *args, **kwargs):
         """ Check if team participate in competition """
@@ -894,51 +719,6 @@ class TeamSeason(models.Model):
         seats_count = SeatSeason.objects.filter(seat__team=team, season=season).count()
         return bool(seats_count)
         # return {'team': _('Seats with %(team)s exists in this season. Delete seats before.' % {'team': team})}
-
-    def get_results(self, limit_races=None, **extra_filter):
-        """ Return all results of team in season """
-        return get_results(team=self.team, season=self.season, limit_races=limit_races, **extra_filter)
-
-    def get_races(self, **filters):
-        """ Return only race id of team in season """
-        results = self.get_results(**filters)\
-            .values('race').annotate(count_race=models.Count('race'))\
-            .order_by()
-        return results
-
-    def get_saved_points(self, limit_races=None):
-        results = self.get_results(limit_races=limit_races)
-        return [result.points for result in results if not result.wildcard and result.points is not None]
-
-    def get_points(self, limit_races=None, punctuation_config=None):
-        """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
-
-        if punctuation_config is None:
-            points_list = self.get_saved_points(limit_races=limit_races)
-        else:
-            points_list = []
-            results = self.get_results(limit_races=limit_races)
-            # Result can be the only param passed to get_results_tuple.
-            # If results=false, get_results will be calculate without params, return all results of all competitions.
-            # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
-            for result in get_results_tuples(results=results, skip_results_if_false=True):
-                result_tuple = ResultTuple(*result)
-                points = PointsCalculator(punctuation_config).calculator(result_tuple, skip_wildcard=True)
-                if points:
-                    points_list.append(points)
-        return sum(points_list)
-
-    def get_total_races(self, **filters):
-        """ Only count 1 by race with any driver in filter """
-        return self.get_races(**filters).count()
-
-    def get_doubles_races(self, **filters):
-        """ Only count 1 by race with at least two drivers in filter """
-        return self.get_races(**filters).filter(count_race__gte=2).count()
-
-    def get_total_stats(self, **filters):  # noqa
-        """ Count 1 by each result """
-        return self.get_results(**filters).count()
 
     def __str__(self):
         str_team = self.team.name
@@ -1031,6 +811,8 @@ class ContenderSeason(object):
         self.seats = Seat.objects.filter(contender__pk=self.contender.pk, seasons__pk=self.season.pk)
         self.teams = Team.objects.filter(seats__in=self.seats)
         self.teams_verbose = ', '.join([team.name for team in self.teams])
+
+
 
     def get_results(self, limit_races=None, **extra_filter):
         """ Return results. Can be limited."""

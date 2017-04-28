@@ -53,7 +53,7 @@ class SeasonTestCase(TestCase, CommonSeasonTestCase, CommonSeatTestCase):
         self.assertIsNone(seat_b.seasons.add(season))
         self.assertIsNone(seat_c.seasons.add(season))
         # A and C is the same, 2 = (A, B)
-        self.assertEquals(season.contenders().count(), 2)
+        self.assertEquals(season.contenders.count(), 2)
 
     def test_seat_season_exception(self):
         seat_a = self.get_test_seat()
