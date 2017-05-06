@@ -220,7 +220,8 @@ def driver_streak_view(request, competition_slug, year=None, record=None):
         rank = season_or_competition.streak_rank(**context.get('record_filter')) if 'record_filter' in context else None
     context.pop('record_filter', None)
     context['rank'] = rank
-    tpl = 'driver27/driver/driver-streak.html'
+    context['streak'] = True
+    tpl = 'driver27/driver/driver-record.html'
     return render(request, tpl, context)
 
 

@@ -30,6 +30,9 @@
             >{{ record_label }}</option>
             {% endfor %}
         </select>
+            <input type="checkbox" name="streak" id="streak" onchange="change_record()"
+            {% if streak %}checked{% endif %}
+            ><label for="streak">{%  trans 'Streak' %}</label>
         </div>
     </form>
     {% if rank %}
@@ -56,7 +59,12 @@
     <script type="text/javascript">
         function change_record(){
             var record = $('#record').val();
-            location.href = record.trim();
+            var streak = $('#streak').prop('checked');
+            var streak_str='';
+            if(streak){
+                streak_str = '/streak';
+            }
+            location.href = record.trim() + streak_str;
         }
     </script>
 {% endblock %}
