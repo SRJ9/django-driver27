@@ -73,13 +73,12 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
     default_punctuation = getattr(season_or_competition, 'punctuation', None)
     scoring_code = request.POST.get('scoring', default_punctuation)
 
-    has_champion = access_to_road = False
+    has_champion = False
     punctuation_selector = get_punctuation_label_dict()
     if rank_model == 'driver':
         rank = season_or_competition.points_rank(punctuation_code=scoring_code)
         if hasattr(season_or_competition, 'has_champion'):
             has_champion = season_or_competition.has_champion(punctuation_code=scoring_code)
-            access_to_road = (not has_champion)
         rank_title = _('DRIVERS')
         tpl = 'driver27/driver/driver-list.html'
     elif rank_model == 'team':
@@ -96,7 +95,6 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
                'season': season,
                'competition': competition,
                'title': title,
-               'access_to_road': access_to_road,
                'has_champion': has_champion,
                'scoring_list': punctuation_selector,
                'scoring_code': scoring_code}
@@ -121,26 +119,6 @@ def driver_olympic_view(request, competition_slug, year):
                'title': title,
                'positions': range(1, 21),
                'olympic': True}
-    return render(request, tpl, context)
-
-
-def driver_road_view(request, competition_slug, year):
-    season = get_season(competition_slug, year)
-    if not season.has_champion():
-        pending_races = season.pending_races()
-        road_rank = season.only_title_contenders()
-        punctuation_config = season.get_punctuation_config()
-        title = _('%(season)s - Road to the championship') % {'season': season}
-        tpl = 'driver27/driver/driver-list.html'
-
-        context = {'rank': road_rank,
-                   'season': season,
-                   'title': title,
-                   'scoring': punctuation_config.get('finish'),
-                   'pending_races': range(1, pending_races+1),
-                   'road_to_championship': True}
-    else:
-        raise Http404(_('%(leader)s is the Champion!') % {'leader': season.leader[1]})
     return render(request, tpl, context)
 
 

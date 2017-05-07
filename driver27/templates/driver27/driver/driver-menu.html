@@ -14,12 +14,6 @@
         <a class="nav-link" href="{% url 'dr27-season-driver-olympic' season.competition.slug season.year %}">{%  trans 'Olympic' %}</a>
     </li>
 
-    {% if access_to_road %}
-        <li class="nav-item">
-            <a class="nav-link"
-               href="{% url 'dr27-season-driver-road' season.competition.slug season.year %}">{%  trans 'Road to championship' %}</a>
-        </li>
-    {% endif %}
     {% else %}
             <li class="nav-item">
         <a class="nav-link" href="{% url 'dr27-competition-driver' competition.slug %}">{%  trans 'Drivers' %}</a>

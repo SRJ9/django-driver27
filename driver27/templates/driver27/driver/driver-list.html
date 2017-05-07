@@ -17,11 +17,3 @@
         {% include 'driver27/driver/driver-list-table.html' %}
     {% endif %}
 {% endblock %}
-
-
-{% block bootstrap3_extra_script %}
-    {{ block.super }}
-    {% if road_to_championship %}
-        {% include 'driver27/driver/driver-list-road-to-championship.html' %}
-    {% endif %}
-{% endblock %}

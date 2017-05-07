@@ -1,17 +1,11 @@
 {% load champion_filter i18n %}
 {% if rank %}
-<table class="table table-condensed table-striped table-hover">
+<table class="table table-condensed table-striped table-hover" >
     <thead>
         <tr>
-        <th {% if not pending_races %}class="col-md-4"{% endif %}>{%  trans 'Points' %}</th>
-        <th {% if not pending_races %}class="col-md-3"{% endif %}>{%  trans 'Driver' %}</th>
-        <th {% if not pending_races %}class="col-md-5" {% endif %}>{%  trans 'Team' %}</th>
-        {% if pending_races %}
-        {% for pending_race in pending_races %}
-        <th>{{ pending_race }}</th>
-        {% endfor %}
-        <th>{%  trans 'Total' %}</th>
-        {% endif %}
+        <th class="col-md-4">{%  trans 'Points' %}</th>
+        <th class="col-md-3">%  trans 'Driver' %}</th>
+        <th class="col-md-5">{%  trans 'Team' %}</th>
     </tr>
     </thead>
 
@@ -24,21 +18,11 @@
             {% endif %}
         </td>
         <td>{{ team }}</td>
-        {% if pending_races %}
-        {% for pending_race in pending_races %}
-        <td><input type="number" size="3" class="contender_{{ forloop.parentloop.counter }} race_{{ pending_race }}"
-            onchange="change_results_contender({{ forloop.parentloop.counter }})"
-                   min="1" max="99" data-contender="{{ forloop.parentloop.counter }}"
-        /></td>
-        {% endfor %}
-        <input type="hidden" id="pos_{{forloop.counter}}" value="{{ positions }}">
-        <input type="hidden" id="update_pos_{{forloop.counter}}" value="{{ positions }}">
-        <td id="total_{{ forloop.counter }}" class="total_points" data-contender="{{ forloop.counter }}">{{ points }}</td>
-        {% endif %}
         </tr>
     {% endfor %}
 
     </table>
+
 {% else %}
     <p>No drivers</p>
 {% endif %}
