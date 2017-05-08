@@ -35,8 +35,8 @@ class DR27Serializer(object):
 
 
 class DR27ViewSet(viewsets.ModelViewSet):
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated,)
+    # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    # permission_classes = (permissions.IsAuthenticated,)
 
     def get_exception_handler(self):
         return custom_exception_handler
