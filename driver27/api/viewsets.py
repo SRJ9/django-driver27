@@ -82,6 +82,15 @@ class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
         ]
         return Response(serializer_rank)
 
+    @detail_route(methods=['get'])
+    def title(self, request, pk=None):
+        season = self.get_object()
+        rank = season.only_title_contenders()
+        serializer_rank = [
+            get_dict_from_rank_entry(standing) for standing in rank
+        ]
+        return Response(serializer_rank)
+
 
 # ViewSets define the view behavior.
 class CircuitViewSet(DR27ViewSet):
