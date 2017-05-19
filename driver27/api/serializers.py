@@ -48,7 +48,8 @@ class CompetitionSerializer(DR27Serializer, serializers.HyperlinkedModelSerializ
     id = serializers.ReadOnlyField()
     # https://github.com/SmileyChris/django-countries/issues/106
     country = CountryField()
-    seasons = SeasonSerializer(many=True, exclude_fields=['competition', 'competition_details', 'races'])
+    seasons = SeasonSerializer(many=True, exclude_fields=['competition', 'competition_details', 'races'],
+                               read_only=True)
 
     class Meta:
         model = Competition
