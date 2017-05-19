@@ -91,16 +91,24 @@ class NestedTeamSerializer(TeamSerializer):
 #
 
 
-class ContenderSerializer(serializers.HyperlinkedModelSerializer):
+class ContenderSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
-    driver = NestedDriverSerializer(many=False)
-    teams = NestedTeamSerializer(many=True)
+    teams_details = serializers.SerializerMethodField()
+    driver_details = serializers.SerializerMethodField()
+
+    def get_teams_details(self, obj):
+        return NestedTeamSerializer(instance=obj.teams, many=True,
+                              context=self.context).data
+
+    def get_driver_details(self, obj):
+        return NestedDriverSerializer(instance=obj.driver, many=False,
+                                      context=self.context).data
 
     # competition = CompetitionSerializer(many=False)
 
     class Meta:
         model = Contender
-        fields = ('url', 'id', 'driver', 'competition', 'teams')
+        fields = ('url', 'id', 'competition', 'driver', 'driver_details', 'teams', 'teams_details')
 
 
 #
