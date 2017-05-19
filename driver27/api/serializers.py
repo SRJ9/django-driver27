@@ -72,7 +72,7 @@ class NestedDriverSerializer(DriverSerializer):
         fields = ('url', 'last_name', 'first_name', 'year_of_birth', 'country')
 
 
-class TeamSerializer(serializers.HyperlinkedModelSerializer):
+class TeamSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     country = CountryField()
 
@@ -85,10 +85,6 @@ class NestedTeamSerializer(TeamSerializer):
     class Meta:
         model = Team
         fields = ('url', 'name', 'full_name', 'country')
-
-
-#
-#
 
 
 class ContenderSerializer(serializers.ModelSerializer):
