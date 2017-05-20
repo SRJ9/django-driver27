@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework import viewsets, authentication, permissions, status
+from rest_framework import viewsets, authentication, permissions, status, filters
 from rest_framework.compat import set_rollback
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as rest_exception_handler
@@ -37,6 +37,8 @@ class DR27Serializer(object):
 class DR27ViewSet(viewsets.ModelViewSet):
     # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     # permission_classes = (permissions.IsAuthenticated,)
+
+    filter_backends = (filters.SearchFilter,)
 
     def get_exception_handler(self):
         return custom_exception_handler

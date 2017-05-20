@@ -120,6 +120,8 @@ class ResultViewSet(DR27ViewSet):
 class ContenderViewSet(DR27ViewSet):
     queryset = Contender.objects.all()
     serializer_class = ContenderSerializer
+    search_fields = ('competition', 'driver',)
+    filter_fields = ('competition', 'driver',)
 
 
 # ViewSets define the view behavior.
