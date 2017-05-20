@@ -1,4 +1,4 @@
-from django.utils.timezone import datetime #important if using timezones
+from django.utils.timezone import datetime  # important if using timezones
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from .common import DR27ViewSet
@@ -105,9 +105,13 @@ class GrandPrixViewSet(DR27ViewSet):
 
 
 # ViewSets define the view behavior.
-class CompetitionViewSet(DR27CommonCompetitionViewSet):
+class CompetitionViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
     queryset = Competition.objects.all()
     serializer_class = CompetitionSerializer
+
+    @detail_route(methods=['get'])
+    def teams(self, request, pk=None):
+        return self.get_common_detail_route(request, 'teams', TeamSerializer)
 
 
 # ViewSets define the view behavior.
