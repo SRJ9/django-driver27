@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django_countries',
     'tabbed_admin',
     'rest_framework',
-    'django-filter',
+    'django_filters',
     'driver27'
 ]
 
