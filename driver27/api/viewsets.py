@@ -74,6 +74,10 @@ class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
         return self.get_common_detail_route(request, 'seats', SeatSerializer)
 
     @detail_route(methods=['get'])
+    def teams(self, request, pk=None):
+        return self.get_common_detail_route(request, 'teams', TeamSerializer)
+
+    @detail_route(methods=['get'])
     def standings(self, request, pk=None):
         season = self.get_object()
         rank = season.points_rank()
