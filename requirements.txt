@@ -6,4 +6,4 @@ tox
 django-exclusivebooleanfield
 djangorestframework>=3.5.4
 django-swapfield
-django-filters
+django-filter

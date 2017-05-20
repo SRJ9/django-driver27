@@ -38,7 +38,7 @@ class DR27ViewSet(viewsets.ModelViewSet):
     # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     # permission_classes = (permissions.IsAuthenticated,)
 
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (filters.DjangoFilterBackend, filters.SearchFilter,)
 
     def get_exception_handler(self):
         return custom_exception_handler
