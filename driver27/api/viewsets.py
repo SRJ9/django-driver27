@@ -5,7 +5,7 @@ from .common import DR27ViewSet
 from .serializers import RaceSerializer, ResultSerializer, SeatSerializer, SeasonSerializer
 from .serializers import CircuitSerializer, GrandPrixSerializer, CompetitionSerializer
 from .serializers import ContenderSerializer, TeamSerializer, DriverSerializer
-from .common import get_dict_from_rank_entry
+from .common import get_dict_from_rank_entry, get_dict_from_team_rank_entry
 from ..models import Competition, Contender, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit
 
 
@@ -73,6 +73,14 @@ class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
     def seats(self, request, pk=None):
         return self.get_common_detail_route(request, 'seats', SeatSerializer)
 
+    @detail_route(methods=['get'], url_path='no-seats')
+    def no_seats(self, request, pk=None):
+        """ Seats in this season that are not part of the race """
+        obj = self.get_object()
+        return self.get_seat_detail_route(request, filter={'contender__competition': obj.competition},
+                                          exclude={'seasons': obj})
+
+
     @detail_route(methods=['get'])
     def teams(self, request, pk=None):
         return self.get_common_detail_route(request, 'teams', TeamSerializer)
@@ -83,6 +91,15 @@ class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
         rank = season.points_rank()
         serializer_rank = [
             get_dict_from_rank_entry(standing) for standing in rank
+        ]
+        return Response(serializer_rank)
+
+    @detail_route(methods=['get'], url_path='standings-team')
+    def standings_team(self, request, pk=None):
+        season = self.get_object()
+        rank = season.team_points_rank()
+        serializer_rank = [
+            get_dict_from_team_rank_entry(standing) for standing in rank
         ]
         return Response(serializer_rank)
 

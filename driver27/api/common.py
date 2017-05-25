@@ -5,6 +5,14 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler as rest_exception_handler
 from collections import namedtuple
 
+def get_dict_from_team_rank_entry(entry):
+    RankEntry = namedtuple('RankEntry', 'points team')
+    rank_entry = RankEntry(*entry)
+
+    return {
+        'points': rank_entry.points,
+        'team': rank_entry.team.name
+     }
 
 def get_dict_from_rank_entry(entry):
     RankEntry = namedtuple('RankEntry', 'points driver teams positions_order')
