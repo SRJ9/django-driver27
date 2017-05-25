@@ -7,7 +7,7 @@
         <th class="col-md-8">{%  trans 'Team' %}</th>
     </tr>
     </thead>
-    {% for points,team in rank %}
+    {% for points,team, pos_str in rank %}
         <tr>
         <td>{{ points }}</td>
         <td>{{ team }}</td>

@@ -186,7 +186,6 @@ class Team(TeamStatsModel):
     competitions = models.ManyToManyField('Competition', related_name='teams', verbose_name=_('competitions'))
     country = CountryField(verbose_name=_('country'))
 
-
     def get_results(self, competition, **extra_filter):
         """ Return all results of team in season """
         return get_results(team=self, competition=competition, **extra_filter)
@@ -238,6 +237,8 @@ class Team(TeamStatsModel):
             season_points = self.get_season(season).get_points(punctuation_config=punctuation_config)
             points += season_points if season_points else 0
         return points
+
+
 
     def __str__(self):
         return self.name
@@ -676,7 +677,6 @@ class TeamSeason(TeamStatsModel):
         results_filter = self.stats_filter_kwargs
         return get_results(limit_races=limit_races, **dict(results_filter, **extra_filter))
 
-
     def get_points(self, limit_races=None, punctuation_config=None):
         """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
 
@@ -694,6 +694,25 @@ class TeamSeason(TeamStatsModel):
                 if points:
                     points_list.append(points)
         return sum(points_list)
+
+    def get_positions_list(self, limit_races=None):
+        """ Return a list with the count of each 20 first positions """
+        results = self.get_results(limit_races=limit_races)
+        finished = results.values_list('finish', flat=True)
+        last_position = 20
+        positions = []
+        for x in range(1, last_position+1):
+            position_count = len([finish for finish in finished if finish==x])
+            positions.append(position_count)
+        return positions
+
+    def get_positions_str(self, position_list=None, limit_races=None):
+        """ Return a str with position_list to order """
+        " Each list item will be filled to zeros until get three digits e.g. 1 => 001, 12 => 012 "
+        if not position_list:
+            position_list = self.get_positions_list(limit_races=limit_races)
+        positions_str = ''.join([str(x).zfill(3) for x in position_list])
+        return positions_str
 
     def clean(self, *args, **kwargs):
         """ Check if team participate in competition """

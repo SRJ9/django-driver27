@@ -59,8 +59,9 @@ class AbstractRankModel(models.Model):
         for team in teams:
             team_stats_cls = self.get_team_stats_cls(team)
             team_stats_kw = self.stats_filter_kwargs
-            rank.append((team_stats_cls.get_points(punctuation_config=punctuation_config, **team_stats_kw), team))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+            rank.append((team_stats_cls.get_points(punctuation_config=punctuation_config, **team_stats_kw), team,
+                         team_stats_cls.get_positions_str()))
+        rank = sorted(rank, key=lambda x: (x[0], x[2]), reverse=True)
         return rank
 
     def stats_rank(self, **filters):

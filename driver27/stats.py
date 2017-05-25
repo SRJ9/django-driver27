@@ -55,9 +55,9 @@ class AbstractStatsModel(models.Model):
         """ Count 1 by each result """
         return self.get_results(**filters).count()
 
-    def get_positions_list(self, limit_races=None):
+    def get_positions_list(self, limit_races=None, competition=None):
         """ Return a list with the count of each 20 first positions """
-        results = self.get_results(limit_races=limit_races)
+        results = self.get_results(limit_races=limit_races, competition=competition)
         finished = results.values_list('finish', flat=True)
         last_position = 20
         positions = []
