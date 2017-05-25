@@ -56,6 +56,12 @@ Versions
 -  0.22 (HAM McLaren 2008/BUT Brawn 2009)
 -  0.27-VIL (Gilles Villeneuve 27)
 
+0.23
+====
+-   Refactor code
+-   API improves
+-   Streak and Rank models
+
 0.22
 ====
 -  Calculate team standing with a different punctuation system (like driver ranking)
@@ -139,7 +145,7 @@ Todo
 
 -  [x] Add records by season (driver, team)
 -  [ ] Add records by driver/team career
--  [ ] Add records by competition
+-  [x] Add records by competition
 -  [ ] Add drivers profile with records, last\_wins, teams...
 -  [x] Add easy clone to Season
 -  [x] Translate

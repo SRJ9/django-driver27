@@ -9,7 +9,7 @@ readme.close()
 
 setup(
     name='django-driver27',
-    version='0.22x',
+    version='0.23',
     include_package_data=True,
     packages=find_packages(),
     url='https://github.com/SRJ9/django-driver27.git',
@@ -31,7 +31,7 @@ setup(
         'Framework :: Django :: 1.8',
         'Framework :: Django :: 1.9',
         'Framework :: Django :: 1.10',
-        'Framework :: Django :: 1.11',
+        # 'Framework :: Django :: 1.11',
         'Intended Audience :: Developers',
         'Intended Audience :: End Users/Desktop',
         'License :: OSI Approved :: MIT License',
@@ -42,7 +42,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6'
+        # 'Programming Language :: Python :: 3.6'
     ]
 
 )

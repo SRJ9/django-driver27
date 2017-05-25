@@ -59,6 +59,11 @@ Versions
 -   0.22 (HAM McLaren 2008/BUT Brawn 2009)
 -   0.27-VIL (Gilles Villeneuve 27)
 
+0.23
+====
+-   Refactor code
+-   API improves
+-   Streak and Rank models
 
 0.22
 ====
