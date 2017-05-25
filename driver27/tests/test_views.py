@@ -96,6 +96,8 @@ class ViewTest(FixturesTest):
         # Check that the response is 200 OK.
         self.assertEqual(response.status_code, 404)
 
+
+
     def test_race_view(self):
         # Issue a GET request.
         response = self.client.get(reverse('dr27-season-race-view', kwargs={'competition_slug': 'f1', 'year': 2016, 'race_id':1}))
@@ -116,6 +118,12 @@ class ViewTest(FixturesTest):
         # Issue a GET request.
         kwargs['record'] = 'POLE'
         response = self.client.get(reverse('dr27-season-driver-record', kwargs=kwargs))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+
+        # Issue a GET request.
+        kwargs['record'] = 'POLE'
+        response = self.client.get(reverse('dr27-season-driver-streak', kwargs=kwargs))
         # Check that the response is 200 OK.
         self.assertEqual(response.status_code, 200)
 
@@ -141,6 +149,12 @@ class ViewTest(FixturesTest):
         # Issue a GET request.
         kwargs['record'] = 'POLE'
         response = self.client.get(reverse('dr27-competition-driver-record', kwargs=kwargs))
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+
+        # Issue a GET request.
+        kwargs['record'] = 'POLE'
+        response = self.client.get(reverse('dr27-competition-driver-streak', kwargs=kwargs))
         # Check that the response is 200 OK.
         self.assertEqual(response.status_code, 200)
 
