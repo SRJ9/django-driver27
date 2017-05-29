@@ -31,7 +31,7 @@ class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
 class TeamAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     model = Team
     list_display = ('__str__', 'country', 'print_competitions')
-    list_filter = ('competitions', 'seats__seasons')
+    list_filter = ('competitions',)
     tab_overview = (
         (None, {
                 'fields': ('name', 'full_name', 'country')
@@ -458,7 +458,7 @@ class RaceAdmin(CommonTabbedModelAdmin):
 
 class ContenderAdmin(CommonTabbedModelAdmin):
     list_display = ('__str__', 'competition', 'teams_verbose', 'print_current')
-    list_filter = ('competition', 'seats__seasons',)
+    list_filter = ('competition',)
     tab_overview = (
         (None, {
         'fields': ('driver', 'competition')
@@ -482,8 +482,8 @@ class ContenderAdmin(CommonTabbedModelAdmin):
 
 
 class SeatAdmin(CommonTabbedModelAdmin):
-    list_display = ('contender', 'team',)
-    list_filter = ('contender__competition', 'seasons',)
+    list_display = ('driver', 'team',)
+    list_filter = ('driver', 'team',)
     tab_overview = (
         (None, {
                 'fields': ('team', 'contender', 'current')

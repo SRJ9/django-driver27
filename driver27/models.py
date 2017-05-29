@@ -223,8 +223,6 @@ class Seat(models.Model):
     team = models.ForeignKey('Team', related_name='seats', verbose_name=_('team'))
     driver = models.ForeignKey('Driver', related_name='seats', verbose_name=_('driver'), default=None, null=True)
     contender = models.ForeignKey('Contender', related_name='seats', verbose_name=_('contender'), null=True)
-    seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None,
-                                     verbose_name=_('seasons'), through='SeatSeason')
 
     def clean(self):
         if self.contender.competition not in self.team.competitions.all():
@@ -331,8 +329,6 @@ class Season(AbstractRankModel):
     year = models.IntegerField(verbose_name=_('year'))
     competition = models.ForeignKey(Competition, related_name='seasons', verbose_name=_('competition'))
     rounds = models.IntegerField(blank=True, null=True, default=None, verbose_name=_('rounds'))
-    teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeason',
-                                   verbose_name=_('teams'))
     punctuation = models.CharField(max_length=20, null=True, default=None, verbose_name=_('punctuation'))
 
     @property
