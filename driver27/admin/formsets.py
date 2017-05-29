@@ -1,6 +1,6 @@
 from django import forms
 from ..models import Race
-from ..models import Seat, SeatSeason
+from ..models import Seat
 from ..models import TeamSeason
 
 
@@ -31,11 +31,6 @@ class RelatedWithSeasonFormSet(forms.models.BaseInlineFormSet):
 class RaceFormSet(RelatedWithSeasonFormSet):
     model = Race
     # model_attributes = ('round', 'circuit', 'grand_prix',)
-
-
-class SeatSeasonFormSet(RelatedWithSeasonFormSet):
-    model = SeatSeason
-    # model_attributes = ('seat',)
 
 
 class TeamSeasonFormSet(RelatedWithSeasonFormSet):

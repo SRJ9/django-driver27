@@ -541,72 +541,6 @@ class Race(models.Model):
         verbose_name_plural = _('Races')
 
 
-class SeatSeason(models.Model):
-    """ Model created to validate restriction between both models """
-    seat = models.ForeignKey('Seat', related_name='seasons_seat')
-    season = models.ForeignKey('Season', related_name='seats_season')
-
-    @staticmethod
-    def get_seat_season_errors(seat, season):
-        """ Check if seat is valid in current season competition """
-        seat_competition = seat.contender.competition
-        season_competition = season.competition
-        errors = []
-        if seat_competition != season_competition:
-            errors.append(
-                _('%(season)s is not a/an %(competition)s season')
-                % {'season': season, 'competition': seat_competition}
-            )
-        return errors
-
-    @staticmethod
-    def get_seat_team_season_error(team, season):
-        """ Check if team is valid in current season """
-        " Team must be related with season before of save Seat/Season rel "
-        errors = []
-        if season.pk:
-            season_teams = [season_team.pk for season_team in season.teams.all()]
-            if team.pk not in season_teams:
-                errors.append(
-                    _('%(team)s is not a team of %(season)s') % {'team': team, 'season': season}
-                )
-        return errors
-
-    def clean(self, *args, **kwargs):
-        """ Check validation """
-        seat = self.seat
-        season = self.season
-        errors = []
-        errors.extend(self.get_seat_season_errors(seat, season))
-        errors.extend(self.get_seat_team_season_error(seat.team, season))
-        if errors:
-            raise ValidationError(errors)
-        super(SeatSeason, self).clean()
-
-    def save(self, *args, **kwargs):
-        """ Force to validate before of save """
-        self.clean()
-        super(SeatSeason, self).save(*args, **kwargs)
-
-    class Meta:
-        auto_created = True
-        db_table = 'driver27_seat_seasons'
-
-
-def seat_seasons(sender, instance, action, pk_set, **kwargs):  #noqa
-    """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition """
-    if action == 'pre_add':
-        errors = []
-        for pk in list(pk_set):
-            season = Season.objects.get(pk=pk)
-            errors.extend(SeatSeason.get_seat_season_errors(instance, season))
-            errors.extend(SeatSeason.get_seat_team_season_error(instance.team, season))
-        if errors:
-            raise ValidationError(errors)
-
-m2m_changed.connect(seat_seasons, sender=SeatSeason)
-
-
 @python_2_unicode_compatible
 class TeamSeason(TeamStatsModel):
     """ TeamSeason model, only for validation although it is saved in DB"""
@@ -660,18 +594,6 @@ class TeamSeason(TeamStatsModel):
             position_list = self.get_positions_list(limit_races=limit_races)
         positions_str = ''.join([str(x).zfill(3) for x in position_list])
         return positions_str
-
-    def clean(self, *args, **kwargs):
-        """ Check if team participate in competition """
-        if hasattr(self, 'team') and hasattr(self, 'season'):
-            team = self.team
-            team_competitions = [competition.pk for competition in team.competitions.all()]
-            if self.season.competition.pk not in team_competitions:
-                raise ValidationError(
-                    _('Team %(team)s doesn\'t participate in %(competition)s')
-                    % {'team': self.team, 'competition': self.season.competition}
-                )
-        super(TeamSeason, self).clean()
 
     @classmethod
     def delete_seat_exception(cls, team, season):
@@ -748,23 +670,9 @@ class Result(models.Model):
         self.points = self.get_points()
         super(Result, self).save(*args, **kwargs)
 
-    def clean(self, *args, **kwargs):
-        # seat_errors = []
-        if self.seat.team not in self.race.season.teams.all():
-            # seat_errors.append(ValidationError(_('Team is not in current season'), code='invalid'))
-            raise ValidationError({'seat': _('Team (seat) is not in current season')})
-        if self.seat not in self.race.season.seats.all():
-            # seat_errors.append(ValidationError(_('Seat is not in current season'), code='invalid'))
-            raise ValidationError({'seat': _('Seat is not in current season')})
-        # if seat_errors:
-        #     seat_errors.append(ValidationError(_('Invalid Seat in this race.'), code='invalid'))
-        #     raise ValidationError(seat_errors, code='invalid')
-
-        super(Result, self).clean()
-
     @property
     def driver(self):
-        return self.seat.contender.driver
+        return self.seat.driver
 
     @property
     def team(self):
@@ -784,7 +692,7 @@ class Result(models.Model):
         if self.finish:
             string += ' - {finish}º'.format(finish=self.finish)
         else:
-            string += ' - ' + _('OUT')
+            string += ' - ' + _('DNF')
         return string
 
     class Meta:

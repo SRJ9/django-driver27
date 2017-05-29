@@ -90,31 +90,6 @@ class GrandPrixAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_filter = ('competitions',)
 
 
-class SeatSeasonAdmin(CommonTabbedModelAdmin):
-    tab_overview = (
-        (None, {
-                'fields': ('year', 'competition', 'rounds', 'punctuation')
-        }),
-    )
-    tab_teams = (
-        TeamSeasonInline,
-    )
-    tab_drivers = (
-        SeatSeasonInline,
-    )
-    tabs = [
-        ('Overview', tab_overview),
-        ('Drivers', tab_drivers),
-    ]
-
-    readonly_fields = ('year', 'competition', 'rounds', 'punctuation')
-    list_filter = ('competition',)
-    list_display = ('competition', 'year',)
-
-    def has_add_permission(self, request):
-        return False
-
-
 class SeasonAdmin(CommonTabbedModelAdmin):
     form = SeasonAdminForm
     tab_overview = (
@@ -489,15 +464,8 @@ class SeatAdmin(CommonTabbedModelAdmin):
                 'fields': ('team', 'contender', 'current')
         }),
     )
-    tab_seasons = (
-        # (None, {
-        #         'fields': ('seasons',)
-        # }),
-        SeatSeasonInline,
-    )
     tabs = [
         ('Overview', tab_overview),
-        ('Seasons', tab_seasons)
     ]
 
 
@@ -512,4 +480,3 @@ admin.site.register(Seat, SeatAdmin)
 
 # m2m admin
 admin.site.register(Contender, ContenderAdmin)
-admin.site.register(SeatsSeason, SeatSeasonAdmin)

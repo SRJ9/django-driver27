@@ -4,7 +4,7 @@ from .formsets import *
 from ..models import Contender, ContenderSeason
 from ..models import Race
 from ..models import Result
-from ..models import Seat, SeatSeason
+from ..models import Seat
 from ..models import Team, TeamSeason
 
 
@@ -19,13 +19,6 @@ class RaceInline(CompetitionFilterInline):
 class SeatInline(CompetitionFilterInline):
     model = Seat
     extra = 1
-
-
-class SeatSeasonInline(CompetitionFilterInline):
-    model = SeatSeason
-    ordering = ('seat',)
-    formset = SeatSeasonFormSet
-    form = AlwaysChangedModelForm
 
 
 class ContenderInline(admin.TabularInline):
