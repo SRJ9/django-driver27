@@ -1,6 +1,6 @@
 from django_countries.serializer_fields import CountryField
 from rest_framework import serializers
-from ..models import GrandPrix, Circuit, Season, Competition, Driver, Team, Contender, Seat, Race, Result
+from ..models import GrandPrix, Circuit, Season, Competition, Driver, Team, Seat, Race, Result
 from .common import DR27Serializer
 
 
@@ -87,51 +87,21 @@ class NestedTeamSerializer(TeamSerializer):
         fields = ('url', 'name', 'full_name', 'country')
 
 
-class ContenderSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField()
-    teams_details = serializers.SerializerMethodField()
-    driver_details = serializers.SerializerMethodField()
-
-    def get_teams_details(self, obj):
-        return NestedTeamSerializer(instance=obj.teams, many=True,
-                              context=self.context).data
-
-    def get_driver_details(self, obj):
-        return NestedDriverSerializer(instance=obj.driver, many=False,
-                                      context=self.context).data
-
-    # competition = CompetitionSerializer(many=False)
-
-    class Meta:
-        model = Contender
-        fields = ('url', 'id', 'competition', 'driver', 'driver_details', 'teams', 'teams_details')
-
-
-#
-class NestedContenderSerializer(ContenderSerializer):
-    driver = NestedDriverSerializer(many=False)
-
-    class Meta:
-        model = Contender
-        fields = ('url', 'driver')
-
-
 class SeatSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     team_details = serializers.SerializerMethodField()
-    contender_details = serializers.SerializerMethodField()
+    driver_details = serializers.SerializerMethodField()
 
     def get_team_details(self, obj):
         return TeamSerializer(instance=obj.team, many=False,
                               context=self.context).data
 
-    def get_contender_details(self, obj):
-        return ContenderSerializer(instance=obj.contender, many=False,
-                                   context=self.context).data
+    def get_driver_details(self, obj):
+        return DriverSerializer(instance=obj.driver, many=False, context=self.context).data
 
     class Meta:
         model = Seat
-        fields = ('url', 'id', 'team', 'team_details', 'contender', 'contender_details', 'current', 'seasons')
+        fields = ('url', 'id', 'team', 'team_details', 'driver', 'driver_details', 'current', 'seasons')
 
 
 class SeatRecapSerializer(serializers.ModelSerializer):

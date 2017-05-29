@@ -1,7 +1,7 @@
 from .common import *
 from .filters import *
 from .formsets import *
-from ..models import Contender, ContenderSeason
+from ..models import ContenderSeason
 from ..models import Race
 from ..models import Result
 from ..models import Seat
@@ -21,9 +21,6 @@ class SeatInline(CompetitionFilterInline):
     extra = 1
 
 
-class ContenderInline(admin.TabularInline):
-    model = Contender
-    extra = 1
 
 
 class CompetitionTeamInline(admin.TabularInline):

@@ -5,26 +5,21 @@ from .common import CommonTabbedModelAdmin
 from django.shortcuts import redirect
 from .forms import *
 from .inlines import *
-from ..models import Contender, SeatsSeason
+from ..models import SeatsSeason
 from ..models import ContenderSeason
 from ..models import Driver, Competition, Circuit, Season, Result
 from .. import lr_diff, lr_intr
 
 
 class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
-    list_display = ('__str__', 'country', 'print_competitions')
-    list_filter = ('competitions__name',)
+    list_display = ('__str__', 'country',)
     tab_overview = (
         (None, {
         'fields': ('last_name', 'first_name', 'year_of_birth', 'country')
         }),
     )
-    tab_competitions = (
-        ContenderInline,
-    )
     tabs = [
         ('Overview', tab_overview),
-        ('Competitions', tab_competitions)
     ]
 
 
@@ -67,16 +62,12 @@ class CompetitionAdmin(CommonTabbedModelAdmin):
     tab_team = (
         CompetitionTeamInline,
     )
-    tab_drivers = (
-        ContenderInline,
-    )
     tab_seasons = (
         CompetitionSeasonAdmin,
     )
     tabs = [
         ('Overview', tab_overview),
         ('Team', tab_team),
-        ('Drivers', tab_drivers),
         ('Seasons', tab_seasons)
     ]
 
@@ -477,6 +468,3 @@ admin.site.register(GrandPrix, GrandPrixAdmin)
 admin.site.register(Season, SeasonAdmin)
 admin.site.register(Race, RaceAdmin)
 admin.site.register(Seat, SeatAdmin)
-
-# m2m admin
-admin.site.register(Contender, ContenderAdmin)

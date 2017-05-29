@@ -51,8 +51,6 @@ class Driver(AbstractStatsModel):
     first_name = models.CharField(max_length=25, verbose_name=_('first name'))
     year_of_birth = models.IntegerField(verbose_name=_('year of birth'))
     country = CountryField(verbose_name=_('country'))
-    competitions = models.ManyToManyField('Competition', through='Contender', related_name='drivers',
-                                          verbose_name=_('competitions'))
 
     def season_stats_cls(self, season):
         return ContenderSeason(driver=self, season=season)
@@ -101,43 +99,43 @@ class Competition(AbstractRankModel):
         verbose_name_plural = _('Competitions')
 
 
-@python_2_unicode_compatible
-class Contender(AbstractStatsModel):
-    """ Contender are used to ranks or individual stats"""
-    " Contender only can be related with teams of same competition "
-    " If driver is related with same team in different competition, it is necessary to create new contender "
-    driver = models.ForeignKey(Driver, related_name='career', verbose_name=_('driver'))
-    competition = models.ForeignKey('Competition', related_name='contenders', verbose_name=_('competition'))
-
-    def get_points(self, punctuation_config=None):
-        seasons = Season.objects.filter(seats__contender=self).distinct()
-        points = 0
-        for season in seasons:
-            contender_season = self.get_season(season)
-            season_points = contender_season.get_points(punctuation_config=punctuation_config)
-            points += season_points if season_points else 0
-        return points
-
-    def get_results(self, limit_races=None, **extra_filter):
-        """ Return all results of team in season """
-        return Result.wizard(contender=self, **extra_filter)
-
-    @property
-    def teams_verbose(self):
-        teams = self.teams
-        return ', '.join([team.name for team in teams.all()]) if teams.count() else None
-
-    def season_stats_cls(self, season):
-        return ContenderSeason(contender=self, season=season)
-
-    def __str__(self):
-        return _(u'%(driver)s in %(competition)s') % {'driver': self.driver, 'competition': self.competition}
-
-    class Meta:
-        unique_together = ('driver', 'competition')
-        ordering = ['competition__name', 'driver__last_name', 'driver__first_name']
-        verbose_name = _('Contender')
-        verbose_name_plural = _('Contenders')
+# @python_2_unicode_compatible
+# class Contender(AbstractStatsModel):
+#     """ Contender are used to ranks or individual stats"""
+#     " Contender only can be related with teams of same competition "
+#     " If driver is related with same team in different competition, it is necessary to create new contender "
+#     # driver = models.ForeignKey(Driver, related_name='career', verbose_name=_('driver'))
+#     # competition = models.ForeignKey('Competition', related_name='contenders', verbose_name=_('competition'))
+#
+#     def get_points(self, punctuation_config=None):
+#         seasons = Season.objects.filter(seats__contender=self).distinct()
+#         points = 0
+#         for season in seasons:
+#             contender_season = self.get_season(season)
+#             season_points = contender_season.get_points(punctuation_config=punctuation_config)
+#             points += season_points if season_points else 0
+#         return points
+#
+#     def get_results(self, limit_races=None, **extra_filter):
+#         """ Return all results of team in season """
+#         return Result.wizard(contender=self, **extra_filter)
+#
+#     @property
+#     def teams_verbose(self):
+#         teams = self.teams
+#         return ', '.join([team.name for team in teams.all()]) if teams.count() else None
+#
+#     def season_stats_cls(self, season):
+#         return ContenderSeason(contender=self, season=season)
+#
+#     def __str__(self):
+#         return _(u'%(driver)s in %(competition)s') % {'driver': self.driver, 'competition': self.competition}
+#
+#     class Meta:
+#         unique_together = ('driver', 'competition')
+#         ordering = ['competition__name', 'driver__last_name', 'driver__first_name']
+#         verbose_name = _('Contender')
+#         verbose_name_plural = _('Contenders')
 
 
 @python_2_unicode_compatible

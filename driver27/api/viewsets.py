@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from .common import DR27ViewSet
 from .serializers import RaceSerializer, ResultSerializer, SeatSerializer, SeasonSerializer
 from .serializers import CircuitSerializer, GrandPrixSerializer, CompetitionSerializer
-from .serializers import ContenderSerializer, TeamSerializer, DriverSerializer
+from .serializers import TeamSerializer, DriverSerializer
 from .common import get_dict_from_rank_entry, get_dict_from_team_rank_entry
-from ..models import Competition, Contender, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit
+from ..models import Competition, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit
 
 
 class CommonDetailViewSet(object):
@@ -140,13 +140,6 @@ class ResultViewSet(DR27ViewSet):
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
 
-
-# ViewSets define the view behavior.
-class ContenderViewSet(DR27ViewSet):
-    queryset = Contender.objects.all()
-    serializer_class = ContenderSerializer
-    search_fields = ('competition', 'driver',)
-    filter_fields = ('competition', 'driver',)
 
 
 # ViewSets define the view behavior.
