@@ -45,7 +45,7 @@ def get_results_tuples(seat=None, contender=None, team=None, race=None, season=N
 
 
 @python_2_unicode_compatible
-class Driver(models.Model):
+class Driver(AbstractStatsModel):
     """ Main Driver Model. To combine with competitions (Contender) and competition/team (Seat) """
     last_name = models.CharField(max_length=50, verbose_name=_('last name'))
     first_name = models.CharField(max_length=25, verbose_name=_('first name'))
@@ -220,11 +220,6 @@ class Seat(models.Model):
     driver = models.ForeignKey('Driver', related_name='seats', verbose_name=_('driver'), default=None, null=True)
 
     @classmethod
-    def bulk_copy(cls, seats_pk, season_pk):
-        season_bulk_copy(cls=cls, cls_to_save=SeatSeason, pks=seats_pk, pks_name='seat', season_pk=season_pk)
-
-
-    @classmethod
     def check_list_in_season(cls, seats_pk, season_pk):
         seats_pk = list(map(int, seats_pk))
         seats = cls.objects.filter(pk__in=seats_pk)
@@ -325,6 +320,11 @@ class Season(AbstractRankModel):
     def drivers(self):
         """ As season is related with seats, this method is a shorcut to get drivers """
         return Driver.objects.filter(seats__results__race__season=self).distinct()
+
+    @property
+    def teams(self):
+        """ As season is related with seats, this method is a shorcut to get teams """
+        return Team.objects.filter(seats__results__race__season=self).distinct()
 
     def get_stats_cls(self, driver):
         return driver.get_season(self)
@@ -595,19 +595,6 @@ class TeamSeason(TeamStatsModel):
         positions_str = ''.join([str(x).zfill(3) for x in position_list])
         return positions_str
 
-    @classmethod
-    def delete_seat_exception(cls, team, season):
-        """ Force IntegrityError when delete a team with seats in season """
-        if cls.check_delete_seat_restriction(team=team, season=season):
-            raise IntegrityError('You cannot delete a team with seats in this season.'
-                                 'Delete seats before')
-
-    @staticmethod
-    def check_delete_seat_restriction(team, season):
-        seats_count = SeatSeason.objects.filter(seat__team=team, season=season).count()
-        return bool(seats_count)
-        # return {'team': _('Seats with %(team)s exists in this season. Delete seats before.' % {'team': team})}
-
     def __str__(self):
         str_team = self.team.name
         if self.sponsor_name:
@@ -713,7 +700,7 @@ class ContenderSeason(object):
     def __init__(self, driver, season):
         self.driver = driver
         self.season = season
-        self.seats = Seat.objects.filter(driver__pk=self.driver.pk, seasons__pk=self.season.pk)
+        self.seats = Seat.objects.filter(driver__pk=self.driver.pk, results__race__season__pk=self.season.pk)
         self.teams = Team.objects.filter(seats__in=self.seats)
         self.teams_verbose = ', '.join([team.name for team in self.teams])
 

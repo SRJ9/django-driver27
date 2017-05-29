@@ -5,6 +5,11 @@ try:
 except ImportError:
     pass
 
+try:
+    from .models import Team
+except ImportError:
+    pass
+
 
 class AbstractRankModel(models.Model):
 
@@ -23,11 +28,11 @@ class AbstractRankModel(models.Model):
         punctuation_config = None
         if punctuation_code:
             punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
-        contenders = self.contenders.all()
+        drivers = self.drivers.all()
         rank = []
-        for contender in contenders:
-            stat_cls = self.get_stats_cls(contender)
-            rank.append((stat_cls.get_points(punctuation_config=punctuation_config), contender.driver,
+        for driver in drivers:
+            stat_cls = self.get_stats_cls(driver)
+            rank.append((stat_cls.get_points(punctuation_config=punctuation_config), driver,
                          stat_cls.teams_verbose,stat_cls.get_positions_str()))
         rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
         return rank
