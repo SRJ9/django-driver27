@@ -54,10 +54,8 @@ class Driver(models.Model):
     competitions = models.ManyToManyField('Competition', through='Contender', related_name='drivers',
                                           verbose_name=_('competitions'))
 
-    def clean(self):
-        if self.year_of_birth < 1900 or self.year_of_birth > 2099:
-            raise ValidationError(_('Year_of_birth must be between 1900 and 2099'))
-        super(Driver, self).clean()
+    def season_stats_cls(self, season):
+        return ContenderSeason(driver=self, season=season)
 
     def __str__(self):
         return ', '.join((self.last_name, self.first_name))
@@ -324,13 +322,12 @@ class Season(AbstractRankModel):
         return {}
 
     @property
-    def contenders(self):
-        """ As season is related with seats, this method is a shorcut to get contenders """
-        seats = [seat.pk for seat in self.seats.all()]
-        return Contender.objects.filter(seats__pk__in=seats).distinct()
+    def drivers(self):
+        """ As season is related with seats, this method is a shorcut to get drivers """
+        return Driver.objects.filter(seats__results__race__season=self).distinct()
 
-    def get_stats_cls(self, contender):
-        return contender.get_season(self)
+    def get_stats_cls(self, driver):
+        return driver.get_season(self)
 
     def get_team_stats_cls(self, team):
         return TeamSeason.objects.get(season=self, team=team)
@@ -715,14 +712,14 @@ class Result(models.Model):
     points = models.IntegerField(default=0, blank=True, null=True, verbose_name=_('points'))
 
     @classmethod
-    def wizard(cls, seat=None, contender=None, team=None,
+    def wizard(cls, seat=None, driver=None, team=None,
                     race=None, season=None, competition=None,
                     limit_races=None,
                     reverse_order=False,
                     **extra_filters):
         key_in_filters = {
             'limit_races': 'race__round__lte',
-            'contender': 'seat__contender',
+            'driver': 'seat__driver',
             'team': 'seat__team',
             'season': 'race__season',
             'competition': 'race__season__competition',
@@ -799,24 +796,22 @@ class Result(models.Model):
 
 class ContenderSeason(object):
     """ ContenderSeason is not a model. Only for validation and ranks"""
-    contender = None
+    driver = None
     season = None
     teams = None
     contender_teams = None
     teams_verbose = None
 
-    def __init__(self, contender, season):
-        if not isinstance(contender, Contender) or not isinstance(season, Season):
-            raise ValidationError(_('contender is not a Contender or/and season is not a Season'))
-        self.contender = contender
+    def __init__(self, driver, season):
+        self.driver = driver
         self.season = season
-        self.seats = Seat.objects.filter(contender__pk=self.contender.pk, seasons__pk=self.season.pk)
+        self.seats = Seat.objects.filter(driver__pk=self.driver.pk, seasons__pk=self.season.pk)
         self.teams = Team.objects.filter(seats__in=self.seats)
         self.teams_verbose = ', '.join([team.name for team in self.teams])
 
     def get_results(self, limit_races=None, **extra_filter):
         """ Return results. Can be limited."""
-        return Result.wizard(contender=self.contender, season=self.season, limit_races=limit_races, **extra_filter)
+        return Result.wizard(driver=self.driver, season=self.season, limit_races=limit_races, **extra_filter)
 
     def get_reverse_results(self, limit_races=None, **extra_filter):
         return self.get_results(limit_races=limit_races, reverse_order=True, **extra_filter)
@@ -871,7 +866,6 @@ class ContenderSeason(object):
             position_list = self.get_positions_list(limit_races=limit_races)
         positions_str = ''.join([str(x).zfill(3) for x in position_list])
         return positions_str
-
 
 
 @receiver(pre_delete, sender=TeamSeason)
