@@ -80,8 +80,8 @@ class Competition(AbstractRankModel):
     def get_team_rank(self, rank_type, **filters):
         return super(Competition, self).get_team_rank(rank_type=rank_type, competition=self, **filters)
 
-    def get_stats_cls(self, contender):
-        return contender
+    def get_stats_cls(self, driver):
+        return driver
 
     def get_team_stats_cls(self, team):
         return team
@@ -222,7 +222,6 @@ class Seat(models.Model):
     " e.g. Max Verstappen in 2016 (Seat 1: Toro Rosso, Seat 2: Red Bull) "
     team = models.ForeignKey('Team', related_name='seats', verbose_name=_('team'))
     contender = models.ForeignKey('Contender', related_name='seats', verbose_name=_('contender'))
-    current = ExclusiveBooleanField(on='contender', default=False, verbose_name=_('current team'))
     seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None,
                                      verbose_name=_('seasons'), through='SeatSeason')
 
@@ -280,7 +279,7 @@ class Seat(models.Model):
 
     class Meta:
         unique_together = ('team', 'contender')
-        ordering = ['current', 'contender__driver__last_name', 'team']
+        ordering = ['contender__driver__last_name', 'team']
         verbose_name = _('Seat')
         verbose_name_plural = _('Seats')
 
