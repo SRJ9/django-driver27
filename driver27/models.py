@@ -24,40 +24,6 @@ from collections import namedtuple
 ResultTuple = namedtuple('ResultTuple', 'qualifying finish fastest_lap wildcard alter_punctuation')
 
 
-def get_results(seat=None, contender=None, team=None,
-                race=None, season=None, competition=None,
-                limit_races=None,
-                reverse_order=False,
-                **extra_filters):
-    key_in_filters = {
-        'limit_races': 'race__round__lte',
-        'contender': 'seat__contender',
-        'team': 'seat__team',
-        'season': 'race__season',
-        'competition': 'race__season__competition',
-        'seat': 'seat',
-        'race': 'race'
-    }
-    filter_params = {}
-
-    # kwarg is each param with custom filter
-
-    for kwarg in key_in_filters.keys():
-        value = locals().get(kwarg) # get the value of kwarg
-        if value:
-            key = key_in_filters.get(kwarg) # the key of filter is the value of kwarg in key_in_filter
-            filter_params[key] = value
-    filter_params.update(**extra_filters)
-
-
-    results = Result.objects.filter(**filter_params)
-
-    order_by_args = ('race__season', 'race__round') if not reverse_order else ('-race__season', '-race__round')
-
-    results = results.order_by(*order_by_args)
-    return results
-
-
 def get_tuple_from_result(result):
     return ResultTuple(result.qualifying, result.finish, result.fastest_lap,
                        result.wildcard, result.race.alter_punctuation)
@@ -70,8 +36,8 @@ def get_results_tuples(seat=None, contender=None, team=None, race=None, season=N
     # If results=false, get_results will be calculate without params, return all results of all competitions.
     # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
     if not results and not skip_results_if_false:
-        results = get_results(seat=seat, contender=contender, team=team, race=race,
-                              season=season, competition=competition, **extra_filters)
+        results = Result.wizard(seat=seat, contender=contender, team=team, race=race,
+                                season=season, competition=competition, **extra_filters)
 
     results = results.values_list('qualifying', 'finish', 'fastest_lap', 'wildcard', 'race__alter_punctuation')
 
@@ -158,7 +124,7 @@ class Contender(AbstractStatsModel):
 
     def get_results(self, limit_races=None, **extra_filter):
         """ Return all results of team in season """
-        return get_results(contender=self, **extra_filter)
+        return Result.wizard(contender=self, **extra_filter)
 
     @property
     def teams_verbose(self):
@@ -188,7 +154,7 @@ class Team(TeamStatsModel):
 
     def get_results(self, competition, **extra_filter):
         """ Return all results of team in season """
-        return get_results(team=self, competition=competition, **extra_filter)
+        return Result.wizard(team=self, competition=competition, **extra_filter)
 
     def season_stats_cls(self, season):
         return TeamSeason.objects.get(season=season, team=self)
@@ -675,7 +641,7 @@ class TeamSeason(TeamStatsModel):
     def get_results(self, limit_races=None, **extra_filter):
         """ Return all results of team in season """
         results_filter = self.stats_filter_kwargs
-        return get_results(limit_races=limit_races, **dict(results_filter, **extra_filter))
+        return Result.wizard(limit_races=limit_races, **dict(results_filter, **extra_filter))
 
     def get_points(self, limit_races=None, punctuation_config=None):
         """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
@@ -764,6 +730,39 @@ class Result(models.Model):
     comment = models.CharField(max_length=250, blank=True, null=True, default=None, verbose_name=_('comment'))
     points = models.IntegerField(default=0, blank=True, null=True, verbose_name=_('points'))
 
+    @classmethod
+    def wizard(cls, seat=None, contender=None, team=None,
+                    race=None, season=None, competition=None,
+                    limit_races=None,
+                    reverse_order=False,
+                    **extra_filters):
+        key_in_filters = {
+            'limit_races': 'race__round__lte',
+            'contender': 'seat__contender',
+            'team': 'seat__team',
+            'season': 'race__season',
+            'competition': 'race__season__competition',
+            'seat': 'seat',
+            'race': 'race'
+        }
+        filter_params = {}
+
+        # kwarg is each param with custom filter
+
+        for kwarg in key_in_filters.keys():
+            value = locals().get(kwarg)  # get the value of kwarg
+            if value:
+                key = key_in_filters.get(kwarg) # the key of filter is the value of kwarg in key_in_filter
+                filter_params[key] = value
+        filter_params.update(**extra_filters)
+
+        results = cls.objects.filter(**filter_params)
+
+        order_by_args = ('race__season', 'race__round') if not reverse_order else ('-race__season', '-race__round')
+
+        results = results.order_by(*order_by_args)
+        return results
+
     def save(self, *args, **kwargs):
         self.points = self.get_points()
         super(Result, self).save(*args, **kwargs)
@@ -831,11 +830,9 @@ class ContenderSeason(object):
         self.teams = Team.objects.filter(seats__in=self.seats)
         self.teams_verbose = ', '.join([team.name for team in self.teams])
 
-
-
     def get_results(self, limit_races=None, **extra_filter):
         """ Return results. Can be limited."""
-        return get_results(contender=self.contender, season=self.season, limit_races=limit_races, **extra_filter)
+        return Result.wizard(contender=self.contender, season=self.season, limit_races=limit_races, **extra_filter)
 
     def get_reverse_results(self, limit_races=None, **extra_filter):
         return self.get_results(limit_races=limit_races, reverse_order=True, **extra_filter)
