@@ -885,15 +885,6 @@ class ContenderSeason(object):
         return positions_str
 
 
-@receiver(pre_save)
-def pre_save_handler(sender, instance, *args, **kwargs):
-    """ Force full_clean in each model to validation """
-    model_list = (Driver, Team, Competition, Contender, Seat, Circuit,
-                  GrandPrix, Race, Season, Result, SeatSeason, TeamSeason)
-    if not isinstance(instance, model_list):
-        return
-    instance.full_clean()
-
 
 @receiver(pre_delete, sender=TeamSeason)
 def pre_delete_team_season(sender, instance, *args, **kwargs):
