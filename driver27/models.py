@@ -221,7 +221,8 @@ class Seat(models.Model):
     " If a same contender drives to two teams in same season/competition, he will have many seats as driven teams "
     " e.g. Max Verstappen in 2016 (Seat 1: Toro Rosso, Seat 2: Red Bull) "
     team = models.ForeignKey('Team', related_name='seats', verbose_name=_('team'))
-    contender = models.ForeignKey('Contender', related_name='seats', verbose_name=_('contender'))
+    driver = models.ForeignKey('Driver', related_name='seats', verbose_name=_('driver'), default=None, null=True)
+    contender = models.ForeignKey('Contender', related_name='seats', verbose_name=_('contender'), null=True)
     seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None,
                                      verbose_name=_('seasons'), through='SeatSeason')
 
