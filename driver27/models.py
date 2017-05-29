@@ -110,8 +110,6 @@ class Contender(AbstractStatsModel):
     " If driver is related with same team in different competition, it is necessary to create new contender "
     driver = models.ForeignKey(Driver, related_name='career', verbose_name=_('driver'))
     competition = models.ForeignKey('Competition', related_name='contenders', verbose_name=_('competition'))
-    teams = models.ManyToManyField('Team', through='Seat', related_name='contenders',
-                                   verbose_name=_('teams'))
 
     def get_points(self, punctuation_config=None):
         seasons = Season.objects.filter(seats__contender=self).distinct()
@@ -222,15 +220,6 @@ class Seat(models.Model):
     " e.g. Max Verstappen in 2016 (Seat 1: Toro Rosso, Seat 2: Red Bull) "
     team = models.ForeignKey('Team', related_name='seats', verbose_name=_('team'))
     driver = models.ForeignKey('Driver', related_name='seats', verbose_name=_('driver'), default=None, null=True)
-    contender = models.ForeignKey('Contender', related_name='seats', verbose_name=_('contender'), null=True)
-
-    def clean(self):
-        if self.contender.competition not in self.team.competitions.all():
-            raise ValidationError(
-                _("%(team)s is not a team of %(competition)s") %
-                {'team': self.team, 'competition': self.contender.competition}
-            )
-        super(Seat, self).clean()
 
     @classmethod
     def bulk_copy(cls, seats_pk, season_pk):
@@ -272,13 +261,12 @@ class Seat(models.Model):
         }
 
     def __str__(self):
-        return _('%(driver)s in %(team)s/%(competition)s') \
-               % {'driver': self.contender.driver, 'team': self.team,
-                  'competition': self.contender.competition}
+        return _('%(driver)s in %(team)s') \
+               % {'driver': self.driver, 'team': self.team}
 
     class Meta:
-        unique_together = ('team', 'contender')
-        ordering = ['contender__driver__last_name', 'team']
+        unique_together = ('team', 'driver')
+        ordering = ['driver__last_name', 'team']
         verbose_name = _('Seat')
         verbose_name_plural = _('Seats')
 
