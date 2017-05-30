@@ -11,10 +11,10 @@ class CompetitionFilterInline(admin.TabularInline):
     @staticmethod
     def seat_for_foreignkey(obj):
         if isinstance(obj, Race):
-            seat_filter = {'seasons': obj.season}
+            seat_filter = {'results__race__season': obj.season}
         else:
             seat_filter = {'contender__competition__exact': obj.competition}
-        return Seat.objects.filter(**seat_filter)
+        return Seat.objects.filter(**seat_filter).distinct()
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if getattr(request, '_obj_', None):

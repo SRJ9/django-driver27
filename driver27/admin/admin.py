@@ -264,7 +264,7 @@ class RaceAdmin(CommonTabbedModelAdmin):
     #     return urlpatterns + urls
 
     def print_seat(self, seat):
-        return u"{driver}".format(driver=seat.contender.driver) if seat else None
+        return u"{driver}".format(driver=seat.driver) if seat else None
 
     def print_pole(self, obj):
         return self.print_seat(obj.pole)
@@ -452,7 +452,7 @@ class SeatAdmin(CommonTabbedModelAdmin):
     list_filter = ('driver', 'team',)
     tab_overview = (
         (None, {
-                'fields': ('team', 'contender', 'current')
+                'fields': ('team', 'driver')
         }),
     )
     tabs = [
