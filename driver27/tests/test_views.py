@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.admin.sites import AdminSite
 from django.test import TestCase, Client, RequestFactory
+from ..models import Season
 
 try:
     from django.urls import reverse
@@ -42,42 +43,26 @@ class ViewTest(FixturesTest):
         self.client = Client()
         self.factory = RequestFactory()
 
-
     def test_spider_admin(self):
         client = Client()
         client.login(username='admin', password='pass')
-        admin_pages = [
-            # put all the admin pages for your models in here.
-            "/admin/driver27/circuit/",
-            "/admin/driver27/competition/",
-            "/admin/driver27/driver/",
-            "/admin/driver27/grandprix/",
-            "/admin/driver27/race/",
-            "/admin/driver27/season/",
-            "/admin/driver27/seat/",
-            "/admin/driver27/team/",
+        base_admin = '/admin/driver27'
+        models = ['circuit', 'competition', 'driver', 'grandprix', 'race', 'season', 'seat', 'team']
+        for model in models:
+            url = base_admin + '/' + model + '/'
+            resp = client.get(url, follow=True)
+            self.assertEqual(resp.status_code, 200, url)
+            url = base_admin + '/' + model + '/add/'
+            resp = client.get(url, follow=True)
+            self.assertEqual(resp.status_code, 200, url)
+            url = base_admin + '/' + model + '/1/change/'
+            resp = client.get(url, follow=True)
+            self.assertEqual(resp.status_code, 200, url)
 
-            "/admin/driver27/circuit/1/change/",
-            "/admin/driver27/competition/1/change/",
-            "/admin/driver27/driver/1/change/",
-            "/admin/driver27/grandprix/1/change/",
-            "/admin/driver27/race/1/change/",
-            "/admin/driver27/season/1/change/",
-            "/admin/driver27/seat/1/change/",
-            "/admin/driver27/team/1/change/",
+    def test_season(self):
+        season = Season.objects.get(pk=1)
+        self.assertGreater(season.teams.count(), 0)
+        self.assertGreater(season.drivers.count(), 0)
+        self.assertEquals(season.pending_races(), 0)
+        self.assertEquals(season.pending_points(), 0)
 
-            "/admin/driver27/circuit/add/",
-            "/admin/driver27/competition/add/",
-            "/admin/driver27/driver/add/",
-            "/admin/driver27/grandprix/add/",
-            "/admin/driver27/race/add/",
-            "/admin/driver27/season/add/",
-            "/admin/driver27/seat/add/",
-            "/admin/driver27/team/add/",
-        ]
-        for page in admin_pages:
-            resp = client.get(page, follow=True)
-            print(page)
-            print(resp.status_code)
-            assert resp.status_code == 200
-            assert "<!DOCTYPE html" in resp.content
