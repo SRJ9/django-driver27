@@ -29,14 +29,14 @@ def get_tuple_from_result(result):
                        result.wildcard, result.race.alter_punctuation)
 
 
-def get_results_tuples(seat=None, contender=None, team=None, race=None, season=None, competition=None,
+def get_results_tuples(seat=None, team=None, race=None, season=None, competition=None,
                        results=None, skip_results_if_false=False, **extra_filters):
 
     # Result can be the only param passed to get_results_tuple.
     # If results=false, get_results will be calculate without params, return all results of all competitions.
     # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
     if not results and not skip_results_if_false:
-        results = Result.wizard(seat=seat, contender=contender, team=team, race=race,
+        results = Result.wizard(seat=seat, team=team, race=race,
                                 season=season, competition=competition, **extra_filters)
 
     results = results.values_list('qualifying', 'finish', 'fastest_lap', 'wildcard', 'race__alter_punctuation')
@@ -51,6 +51,34 @@ class Driver(AbstractStatsModel):
     first_name = models.CharField(max_length=25, verbose_name=_('first name'))
     year_of_birth = models.IntegerField(verbose_name=_('year of birth'))
     country = CountryField(verbose_name=_('country'))
+
+    @property
+    def teams_verbose(self):
+        return ', '.join([seat.team.name for seat in self.seats.all()])
+
+    def get_results(self, limit_races=None, **extra_filter):
+        return Result.wizard(driver=self, limit_races=limit_races, **extra_filter)
+
+    def get_saved_points(self, limit_races=None):
+        results = self.get_results(limit_races=limit_races)
+        points = results.values_list('points', flat=True)
+        return [point for point in points if point]
+
+    def get_points(self, limit_races=None, punctuation_config=None):
+        if punctuation_config is None:
+            points_list = self.get_saved_points(limit_races=limit_races)
+        else:
+            points_list = []
+            results = self.get_results(limit_races=limit_races)
+            # Result can be the only param passed to get_results_tuple.
+            # If results=false, get_results will be calculate without params, return all results of all competitions.
+            # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
+            for result in get_results_tuples(results=results, skip_results_if_false=True):
+                result_tuple = ResultTuple(*result)
+                points = PointsCalculator(punctuation_config).calculator(result_tuple, skip_wildcard=True)
+                if points:
+                    points_list.append(points)
+        return sum(points_list)
 
     def season_stats_cls(self, season):
         return ContenderSeason(driver=self, season=season)
@@ -72,6 +100,10 @@ class Competition(AbstractRankModel):
     full_name = models.CharField(max_length=100, unique=True, verbose_name=_('full name'))
     country = CountryField(null=True, blank=True, default=None, verbose_name=_('country'))
     slug = models.SlugField(null=True, blank=True, default=None)
+
+    @property
+    def drivers(self):
+        return Driver.objects.filter(seats__results__race__season__competition=self).distinct()
 
     def get_team_rank(self, rank_type, **filters):
         return super(Competition, self).get_team_rank(rank_type=rank_type, competition=self, **filters)
@@ -151,7 +183,7 @@ class Team(TeamStatsModel):
         }
 
     def get_points(self, competition, punctuation_config=None):
-        seasons = Season.objects.filter(teams=self, competition=competition)
+        seasons = Season.objects.filter(races__results__seat__team=self, competition=competition).distinct()
         points = 0
         for season in seasons:
             season_points = self.get_season(season).get_points(punctuation_config=punctuation_config)
@@ -407,10 +439,9 @@ class Race(models.Model):
     def clean(self, *args, **kwargs):
         """ Validate round and grand_prix field """
         errors = {}
+        print(self.season)
         season = getattr(self, 'season', None)
         if season:
-            if self.round > self.season.rounds:
-                errors['round'] = _('Max rounds in this season: %(rounds)d') % {'rounds': self.season.rounds}
             if self._grandprix_exception():
                 errors['grand_prix'] = _("%(grand_prix)s is not a/an %(competition)s Grand Prix") \
                                        % {'grand_prix': self.grand_prix, 'competition': self.season.competition}

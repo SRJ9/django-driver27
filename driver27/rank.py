@@ -28,12 +28,12 @@ class AbstractRankModel(models.Model):
         punctuation_config = None
         if punctuation_code:
             punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
-        drivers = self.drivers.all()
+        drivers = getattr(self, 'drivers').all()
         rank = []
         for driver in drivers:
             stat_cls = self.get_stats_cls(driver)
             rank.append((stat_cls.get_points(punctuation_config=punctuation_config), driver,
-                         stat_cls.teams_verbose,stat_cls.get_positions_str()))
+                         stat_cls.teams_verbose, stat_cls.get_positions_str()))
         rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
         return rank
 
@@ -41,14 +41,14 @@ class AbstractRankModel(models.Model):
         """ The driver
         with superior race results (based on descending order, from number of
         wins to numbers of second-places down) will gain precedence. """
-        contenders = self.contenders.all()
+        contenders = getattr(self, 'drivers').all()
         rank = []
         for contender in contenders:
             contender_season = contender.get_season(self)
             position_list = contender_season.get_positions_list()
             position_str = contender_season.get_positions_str(position_list=position_list)
             rank.append((position_str,
-                         contender.driver,
+                         contender,
                          contender_season.teams_verbose,
                          position_list))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
@@ -59,7 +59,7 @@ class AbstractRankModel(models.Model):
         punctuation_config = None
         if punctuation_code:
             punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
-        teams = self.teams.all()
+        teams = getattr(self, 'teams').all()
         rank = []
         for team in teams:
             team_stats_cls = self.get_team_stats_cls(team)
@@ -71,21 +71,21 @@ class AbstractRankModel(models.Model):
 
     def stats_rank(self, **filters):
         """ Get driver rank based on record filter """
-        contenders = self.contenders.all()
+        contenders = getattr(self, 'drivers').all()
         rank = []
         for contender in contenders:
             stat_cls = self.get_stats_cls(contender)
-            rank.append((stat_cls.get_stats(**filters), contender.driver, stat_cls.teams_verbose))
+            rank.append((stat_cls.get_stats(**filters), contender, stat_cls.teams_verbose))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
     def streak_rank(self, **filters):
         """ Get driver rank based on record filter """
-        contenders = self.contenders.all()
+        contenders = getattr(self, 'drivers').all()
         rank = []
         for contender in contenders:
             stat_cls = self.get_stats_cls(contender)
-            rank.append((stat_cls.get_streak(**filters), contender.driver, stat_cls.teams_verbose))
+            rank.append((stat_cls.get_streak(**filters), contender, stat_cls.teams_verbose))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
@@ -116,7 +116,7 @@ class AbstractRankModel(models.Model):
     def team_rank(self, total_method, **filters):
         """ Collect the records of each team calling the method of Team passed by total_method param """
         rank = []
-        teams = self.teams.all()
+        teams = getattr(self, 'teams').all()
         for team in teams:
             team_stats_cls = self.get_team_stats_cls(team)
             total = getattr(team_stats_cls, total_method)(**filters)

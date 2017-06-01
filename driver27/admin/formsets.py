@@ -35,39 +35,3 @@ class RaceFormSet(RelatedWithSeasonFormSet):
 
 class TeamSeasonFormSet(RelatedWithSeasonFormSet):
     model = TeamSeason
-    # model_attributes = ('team', 'season', 'sponsor_name',)
-
-    def team_season_check(self, form):
-        delete_checked = False
-        if self.is_marked_to_delete(form):
-            team_season_obj = form.cleaned_data.get('id')
-            if team_season_obj:
-                team = team_season_obj.team
-                season = team_season_obj.season
-                seat_check = self.model.check_delete_seat_restriction(team=team, season=season)
-                if seat_check:
-                    delete_checked = True
-        return delete_checked
-
-    def clean(self):
-        super(TeamSeasonFormSet, self).clean()
-        delete_checked = False
-
-        for form in self.forms:
-            invalid_team_season_delete = self.team_season_check(form)
-            if invalid_team_season_delete:
-                delete_checked = True
-
-        if delete_checked:
-            raise forms.ValidationError('You cannot delete a team with seats in this season.'
-                                        'Delete seats before')
-
-    @staticmethod
-    def is_marked_to_delete(form):
-        marked_to_delete = False
-        try:
-            if form.cleaned_data and form.cleaned_data.get('DELETE'):
-                marked_to_delete = True
-        except AttributeError:
-            pass
-        return marked_to_delete
