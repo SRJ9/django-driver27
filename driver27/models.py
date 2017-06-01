@@ -53,6 +53,11 @@ class Driver(AbstractStatsModel):
     country = CountryField(verbose_name=_('country'))
 
     @property
+    def is_active(self):
+        last_season = Season.objects.order_by('-year')[0]
+        return Season.objects.filter(races__results__seat__driver=self, pk=last_season.pk).count()
+
+    @property
     def teams_verbose(self):
         return ', '.join([seat.team.name for seat in self.seats.all()])
 
