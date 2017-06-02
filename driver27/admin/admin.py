@@ -89,19 +89,11 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         'fields': ('year', 'competition', 'rounds', 'punctuation')
         }),
     )
-    tab_teams = (
-        TeamSeasonInline,
-    )
-    # tab_drivers = (
-    #     SeatSeasonInline,
-    # )
     tab_races = (
         RaceInline,
     )
     tabs = [
         ('Overview', tab_overview),
-        ('Teams', tab_teams),
-        # ('Drivers', tab_drivers),
         ('Races', tab_races),
     ]
     readonly_fields = ('print_copy_season',)

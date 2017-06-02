@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Q
 from ..models import Team, GrandPrix, Seat, Race
 
 
@@ -11,10 +12,14 @@ class CompetitionFilterInline(admin.TabularInline):
     @staticmethod
     def seat_for_foreignkey(obj):
         if isinstance(obj, Race):
-            seat_filter = {'results__race__season': obj.season}
+            seat_filter = {'team__competitions__seasons__races': obj}
         else:
             seat_filter = {'contender__competition__exact': obj.competition}
-        return Seat.objects.filter(**seat_filter).distinct()
+        return Seat.objects.filter(**seat_filter).filter(
+
+            Q(periods__from_year__lte=obj.season.year) | Q(periods__from_year__isnull=True),
+            Q(periods__until_year__gte=obj.season.year) | Q(periods__until_year__isnull=True)
+        ).distinct()
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if getattr(request, '_obj_', None):
