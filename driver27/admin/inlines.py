@@ -4,7 +4,7 @@ from .formsets import *
 from ..models import ContenderSeason
 from ..models import Race
 from ..models import Result
-from ..models import Seat
+from ..models import Seat, SeatPeriod
 from ..models import Team, TeamSeason
 
 
@@ -19,7 +19,6 @@ class RaceInline(CompetitionFilterInline):
 class SeatInline(CompetitionFilterInline):
     model = Seat
     extra = 1
-
 
 
 

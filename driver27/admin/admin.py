@@ -7,7 +7,7 @@ from .forms import *
 from .inlines import *
 from ..models import SeatsSeason
 from ..models import ContenderSeason
-from ..models import Driver, Competition, Circuit, Season, Result, CompetitionTeam
+from ..models import Driver, Competition, Circuit, Season, Result, CompetitionTeam, SeatPeriod
 from .. import lr_diff, lr_intr
 
 
@@ -301,6 +301,8 @@ class SeatAdmin(CommonTabbedModelAdmin):
         ('Overview', tab_overview),
     ]
 
+class SeatPeriodAdmin(admin.ModelAdmin):
+    pass
 
 admin.site.register(Driver, DriverAdmin)
 admin.site.register(Team, TeamAdmin)
@@ -310,3 +312,5 @@ admin.site.register(GrandPrix, GrandPrixAdmin)
 admin.site.register(Season, SeasonAdmin)
 admin.site.register(Race, RaceAdmin)
 admin.site.register(Seat, SeatAdmin)
+admin.site.register(SeatPeriod, SeatPeriodAdmin)
+

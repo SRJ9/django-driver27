@@ -207,8 +207,6 @@ class Team(TeamStatsModel):
             points += season_points if season_points else 0
         return points
 
-
-
     def __str__(self):
         return self.name
 
@@ -218,10 +216,19 @@ class Team(TeamStatsModel):
         verbose_name_plural = _('Teams')
 
 
+@python_2_unicode_compatible
 class SeatPeriod(models.Model):
     seat = models.ForeignKey('Seat', related_name='periods')
     from_year = models.IntegerField(blank=True, null=True, default=None)
     until_year = models.IntegerField(blank=True, null=True, default=None)
+
+    def __str__(self):
+        return_text = '{seat}'.format(seat=self.seat)
+        if self.from_year:
+            return_text += ' from {from_year}'.format(from_year=self.from_year)
+        if self.until_year:
+            return_text += ' until {until_year}'.format(until_year=self.until_year)
+        return return_text
 
 
 @python_2_unicode_compatible
