@@ -49,8 +49,9 @@ class Driver(AbstractStatsModel):
     """ Main Driver Model. To combine with competitions (Contender) and competition/team (Seat) """
     last_name = models.CharField(max_length=50, verbose_name=_('last name'))
     first_name = models.CharField(max_length=25, verbose_name=_('first name'))
-    year_of_birth = models.IntegerField(verbose_name=_('year of birth'))
-    country = CountryField(verbose_name=_('country'))
+    year_of_birth = models.IntegerField(verbose_name=_('year of birth'), null=True, blank=True)
+    country = CountryField(verbose_name=_('country'), null=True, blank=True)
+    teams = models.ManyToManyField('Team', through='Seat', related_name='drivers', verbose_name=_('teams'))
 
     @property
     def is_active(self):
@@ -59,7 +60,7 @@ class Driver(AbstractStatsModel):
 
     @property
     def teams_verbose(self):
-        return ', '.join([seat.team.name for seat in self.seats.all()])
+        return ', '.join([team.name for team in self.teams.all()])
 
     def get_results(self, limit_races=None, **extra_filter):
         return Result.wizard(driver=self, limit_races=limit_races, **extra_filter)
