@@ -705,7 +705,7 @@ class ContenderSeason(object):
     def get_reverse_results(self, limit_races=None, **extra_filter):
         return self.get_results(limit_races=limit_races, reverse_order=True, **extra_filter)
 
-    def get_streak(self, **filters):
+    def get_streak(self, active=False, **filters):
         results = self.get_reverse_results()
         counter = 0
         return Streak(results=results).run(filters)
