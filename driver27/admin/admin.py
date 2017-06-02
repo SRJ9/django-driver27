@@ -7,7 +7,7 @@ from .forms import *
 from .inlines import *
 from ..models import SeatsSeason
 from ..models import ContenderSeason
-from ..models import Driver, Competition, Circuit, Season, Result
+from ..models import Driver, Competition, Circuit, Season, Result, CompetitionTeam
 from .. import lr_diff, lr_intr
 
 
@@ -22,20 +22,21 @@ class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
         ('Overview', tab_overview),
     ]
 
+class CompetitionTeamInline(CompetitionFilterInline):
+    model = CompetitionTeam
+
+
 
 class TeamAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     model = Team
     list_display = ('__str__', 'country', 'print_competitions')
-    # list_filter = ('competitions',)
     tab_overview = (
         (None, {
                 'fields': ('name', 'full_name', 'country')
         }),
     )
     tab_competitions = (
-        (None, {
-            'fields': ('competitions',)
-        }),
+        CompetitionTeamInline,
     )
     tab_seats = (
         SeatInline,
