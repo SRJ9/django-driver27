@@ -154,7 +154,7 @@ class Team(TeamStatsModel):
     name = models.CharField(max_length=75, verbose_name=_('team'), unique=True)
     full_name = models.CharField(max_length=200, unique=True, verbose_name=_('full name'))
     competitions = models.ManyToManyField('Competition', through='CompetitionTeam', related_name='teams', verbose_name=_('competitions'))
-    country = CountryField(verbose_name=_('country'))
+    country = CountryField(verbose_name=_('country'), blank=True, null=True)
 
     def get_results(self, competition, **extra_filter):
         """ Return all results of team in season """

@@ -301,14 +301,8 @@ class ViewTest(FixturesTest):
         races = [race.pk for race in season.races.all()]
         self._test_copy_items(COPY_RACES_URL, 'get_copy_races', new_season, races)
 
-        # teams
-        COPY_TEAMS_URL=reverse('admin:dr27-copy-teams', kwargs={'pk': season.pk})
-        teams = [team.pk for team in season.teams.all()]
-        self._test_copy_items(COPY_TEAMS_URL, 'get_copy_teams', new_season, teams)
-
         ma = SeasonAdmin(Season, self.site)
         self.assertIn(COPY_RACES_URL, ma.print_copy_races(season))
-        self.assertIn(COPY_TEAMS_URL, ma.print_copy_teams(season))
 
     def test_driver_admin(self):
         ma = DriverAdmin(Driver, self.site)
