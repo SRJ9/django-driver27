@@ -218,6 +218,12 @@ class Team(TeamStatsModel):
         verbose_name_plural = _('Teams')
 
 
+class SeatPeriod(models.Model):
+    seat = models.ForeignKey('Seat', related_name='periods')
+    from_year = models.IntegerField(blank=True, null=True, default=None)
+    until_year = models.IntegerField(blank=True, null=True, default=None)
+
+
 @python_2_unicode_compatible
 class Seat(models.Model):
     """ Seat is contender/team relation """
@@ -225,9 +231,6 @@ class Seat(models.Model):
     " e.g. Max Verstappen in 2016 (Seat 1: Toro Rosso, Seat 2: Red Bull) "
     team = models.ForeignKey('Team', related_name='seats', verbose_name=_('team'))
     driver = models.ForeignKey('Driver', related_name='seats', verbose_name=_('driver'), default=None, null=True)
-    from_year = models.IntegerField(blank=True, null=True, default=None)
-    until_year = models.IntegerField(blank=True, null=True, default=None)
-
 
     @classmethod
     def check_list_in_season(cls, seats_pk, season_pk):
@@ -268,7 +271,7 @@ class Seat(models.Model):
                % {'driver': self.driver, 'team': self.team}
 
     class Meta:
-        unique_together = ('team', 'driver', 'from_year', 'until_year')
+        unique_together = ('team', 'driver',)
         ordering = ['driver__last_name', 'team']
         verbose_name = _('Seat')
         verbose_name_plural = _('Seats')
