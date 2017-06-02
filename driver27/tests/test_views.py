@@ -49,180 +49,75 @@ class ViewTest(FixturesTest):
         self.client = Client()
         self.factory = RequestFactory()
 
-    def test_competition_list(self):
+    def _GET_request(self, reverse_url, kwargs=None, code=200):
         # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-list'))
-
+        response = self.client.get(reverse(reverse_url, kwargs=kwargs))
         # Check that the response is 302 OK.
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, code)
+
+    def test_competition_list(self):
+        self._GET_request('dr27-competition-list')
 
     def test_competition_view(self):
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-view', kwargs={'competition_slug': 'f1'}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.get(reverse('dr27-competition-view', kwargs={'competition_slug': 'f19'}))
-        # Check that the response is 404.
-        self.assertEqual(response.status_code, 404)
+        self._GET_request('dr27-competition-view', kwargs={'competition_slug': 'f1'})
+        self._GET_request('dr27-competition-view', kwargs={'competition_slug': 'f19'}, code=404)
 
     def test_season_view(self):
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-view', kwargs={'competition_slug': 'f1', 'year': 2016}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
+        kwargs = {'competition_slug': 'f1', 'year': 2016}
+        self._GET_request('dr27-season-view', kwargs=kwargs)
+        self._GET_request('dr27-season-driver', kwargs=kwargs)
+        self._GET_request('dr27-season-driver-olympic', kwargs=kwargs)
+        self._GET_request('dr27-season-team', kwargs=kwargs)
+        self._GET_request('dr27-season-race-list', kwargs=kwargs)
 
-        response = self.client.get(reverse('dr27-season-driver', kwargs={'competition_slug': 'f1', 'year': 2016}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.get(reverse('dr27-season-driver-olympic', kwargs={'competition_slug': 'f1', 'year': 2016}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-
-        response = self.client.get(reverse('dr27-season-team', kwargs={'competition_slug': 'f1', 'year': 2016}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.get(reverse('dr27-season-race-list', kwargs={'competition_slug': 'f1', 'year': 2016}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.get(reverse('dr27-season-view', kwargs={'competition_slug': 'f19', 'year': 2006}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 404)
-
-
+        kwargs = {'competition_slug': 'f19', 'year': 2006}
+        self._GET_request('dr27-season-view', kwargs=kwargs, code=404)
 
     def test_race_view(self):
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-race-view', kwargs={'competition_slug': 'f1', 'year': 2016, 'race_id':1}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-race-view', kwargs={'competition_slug': 'f1', 'year': 2016, 'race_id': 200}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 404)
+        kwargs = {'competition_slug': 'f1', 'year': 2016, 'race_id': 1}
+        self._GET_request('dr27-season-race-view', kwargs=kwargs)
+        kwargs = {'competition_slug': 'f1', 'year': 2016, 'race_id': 200}
+        self._GET_request('dr27-season-race-view', kwargs=kwargs, code=404)
 
     def test_driver_records_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016}
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-driver-record-index', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-season-driver-record-index', kwargs=kwargs)
         kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-season-driver-record', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-season-driver-streak', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-season-driver-record', kwargs=kwargs)
+        self._GET_request('dr27-season-driver-streak', kwargs=kwargs)
         kwargs['record'] = 'FFF'
-        response = self.client.get(reverse('dr27-season-driver-record',kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 404)
+        self._GET_request('dr27-season-driver-record', kwargs=kwargs, code=404)
 
     def test_driver_records_competition_view(self):
         kwargs = {'competition_slug': 'f1'}
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-driver', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-driver-record-index', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-competition-driver', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-record-index', kwargs=kwargs)
         kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-competition-driver-record', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-competition-driver-streak', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-competition-driver-record', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-streak', kwargs=kwargs)
         kwargs['record'] = 'FFF'
-        response = self.client.get(reverse('dr27-competition-driver-record', kwargs=kwargs))
-        # Check that the response is 404 KO.
-        self.assertEqual(response.status_code, 404)
+        self._GET_request('dr27-competition-driver-record', kwargs=kwargs, code=404)
 
     def test_team_records_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016}
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-team-record-index', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-season-team-record-index', kwargs=kwargs)
         kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-season-team-record', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-team-record-races', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-team-record-doubles', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-season-team-record', kwargs=kwargs)
+        self._GET_request('dr27-season-team-record-races', kwargs=kwargs)
+        self._GET_request('dr27-season-team-record-doubles', kwargs=kwargs)
         kwargs['record'] = 'FFF'
-        response = self.client.get(reverse('dr27-season-team-record', kwargs=kwargs))
-        # Check that the response is 404 KO.
-        self.assertEqual(response.status_code, 404)
+        self._GET_request('dr27-season-team-record', kwargs=kwargs, code=404)
 
     def test_team_records_competition_view(self):
         kwargs = {'competition_slug': 'f1'}
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-team', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-team-record-index', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-competition-team', kwargs=kwargs)
+        self._GET_request('dr27-competition-team-record-index', kwargs=kwargs)
         kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-competition-team-record', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-team-record-races', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-team-record-doubles', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-competition-team-record', kwargs=kwargs)
+        self._GET_request('dr27-competition-team-record-races', kwargs=kwargs)
+        self._GET_request('dr27-competition-team-record-doubles', kwargs=kwargs)
         kwargs['record'] = 'FFF'
-        response = self.client.get(reverse('dr27-competition-team-record', kwargs=kwargs))
-        # Check that the response is 404 KO.
-        self.assertEqual(response.status_code, 404)
+        self._GET_request('dr27-competition-team-record', kwargs=kwargs, code=404)
 
     def test_contender_season_points(self):
         driver = Driver.objects.get(pk=1)
@@ -254,10 +149,6 @@ class ViewTest(FixturesTest):
         season_form = ma.get_form(request=request, obj=season)
         self.assertTrue(ma.print_copy_season(obj=season))
         self.assertIsNotNone(SeasonAdminForm(season_form))
-
-
-        # request = self.factory.request(QUERY_STRING='copy=1')
-        # self.assertTrue(ma.get_changeform_initial_data(request=request))
 
     def _test_copy_url(self, COPY_URL, method_to_copy, data=None):
         season = Season.objects.get(pk=1)
