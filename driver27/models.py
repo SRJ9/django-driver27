@@ -99,6 +99,7 @@ class Driver(AbstractStatsModel):
         verbose_name_plural = _('Drivers')
 
 
+
 @python_2_unicode_compatible
 class Competition(AbstractRankModel):
     """ Competition model. Season, races, results... are grouped by competition """
@@ -137,12 +138,22 @@ class Competition(AbstractRankModel):
         verbose_name_plural = _('Competitions')
 
 
+class CompetitionTeam(models.Model):
+    team = models.ForeignKey('Team', related_name='periods', verbose_name=_('team'))
+    competition = models.ForeignKey('Competition', related_name='periods', verbose_name=_('competition'))
+    from_year = models.IntegerField(blank=True, null=True, default=None)
+    until_year = models.IntegerField(blank=True, null=True, default=None)
+
+    class Meta:
+        unique_together = ('team', 'competition', 'from_year', 'until_year')
+
+
 @python_2_unicode_compatible
 class Team(TeamStatsModel):
     """ Team model, unique if is the same in different competition """
     name = models.CharField(max_length=75, verbose_name=_('team'), unique=True)
     full_name = models.CharField(max_length=200, unique=True, verbose_name=_('full name'))
-    competitions = models.ManyToManyField('Competition', related_name='teams', verbose_name=_('competitions'))
+    competitions = models.ManyToManyField('Competition', through='CompetitionTeam', related_name='teams', verbose_name=_('competitions'))
     country = CountryField(verbose_name=_('country'))
 
     def get_results(self, competition, **extra_filter):

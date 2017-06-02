@@ -23,9 +23,9 @@ class SeatInline(CompetitionFilterInline):
 
 
 
-class CompetitionTeamInline(admin.TabularInline):
-    model = Team.competitions.through
-    extra = 1
+# class CompetitionTeamInline(admin.TabularInline):
+#     model = Team.competitions.through
+#     extra = 1
 
 
 class TeamSeasonInlineForm(AlwaysChangedModelForm):

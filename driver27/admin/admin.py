@@ -26,7 +26,7 @@ class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
 class TeamAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     model = Team
     list_display = ('__str__', 'country', 'print_competitions')
-    list_filter = ('competitions',)
+    # list_filter = ('competitions',)
     tab_overview = (
         (None, {
                 'fields': ('name', 'full_name', 'country')
@@ -59,15 +59,15 @@ class CompetitionAdmin(CommonTabbedModelAdmin):
         'fields': ('name', 'full_name', 'country', 'slug')
         }),
     )
-    tab_team = (
-        CompetitionTeamInline,
-    )
+    # tab_team = (
+    #     CompetitionTeamInline,
+    # )
     tab_seasons = (
         CompetitionSeasonAdmin,
     )
     tabs = [
         ('Overview', tab_overview),
-        ('Team', tab_team),
+        # ('Team', tab_team),
         ('Seasons', tab_seasons)
     ]
 
