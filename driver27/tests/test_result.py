@@ -101,6 +101,16 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertGreater(contender_season.get_points(), 0)
         self.assertGreater(contender_season.get_points(1), 0)
 
+    def test_team_competition_validation(self):
+        seat_a = self.get_test_seat()
+        competition = self.get_test_competition_a()
+        season_year = 2018
+        season = self.get_test_season(competition=competition, year=season_year)
+        race = self.get_test_race(season=season, round=1)
+        self.assertRaises(ValidationError, self.get_test_result, **{'seat': seat_a, 'race': race,
+                                                                    'qualifying': 2, 'finish': 2,
+                                                                    'raise_team_exception': True})
+
     def test_period_limitation(self):
         period_year = 2017
         seat_a = self.get_test_seat()

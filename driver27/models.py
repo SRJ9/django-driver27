@@ -174,32 +174,6 @@ class Team(TeamStatsModel):
         return super(Team, self).get_total_stats(competition=competition, **filters)
 
 
-    @classmethod
-    def bulk_copy(cls, teams_pk, season_pk):
-        season_bulk_copy(cls=cls, cls_to_save=TeamSeason, pks=teams_pk, pks_name='team', season_pk=season_pk)
-
-    @classmethod
-    def check_list_in_season(cls, teams_pk, season_pk):
-        teams_pk = list(map(int, teams_pk))
-        teams = cls.objects.filter(pk__in=teams_pk)
-        season = Season.objects.get(pk=season_pk)
-        season_teams_pk = list(season.teams.values_list('pk', flat=True))
-
-        not_exists = lr_diff(teams_pk, season_teams_pk)
-        both_exists = lr_intr(teams_pk, season_teams_pk)
-
-        not_exists_teams = [team for team in teams if team.pk in not_exists]
-        both_exists_teams = [team for team in teams if team.pk in both_exists]
-
-        can_save = True
-
-        return {
-            'not_exists': not_exists_teams,
-            'both_exists': both_exists_teams,
-            'can_save': can_save,
-            'season_info': season
-        }
-
     def get_points(self, competition, punctuation_config=None):
         seasons = Season.objects.filter(races__results__seat__team=self, competition=competition).distinct()
         points = 0
@@ -239,40 +213,6 @@ class Seat(models.Model):
     " e.g. Max Verstappen in 2016 (Seat 1: Toro Rosso, Seat 2: Red Bull) "
     team = models.ForeignKey('Team', related_name='seats', verbose_name=_('team'))
     driver = models.ForeignKey('Driver', related_name='seats', verbose_name=_('driver'), default=None, null=True)
-
-    @classmethod
-    def check_list_in_season(cls, seats_pk, season_pk):
-        seats_pk = list(map(int, seats_pk))
-        seats = cls.objects.filter(pk__in=seats_pk)
-
-        season = Season.objects.get(pk=season_pk)
-        season_teams_pk = list(season.teams.values_list('pk', flat=True))
-        season_seats_pk = list(season.seats.values_list('pk', flat=True))
-
-        not_exists = lr_diff(seats_pk, season_seats_pk)
-        both_exists = lr_intr(seats_pk, season_seats_pk)
-
-        not_exists_seats = []
-        conditional_seats = []
-        both_exists_seats = []
-
-        for seat in seats:
-            if seat.pk in both_exists:
-                both_exists_seats.append(seat)
-            elif seat.team.pk not in season_teams_pk:
-                conditional_seats.append(seat)
-            else:
-                not_exists_seats.append(seat)
-
-        can_save = True
-
-        return {
-            'not_exists': not_exists_seats,
-            'both_exists': both_exists_seats,
-            'conditional_exists': conditional_seats,
-            'can_save': can_save,
-            'season_info': season
-        }
 
     def __str__(self):
         return _('%(driver)s in %(team)s') \
@@ -836,10 +776,3 @@ class ContenderSeason(object):
         positions_str = ''.join([str(x).zfill(3) for x in position_list])
         return positions_str
 
-
-@receiver(pre_delete, sender=TeamSeason)
-def pre_delete_team_season(sender, instance, *args, **kwargs):
-    """ Force exception before of delete team in season when exists dependent seats """
-    team = instance.team
-    season = instance.season
-    TeamSeason.delete_seat_exception(team=team, season=season)
