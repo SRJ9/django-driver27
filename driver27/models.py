@@ -369,7 +369,8 @@ class Season(AbstractRankModel):
         return driver.get_season(self)
 
     def get_team_stats_cls(self, team):
-        return TeamSeason.objects.get(season=self, team=team)
+        team_season, created = TeamSeason.objects.get_or_create(season=self, team=team)
+        return team_season
 
     def get_punctuation_config(self, punctuation_code=None):
         """ Getting the punctuation config. Chosen punctuation will be override temporarily by code kwarg """
@@ -712,6 +713,12 @@ class Result(models.Model):
         return results
 
     def save(self, *args, **kwargs):
+        if not self.race.season.competition.teams.filter(pk=self.seat.team.pk).exists():
+            raise ValidationError('Some error message about uniqueness required (team:competition)')
+        if Result.objects.exclude(pk=self.pk).filter(seat__driver=self.seat.driver).exists():
+            raise ValidationError('Some error message about uniqueness required (driver:race)')
+        if not self.race.season.seats.filter(pk=self.seat.pk).exists():
+            raise ValidationError('Some error message about uniqueness required (driver:race)')
         self.points = self.get_points()
         super(Result, self).save(*args, **kwargs)
 
@@ -731,6 +738,16 @@ class Result(models.Model):
         """ Return points based on season scoring """
         punctuation_config = self.race.season.get_punctuation_config()
         return self.points_calculator(punctuation_config)
+
+    def clean(self):
+        try:
+            # try to find a duplicate entry and exclude 'self'
+            duplicate = self.objects.exclude(pk=self.pk)\
+                .get(seat__driver=self.driver, is_deleted=False)
+            raise ValidationError('Race/Seat:driver entry already exists!')
+        except self.DoesNotExist:
+            # no duplicate found
+            pass
 
     def __str__(self):
         string = '{seat} ({race})'.format(seat=self.seat, race=self.race)

@@ -3,7 +3,7 @@ import sys
 
 from django.core.exceptions import ValidationError
 from ..models import Driver, Competition, Team, Season, Circuit
-from ..models import TeamSeason, Seat, GrandPrix, Race, Result, ContenderSeason
+from ..models import TeamSeason, Seat, GrandPrix, Race, Result, ContenderSeason, CompetitionTeam
 
 def retro_encode(text):
     if sys.version_info < (3, 0):
@@ -64,8 +64,8 @@ class CommonSeasonTestCase(CommonCompetitionTestCase):
     def set_test_season(self, **kwargs):
         return self.set_test_create(model=Season, **kwargs)
 
-    def get_test_season(self, competition):
-        season_args = {'year': '2016', 'competition': competition, 'punctuation': 'F1-25', 'rounds': 10}
+    def get_test_season(self, competition, year=2016):
+        season_args = {'year': year, 'competition': competition, 'punctuation': 'F1-25', 'rounds': 10}
         return self.set_test_season(**season_args)
 
 
@@ -112,10 +112,11 @@ class CommonRaceTestCase(CommonSeasonTestCase):
             default_circuit=circuit, country='BR', first_held=1972, **grandprix_args))
         return GrandPrix.objects.get(**grandprix_args)
 
-    def get_test_race(self, competition=None, round=1):
-        if not competition:
-            competition = self.get_test_competition_a()
-        season = self.get_test_season(competition=competition)
+    def get_test_race(self, competition=None, season=None, round=1):
+        if season is None:
+            if competition is None:
+                competition = self.get_test_competition_a()
+            season = self.get_test_season(competition=competition)
         race_args = {
             'round': round,
             'season': season,
@@ -159,9 +160,8 @@ class CommonResultTestCase(CommonSeatTestCase, CommonRaceTestCase):
             'wildcard': False,
             'comment': None
         }
-        season = race.season
-        if not raise_team_exception:
-            if seat.team not in season.teams.all():
-                self.assertTrue(TeamSeason.objects.create(team=seat.team, season=season))
 
+        if not raise_team_exception:
+            if race.season.competition not in seat.team.competitions.all():
+                self.assertTrue(CompetitionTeam.objects.create(competition=race.season.competition, team=seat.team))
         return self.set_test_result(**result_args)

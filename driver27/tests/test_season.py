@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db import transaction, IntegrityError
 from .common import CommonResultTestCase
-from ..models import TeamSeason, Seat
+from ..models import TeamSeason, Seat, CompetitionTeam
 
 
 class SeasonTestCase(TestCase, CommonResultTestCase):
@@ -40,7 +40,9 @@ class SeasonTestCase(TestCase, CommonResultTestCase):
     def test_season_contenders(self):
         seat_a = self.get_test_seat()
         seat_b = self.get_test_seat_b(seat_a)
+        team = seat_a.team
         competition = self.get_test_competition_a()
+        self.assertTrue(CompetitionTeam.objects.create(competition=competition, team=team))
         # season = self.get_test_season(competition)
         race = self.get_test_race(competition, round=1)
         season = race.season
