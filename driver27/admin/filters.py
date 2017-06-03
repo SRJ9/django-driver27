@@ -12,14 +12,10 @@ class CompetitionFilterInline(admin.TabularInline):
     @staticmethod
     def seat_for_foreignkey(obj):
         if isinstance(obj, Race):
-            seat_filter = {'team__competitions__seasons__races': obj}
+            return obj.seats.all()
         else:
             seat_filter = {'contender__competition__exact': obj.competition}
-        return Seat.objects.filter(**seat_filter).filter(
-
-            Q(periods__from_year__lte=obj.season.year) | Q(periods__from_year__isnull=True),
-            Q(periods__until_year__gte=obj.season.year) | Q(periods__until_year__isnull=True)
-        ).distinct()
+            raise Exception('NO controller')
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if getattr(request, '_obj_', None):

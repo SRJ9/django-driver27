@@ -19,6 +19,7 @@ from django.db.models.sql import constants
 from .stats import AbstractStatsModel, TeamStatsModel
 from .rank import AbstractRankModel
 
+from django.db.models import Q
 from collections import namedtuple
 
 ResultTuple = namedtuple('ResultTuple', 'qualifying finish fastest_lap wildcard alter_punctuation')
@@ -346,6 +347,24 @@ class Season(AbstractRankModel):
         """ As season is related with seats, this method is a shorcut to get teams """
         return Team.objects.filter(seats__results__race__season=self).distinct()
 
+    def _abstract_seats(self, exclude=False):
+        seat_filter = {'team__competitions__seasons': self}
+        seats = Seat.objects.filter(**seat_filter)
+        filter_or_exclude = 'filter' if not exclude else 'exclude'
+        return getattr(seats, filter_or_exclude)(
+
+            Q(periods__from_year__lte=self.year) | Q(periods__from_year__isnull=True),
+            Q(periods__until_year__gte=self.year) | Q(periods__until_year__isnull=True)
+        ).distinct()
+
+    @property
+    def seats(self):
+        return self._abstract_seats()
+
+    @property
+    def no_seats(self):
+        return self._abstract_seats(exclude=True)
+
     def get_stats_cls(self, driver):
         return driver.get_season(self)
 
@@ -483,6 +502,26 @@ class Race(models.Model):
         """ Return the first result that match with filter """
         results = self.results.filter(**kwargs)
         return results.first().seat if results.count() else None
+
+    def _abstract_seats(self, exclude=False):
+        seat_filter = {'team__competitions__seasons__races': self}
+        seat_exclude = {'driver__seats__results__race': self}
+        seats = Seat.objects.filter(**seat_filter)
+        if exclude:
+            seats = seats.exclude(**seat_exclude)
+
+        return seats.filter(
+            Q(periods__from_year__lte=self.season.year) | Q(periods__from_year__isnull=True),
+            Q(periods__until_year__gte=self.season.year) | Q(periods__until_year__isnull=True)
+        ).distinct()
+
+    @property
+    def seats(self):
+        return self._abstract_seats()
+
+    @property
+    def no_seats(self):
+        return self._abstract_seats(exclude=True)
 
     @property
     def pole(self):

@@ -6,23 +6,27 @@ try:
     from django.urls import reverse
 except ImportError:
     from django.core.urlresolvers import reverse
-from django.forms.models import inlineformset_factory, formset_factory
-from ..models import Season, Driver, Team, Competition, Circuit, Result, get_results_tuples
+from django.forms.models import inlineformset_factory
+from ..models import Season, Driver, Team, Competition, Circuit, get_results_tuples
 from ..models import GrandPrix, Race, Seat, TeamSeason, ContenderSeason
 from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, TeamAdmin
 from ..admin import CompetitionAdmin, CircuitAdmin, GrandPrixAdmin
 from ..admin import RaceAdmin, RelatedCompetitionAdmin
-from ..admin import RaceInline, SeatInline, TeamSeasonInline
-from ..admin.formsets import RaceFormSet, TeamSeasonFormSet
+from ..admin import RaceInline, TeamSeasonInline
+from ..admin.formsets import RaceFormSet
 from ..admin.common import AlwaysChangedModelForm
 from ..punctuation import get_punctuation_config
+from rest_framework.test import APITestCase
+
 
 class MockRequest(object):
     pass
 
+
 class MockSuperUser(object):
     def has_perm(self, perm):
         return True
+
 
 def get_request():
     request = MockRequest()
@@ -35,7 +39,7 @@ def get_fixtures_test():
     if hasattr(settings, 'PYTEST_SETTING') and settings.PYTEST_SETTING:
         return None
     else:
-        return ['driver27.json',]
+        return ['driver27.json', ]
 
 
 class FixturesTest(TestCase):
@@ -43,7 +47,6 @@ class FixturesTest(TestCase):
 
 
 class ViewTest(FixturesTest):
-
     def setUp(self):
         self.site = AdminSite()
         self.client = Client()
@@ -188,7 +191,7 @@ class ViewTest(FixturesTest):
         season = Season.objects.get(pk=1)
 
         # races
-        COPY_RACES_URL=reverse('admin:dr27-copy-races', kwargs={'pk': season.pk})
+        COPY_RACES_URL = reverse('admin:dr27-copy-races', kwargs={'pk': season.pk})
         races = [race.pk for race in season.races.all()]
         self._test_copy_items(COPY_RACES_URL, 'get_copy_races', new_season, races)
 
@@ -233,7 +236,8 @@ class ViewTest(FixturesTest):
         return related_formset
 
     def test_race_formset(self):
-        self._test_season_formset_copy(Race, RaceFormSet, ('round', 'grand_prix', 'circuit', 'date', 'alter_punctuation'))
+        self._test_season_formset_copy(Race, RaceFormSet,
+                                       ('round', 'grand_prix', 'circuit', 'date', 'alter_punctuation'))
 
     def test_race_admin(self):
         ma = RaceAdmin(Race, self.site)
@@ -279,3 +283,61 @@ class ViewTest(FixturesTest):
         self.assertIsNone(related_competition.print_competitions(race))
 
 
+class DR27Api(APITestCase):
+    fixtures = get_fixtures_test()
+
+    def _GET_request(self, reverse_url, kwargs=None, code=200):
+        request_url = reverse(reverse_url, kwargs=kwargs)
+        response = self.client.get(request_url, format='json')
+        self.assertEqual(response.status_code, code)
+
+    def test_api_circuit(self):
+        self._GET_request('circuit-list')
+
+    def test_api_competition(self):
+        self._GET_request('competition-list')
+        self._GET_request('competition-detail', kwargs={'pk': 1})
+        self._GET_request('competition-next-race', kwargs={'pk': 1})
+        self._GET_request('competition-teams', kwargs={'pk': 1})
+
+    def test_api_driver(self):
+        self._GET_request('driver-list')
+        self._GET_request('driver-detail', kwargs={'pk': 1})
+
+    def test_api_grand_prix(self):
+        self._GET_request('grandprix-list')
+        self._GET_request('grandprix-detail', kwargs={'pk': 1})
+
+    def test_api_race(self):
+        self._GET_request('race-list')
+        self._GET_request('race-detail', kwargs={'pk': 1})
+        self._GET_request('race-no-start-seats', kwargs={'pk': 1})
+        self._GET_request('race-results', kwargs={'pk': 1})
+        self._GET_request('race-seats', kwargs={'pk': 1})
+
+    def test_api_result(self):
+        self._GET_request('result-list')
+        self._GET_request('result-detail', kwargs={'pk': 1})
+
+    def test_api_season(self):
+        self._GET_request('season-list')
+        self._GET_request('season-detail', kwargs={'pk': 1})
+        self._GET_request('season-next-race', kwargs={'pk': 1})
+        self._GET_request('season-no-seats', kwargs={'pk': 1})
+        self._GET_request('season-races', kwargs={'pk': 1})
+        self._GET_request('season-seats', kwargs={'pk': 1})
+        self._GET_request('season-standings', kwargs={'pk': 1})
+        self._GET_request('season-standings-team', kwargs={'pk': 1})
+        self._GET_request('season-teams', kwargs={'pk': 1})
+        self._GET_request('season-title', kwargs={'pk': 1})
+
+    def test_api_seat(self):
+        self._GET_request('seat-list')
+        self._GET_request('seat-detail', kwargs={'pk': 1})
+        self._GET_request('seat-periods', kwargs={'pk': 1})
+        self._GET_request('seatperiod-list')
+        self._GET_request('seatperiod-detail', kwargs={'pk': 1})
+
+    def test_api_team(self):
+        self._GET_request('team-list')
+        self._GET_request('team-detail', kwargs={'pk': 1})
