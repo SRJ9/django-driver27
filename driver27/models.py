@@ -714,11 +714,11 @@ class Result(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.race.season.competition.teams.filter(pk=self.seat.team.pk).exists():
-            raise ValidationError('Some error message about uniqueness required (team:competition)')
+            raise ValidationError('Team not in Competition')
         if Result.objects.exclude(pk=self.pk).filter(seat__driver=self.seat.driver).exists():
-            raise ValidationError('Some error message about uniqueness required (driver:race)')
+            raise ValidationError('Exists a result with the same driver in this race (different Seat)')
         if not self.race.season.seats.filter(pk=self.seat.pk).exists():
-            raise ValidationError('Some error message about uniqueness required (driver:race)')
+            raise ValidationError('Seat period is not coincident with Season year')
         self.points = self.get_points()
         super(Result, self).save(*args, **kwargs)
 
