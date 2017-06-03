@@ -489,7 +489,6 @@ class Race(models.Model):
     def clean(self, *args, **kwargs):
         """ Validate round and grand_prix field """
         errors = {}
-        print(self.season)
         season = getattr(self, 'season', None)
         if season:
             if self._grandprix_exception():
@@ -712,13 +711,23 @@ class Result(models.Model):
         results = results.order_by(*order_by_args)
         return results
 
-    def save(self, *args, **kwargs):
+    def _validate_seat(self):
+        errors = {'seat': []}
         if not self.race.season.competition.teams.filter(pk=self.seat.team.pk).exists():
-            raise ValidationError('Team not in Competition')
-        if Result.objects.exclude(pk=self.pk).filter(seat__driver=self.seat.driver).exists():
-            raise ValidationError('Exists a result with the same driver in this race (different Seat)')
+            errors['seat'].append('Team not in Competition')
+        if Result.objects.filter(seat__driver=self.seat.driver, race=self.race).exclude(pk=self.pk).exists():
+            errors['seat'].append('Exists a result with the same driver in this race (different Seat)')
         if not self.race.season.seats.filter(pk=self.seat.pk).exists():
-            raise ValidationError('Seat period is not coincident with Season year')
+            errors['seat'].append('Seat period is not coincident with Season year')
+        if errors['seat']:
+            raise ValidationError(errors)
+
+    def clean(self):
+        self._validate_seat()
+        super(Result, self).clean()
+
+    def save(self, *args, **kwargs):
+        self._validate_seat()
         self.points = self.get_points()
         super(Result, self).save(*args, **kwargs)
 
@@ -738,16 +747,6 @@ class Result(models.Model):
         """ Return points based on season scoring """
         punctuation_config = self.race.season.get_punctuation_config()
         return self.points_calculator(punctuation_config)
-
-    def clean(self):
-        try:
-            # try to find a duplicate entry and exclude 'self'
-            duplicate = self.objects.exclude(pk=self.pk)\
-                .get(seat__driver=self.driver, is_deleted=False)
-            raise ValidationError('Race/Seat:driver entry already exists!')
-        except self.DoesNotExist:
-            # no duplicate found
-            pass
 
     def __str__(self):
         string = '{seat} ({race})'.format(seat=self.seat, race=self.race)
