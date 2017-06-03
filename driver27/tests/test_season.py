@@ -2,11 +2,11 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db import transaction, IntegrityError
-from .common import CommonSeasonTestCase, CommonSeatTestCase
-from ..models import SeatSeason, TeamSeason, Contender, Seat
+from .common import CommonResultTestCase
+from ..models import TeamSeason, Seat, CompetitionTeam
 
 
-class SeasonTestCase(TestCase, CommonSeasonTestCase, CommonSeatTestCase):
+class SeasonTestCase(TestCase, CommonResultTestCase):
     def test_season_unicode(self):
         competition = self.get_test_competition_a()
         season = self.get_test_season(competition)
@@ -39,47 +39,13 @@ class SeasonTestCase(TestCase, CommonSeasonTestCase, CommonSeatTestCase):
 
     def test_season_contenders(self):
         seat_a = self.get_test_seat()
-        team_a = seat_a.team
-        competition = seat_a.contender.competition
-        season = self.get_test_season(competition)
-        seat_b = self.get_test_seat_b(seat_a=seat_a)
-        seat_c = self.get_test_seat_c(seat_a=seat_a)
-        team_c = seat_c.team
-        # create TeamSeason rel, A and B is the same
-        self.assertTrue(TeamSeason.objects.create(team=team_a, season=season))
-        self.assertTrue(TeamSeason.objects.create(team=team_c, season=season))
-        # create SeatSeason rel
-        self.assertIsNone(seat_a.seasons.add(season))
-        self.assertIsNone(seat_b.seasons.add(season))
-        self.assertIsNone(seat_c.seasons.add(season))
-        # A and C is the same, 2 = (A, B)
-        self.assertEquals(season.contenders.count(), 2)
-
-    def test_seat_season_exception(self):
-        seat_a = self.get_test_seat()
-        competition = self.get_test_competition_b()
-        season = self.get_test_season(competition)
+        seat_b = self.get_test_seat_b(seat_a)
         team = seat_a.team
-        with transaction.atomic():
-            self.assertRaises(ValidationError, seat_a.seasons.add, season)
-        # generate new seat (same driver, new competition, same team)
-        contender_b_args = {'competition': competition, 'driver': seat_a.contender.driver}
-        self.assertTrue(self.set_test_contender(**contender_b_args))
-        contender_b = Contender.objects.get(**contender_b_args)
-        # add team to competition
-        self.assertIsNone(team.competitions.add(competition))
-        # save seat_b
-        seat_b_args = {'contender': contender_b, 'team': team}
-        self.assertTrue(self.set_test_seat(**seat_b_args))
-        seat_b = Seat.objects.get(**seat_b_args)
-        # Fail again because Seat team is not in season
-        seat_season_args = {'seat': seat_b, 'season': season}
-        with transaction.atomic():
-            self.assertRaises(ValidationError, seat_b.seasons.add, season)
-        self.assertRaises(ValidationError, SeatSeason.objects.create, **seat_season_args)
-        # Save team-season rel and Seat-Season save is ok
-        team_season_args = {'team': team, 'season': season}
-        self.assertTrue(TeamSeason.objects.create(**team_season_args))
-        self.assertTrue(SeatSeason.objects.create(**seat_season_args))
-        team_season_filter = TeamSeason.objects.filter(**team_season_args)
-        self.assertRaises(IntegrityError, team_season_filter.delete)
+        competition = self.get_test_competition_a()
+        self.assertTrue(CompetitionTeam.objects.create(competition=competition, team=team))
+        # season = self.get_test_season(competition)
+        race = self.get_test_race(competition, round=1)
+        season = race.season
+        result_a = self.get_test_result(seat=seat_a, race=race, qualifying=1, finish=2)
+        result_b = self.get_test_result(seat=seat_b, race=race, qualifying=4, finish=7)
+        self.assertEquals(season.drivers.count(), 2)

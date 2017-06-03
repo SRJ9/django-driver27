@@ -4,9 +4,10 @@ from rest_framework.response import Response
 from .common import DR27ViewSet
 from .serializers import RaceSerializer, ResultSerializer, SeatSerializer, SeasonSerializer
 from .serializers import CircuitSerializer, GrandPrixSerializer, CompetitionSerializer
-from .serializers import ContenderSerializer, TeamSerializer, DriverSerializer
+from .serializers import TeamSerializer, DriverSerializer, SeatPeriodSerializer
 from .common import get_dict_from_rank_entry, get_dict_from_team_rank_entry
-from ..models import Competition, Contender, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit
+from ..models import Competition, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit, SeatPeriod
+from django.db.models import Q
 
 
 class CommonDetailViewSet(object):
@@ -40,8 +41,8 @@ class RaceViewSet(DR27ViewSet, CommonDetailViewSet):
     @detail_route(methods=['get'], url_path='no-start-seats')
     def no_start_seats(self, request, pk=None):
         """ Seats in this season that are not part of the race """
-        obj = self.get_object()
-        return self.get_seat_detail_route(request, filter={'seasons': obj.season}, exclude={'results__race': obj})
+
+        return self.get_common_detail_route(request, 'no_seats', SeatSerializer)
 
 
 class DR27CommonCompetitionViewSet(DR27ViewSet):
@@ -75,11 +76,8 @@ class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
 
     @detail_route(methods=['get'], url_path='no-seats')
     def no_seats(self, request, pk=None):
-        """ Seats in this season that are not part of the race """
-        obj = self.get_object()
-        return self.get_seat_detail_route(request, filter={'contender__competition': obj.competition},
-                                          exclude={'seasons': obj})
-
+        """ Seats with team in season:competition but not active in season """
+        return self.get_common_detail_route(request, 'no_seats', SeatSerializer)
 
     @detail_route(methods=['get'])
     def teams(self, request, pk=None):
@@ -142,14 +140,6 @@ class ResultViewSet(DR27ViewSet):
 
 
 # ViewSets define the view behavior.
-class ContenderViewSet(DR27ViewSet):
-    queryset = Contender.objects.all()
-    serializer_class = ContenderSerializer
-    search_fields = ('competition', 'driver',)
-    filter_fields = ('competition', 'driver',)
-
-
-# ViewSets define the view behavior.
 class DriverViewSet(DR27ViewSet):
     queryset = Driver.objects.all()
     serializer_class = DriverSerializer
@@ -162,6 +152,16 @@ class TeamViewSet(DR27ViewSet):
 
 
 # ViewSets define the view behavior.
-class SeatViewSet(DR27ViewSet):
+class SeatViewSet(DR27ViewSet, CommonDetailViewSet):
     queryset = Seat.objects.all()
     serializer_class = SeatSerializer
+
+    @detail_route(methods=['get'])
+    def periods(self, request, pk=None):
+        return self.get_common_detail_route(request, 'periods', SeatPeriodSerializer)
+
+
+# ViewSets define the view behavior.
+class SeatPeriodViewSet(DR27ViewSet):
+    queryset = SeatPeriod.objects.all()
+    serializer_class = SeatPeriodSerializer

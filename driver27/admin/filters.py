@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Q
 from ..models import Team, GrandPrix, Seat, Race
 
 
@@ -11,10 +12,10 @@ class CompetitionFilterInline(admin.TabularInline):
     @staticmethod
     def seat_for_foreignkey(obj):
         if isinstance(obj, Race):
-            seat_filter = {'seasons': obj.season}
+            return obj.seats.all()
         else:
             seat_filter = {'contender__competition__exact': obj.competition}
-        return Seat.objects.filter(**seat_filter)
+            raise Exception('NO controller')
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if getattr(request, '_obj_', None):

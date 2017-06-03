@@ -23,16 +23,11 @@ class RaceTestCase(TestCase, CommonRaceTestCase):
         # add grandprix without season
         race.grand_prix = grand_prix
         race.default_circuit = grand_prix.default_circuit
-        self.assertRaises(ValidationError, race.save)
-        # add season to grandprix
-        self.assertIsNone(grand_prix.competitions.add(season.competition))
+        # self.assertRaises(ValidationError, race.save)
+        # # add season to grandprix
+        # self.assertIsNone(grand_prix.competitions.add(season.competition))
         self.assertIsNone(race.save())
         # expected race changes (adding grandprix to str)
         expected_race = '{season}-{round}.{grand_prix}'.format(season=season, round=race.round,
                                                                grand_prix=grand_prix)
         self.assertEquals(str(race), expected_race)
-
-    def test_race_round_exception(self):
-        race = self.get_test_race()
-        race.round = 999
-        self.assertRaises(ValidationError, race.save)

@@ -7,13 +7,12 @@ from ..models import ContenderSeason
 
 class ContenderSeasonTestCase(TestCase, CommonSeatTestCase, CommonSeasonTestCase):
     def test_contender_season(self):
-        contender = None
+        driver = None
         season = None
-        self.assertRaises(ValidationError, ContenderSeason,
-                          **{'contender': contender, 'season': season})
+        self.assertRaises(AttributeError, ContenderSeason,
+                          **{'driver': driver, 'season': season})
         seat = self.get_test_seat()
-        contender = seat.contender
-        self.assertIsNone(contender.get_season(season))
-        season = self.get_test_season(competition=contender.competition)
-        self.assertTrue(ContenderSeason(contender=contender, season=season))
-        self.assertIsInstance(contender.get_season(season), ContenderSeason)
+        competition = self.get_test_competition_a()
+        season = self.get_test_season(competition=competition)
+        driver = seat.driver
+        self.assertTrue(ContenderSeason(driver=driver, season=season))

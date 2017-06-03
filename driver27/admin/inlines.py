@@ -1,10 +1,10 @@
 from .common import *
 from .filters import *
 from .formsets import *
-from ..models import Contender, ContenderSeason
+from ..models import ContenderSeason
 from ..models import Race
 from ..models import Result
-from ..models import Seat, SeatSeason
+from ..models import Seat, SeatPeriod
 from ..models import Team, TeamSeason
 
 
@@ -21,21 +21,10 @@ class SeatInline(CompetitionFilterInline):
     extra = 1
 
 
-class SeatSeasonInline(CompetitionFilterInline):
-    model = SeatSeason
-    ordering = ('seat',)
-    formset = SeatSeasonFormSet
-    form = AlwaysChangedModelForm
 
-
-class ContenderInline(admin.TabularInline):
-    model = Contender
-    extra = 1
-
-
-class CompetitionTeamInline(admin.TabularInline):
-    model = Team.competitions.through
-    extra = 1
+# class CompetitionTeamInline(admin.TabularInline):
+#     model = Team.competitions.through
+#     extra = 1
 
 
 class TeamSeasonInlineForm(AlwaysChangedModelForm):

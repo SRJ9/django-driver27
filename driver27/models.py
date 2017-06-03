@@ -19,43 +19,10 @@ from django.db.models.sql import constants
 from .stats import AbstractStatsModel, TeamStatsModel
 from .rank import AbstractRankModel
 
+from django.db.models import Q
 from collections import namedtuple
 
 ResultTuple = namedtuple('ResultTuple', 'qualifying finish fastest_lap wildcard alter_punctuation')
-
-
-def get_results(seat=None, contender=None, team=None,
-                race=None, season=None, competition=None,
-                limit_races=None,
-                reverse_order=False,
-                **extra_filters):
-    key_in_filters = {
-        'limit_races': 'race__round__lte',
-        'contender': 'seat__contender',
-        'team': 'seat__team',
-        'season': 'race__season',
-        'competition': 'race__season__competition',
-        'seat': 'seat',
-        'race': 'race'
-    }
-    filter_params = {}
-
-    # kwarg is each param with custom filter
-
-    for kwarg in key_in_filters.keys():
-        value = locals().get(kwarg) # get the value of kwarg
-        if value:
-            key = key_in_filters.get(kwarg) # the key of filter is the value of kwarg in key_in_filter
-            filter_params[key] = value
-    filter_params.update(**extra_filters)
-
-
-    results = Result.objects.filter(**filter_params)
-
-    order_by_args = ('race__season', 'race__round') if not reverse_order else ('-race__season', '-race__round')
-
-    results = results.order_by(*order_by_args)
-    return results
 
 
 def get_tuple_from_result(result):
@@ -63,15 +30,15 @@ def get_tuple_from_result(result):
                        result.wildcard, result.race.alter_punctuation)
 
 
-def get_results_tuples(seat=None, contender=None, team=None, race=None, season=None, competition=None,
+def get_results_tuples(seat=None, team=None, race=None, season=None, competition=None,
                        results=None, skip_results_if_false=False, **extra_filters):
 
     # Result can be the only param passed to get_results_tuple.
     # If results=false, get_results will be calculate without params, return all results of all competitions.
     # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
     if not results and not skip_results_if_false:
-        results = get_results(seat=seat, contender=contender, team=team, race=race,
-                              season=season, competition=competition, **extra_filters)
+        results = Result.wizard(seat=seat, team=team, race=race,
+                                season=season, competition=competition, **extra_filters)
 
     results = results.values_list('qualifying', 'finish', 'fastest_lap', 'wildcard', 'race__alter_punctuation')
 
@@ -79,19 +46,49 @@ def get_results_tuples(seat=None, contender=None, team=None, race=None, season=N
 
 
 @python_2_unicode_compatible
-class Driver(models.Model):
+class Driver(AbstractStatsModel):
     """ Main Driver Model. To combine with competitions (Contender) and competition/team (Seat) """
     last_name = models.CharField(max_length=50, verbose_name=_('last name'))
     first_name = models.CharField(max_length=25, verbose_name=_('first name'))
-    year_of_birth = models.IntegerField(verbose_name=_('year of birth'))
-    country = CountryField(verbose_name=_('country'))
-    competitions = models.ManyToManyField('Competition', through='Contender', related_name='drivers',
-                                          verbose_name=_('competitions'))
+    year_of_birth = models.IntegerField(verbose_name=_('year of birth'), null=True, blank=True)
+    country = CountryField(verbose_name=_('country'), null=True, blank=True)
+    teams = models.ManyToManyField('Team', through='Seat', related_name='drivers', verbose_name=_('teams'))
 
-    def clean(self):
-        if self.year_of_birth < 1900 or self.year_of_birth > 2099:
-            raise ValidationError(_('Year_of_birth must be between 1900 and 2099'))
-        super(Driver, self).clean()
+    @property
+    def is_active(self):
+        last_season = Season.objects.order_by('-year')[0]
+        return Season.objects.filter(races__results__seat__driver=self, pk=last_season.pk).count()
+
+    @property
+    def teams_verbose(self):
+        return ', '.join([team.name for team in self.teams.all()])
+
+    def get_results(self, limit_races=None, **extra_filter):
+        return Result.wizard(driver=self, limit_races=limit_races, **extra_filter)
+
+    def get_saved_points(self, limit_races=None):
+        results = self.get_results(limit_races=limit_races)
+        points = results.values_list('points', flat=True)
+        return [point for point in points if point]
+
+    def get_points(self, limit_races=None, punctuation_config=None):
+        if punctuation_config is None:
+            points_list = self.get_saved_points(limit_races=limit_races)
+        else:
+            points_list = []
+            results = self.get_results(limit_races=limit_races)
+            # Result can be the only param passed to get_results_tuple.
+            # If results=false, get_results will be calculate without params, return all results of all competitions.
+            # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
+            for result in get_results_tuples(results=results, skip_results_if_false=True):
+                result_tuple = ResultTuple(*result)
+                points = PointsCalculator(punctuation_config).calculator(result_tuple, skip_wildcard=True)
+                if points:
+                    points_list.append(points)
+        return sum(points_list)
+
+    def season_stats_cls(self, season):
+        return ContenderSeason(driver=self, season=season)
 
     def __str__(self):
         return ', '.join((self.last_name, self.first_name))
@@ -103,6 +100,7 @@ class Driver(models.Model):
         verbose_name_plural = _('Drivers')
 
 
+
 @python_2_unicode_compatible
 class Competition(AbstractRankModel):
     """ Competition model. Season, races, results... are grouped by competition """
@@ -111,11 +109,15 @@ class Competition(AbstractRankModel):
     country = CountryField(null=True, blank=True, default=None, verbose_name=_('country'))
     slug = models.SlugField(null=True, blank=True, default=None)
 
+    @property
+    def drivers(self):
+        return Driver.objects.filter(seats__results__race__season__competition=self).distinct()
+
     def get_team_rank(self, rank_type, **filters):
         return super(Competition, self).get_team_rank(rank_type=rank_type, competition=self, **filters)
 
-    def get_stats_cls(self, contender):
-        return contender
+    def get_stats_cls(self, driver):
+        return driver
 
     def get_team_stats_cls(self, team):
         return team
@@ -137,45 +139,14 @@ class Competition(AbstractRankModel):
         verbose_name_plural = _('Competitions')
 
 
-@python_2_unicode_compatible
-class Contender(AbstractStatsModel):
-    """ Contender are used to ranks or individual stats"""
-    " Contender only can be related with teams of same competition "
-    " If driver is related with same team in different competition, it is necessary to create new contender "
-    driver = models.ForeignKey(Driver, related_name='career', verbose_name=_('driver'))
-    competition = models.ForeignKey('Competition', related_name='contenders', verbose_name=_('competition'))
-    teams = models.ManyToManyField('Team', through='Seat', related_name='contenders',
-                                   verbose_name=_('teams'))
-
-    def get_points(self, punctuation_config=None):
-        seasons = Season.objects.filter(seats__contender=self).distinct()
-        points = 0
-        for season in seasons:
-            contender_season = self.get_season(season)
-            season_points = contender_season.get_points(punctuation_config=punctuation_config)
-            points += season_points if season_points else 0
-        return points
-
-    def get_results(self, limit_races=None, **extra_filter):
-        """ Return all results of team in season """
-        return get_results(contender=self, **extra_filter)
-
-    @property
-    def teams_verbose(self):
-        teams = self.teams
-        return ', '.join([team.name for team in teams.all()]) if teams.count() else None
-
-    def season_stats_cls(self, season):
-        return ContenderSeason(contender=self, season=season)
-
-    def __str__(self):
-        return _(u'%(driver)s in %(competition)s') % {'driver': self.driver, 'competition': self.competition}
+class CompetitionTeam(models.Model):
+    team = models.ForeignKey('Team', related_name='periods', verbose_name=_('team'))
+    competition = models.ForeignKey('Competition', related_name='periods', verbose_name=_('competition'))
+    from_year = models.IntegerField(blank=True, null=True, default=None)
+    until_year = models.IntegerField(blank=True, null=True, default=None)
 
     class Meta:
-        unique_together = ('driver', 'competition')
-        ordering = ['competition__name', 'driver__last_name', 'driver__first_name']
-        verbose_name = _('Contender')
-        verbose_name_plural = _('Contenders')
+        unique_together = ('team', 'competition', 'from_year', 'until_year')
 
 
 @python_2_unicode_compatible
@@ -183,12 +154,12 @@ class Team(TeamStatsModel):
     """ Team model, unique if is the same in different competition """
     name = models.CharField(max_length=75, verbose_name=_('team'), unique=True)
     full_name = models.CharField(max_length=200, unique=True, verbose_name=_('full name'))
-    competitions = models.ManyToManyField('Competition', related_name='teams', verbose_name=_('competitions'))
-    country = CountryField(verbose_name=_('country'))
+    competitions = models.ManyToManyField('Competition', through='CompetitionTeam', related_name='teams', verbose_name=_('competitions'))
+    country = CountryField(verbose_name=_('country'), blank=True, null=True)
 
     def get_results(self, competition, **extra_filter):
         """ Return all results of team in season """
-        return get_results(team=self, competition=competition, **extra_filter)
+        return Result.wizard(team=self, competition=competition, **extra_filter)
 
     def season_stats_cls(self, season):
         return TeamSeason.objects.get(season=season, team=self)
@@ -222,7 +193,6 @@ class Team(TeamStatsModel):
 
         can_save = True
 
-
         return {
             'not_exists': not_exists_teams,
             'both_exists': both_exists_teams,
@@ -231,14 +201,12 @@ class Team(TeamStatsModel):
         }
 
     def get_points(self, competition, punctuation_config=None):
-        seasons = Season.objects.filter(teams=self, competition=competition)
+        seasons = Season.objects.filter(races__results__seat__team=self, competition=competition).distinct()
         points = 0
         for season in seasons:
             season_points = self.get_season(season).get_points(punctuation_config=punctuation_config)
             points += season_points if season_points else 0
         return points
-
-
 
     def __str__(self):
         return self.name
@@ -250,28 +218,27 @@ class Team(TeamStatsModel):
 
 
 @python_2_unicode_compatible
+class SeatPeriod(models.Model):
+    seat = models.ForeignKey('Seat', related_name='periods')
+    from_year = models.IntegerField(blank=True, null=True, default=None)
+    until_year = models.IntegerField(blank=True, null=True, default=None)
+
+    def __str__(self):
+        return_text = '{seat}'.format(seat=self.seat)
+        if self.from_year:
+            return_text += ' from {from_year}'.format(from_year=self.from_year)
+        if self.until_year:
+            return_text += ' until {until_year}'.format(until_year=self.until_year)
+        return return_text
+
+
+@python_2_unicode_compatible
 class Seat(models.Model):
     """ Seat is contender/team relation """
     " If a same contender drives to two teams in same season/competition, he will have many seats as driven teams "
     " e.g. Max Verstappen in 2016 (Seat 1: Toro Rosso, Seat 2: Red Bull) "
     team = models.ForeignKey('Team', related_name='seats', verbose_name=_('team'))
-    contender = models.ForeignKey('Contender', related_name='seats', verbose_name=_('contender'))
-    current = ExclusiveBooleanField(on='contender', default=False, verbose_name=_('current team'))
-    seasons = models.ManyToManyField('Season', related_name='seats', blank=True, default=None,
-                                     verbose_name=_('seasons'), through='SeatSeason')
-
-    def clean(self):
-        if self.contender.competition not in self.team.competitions.all():
-            raise ValidationError(
-                _("%(team)s is not a team of %(competition)s") %
-                {'team': self.team, 'competition': self.contender.competition}
-            )
-        super(Seat, self).clean()
-
-    @classmethod
-    def bulk_copy(cls, seats_pk, season_pk):
-        season_bulk_copy(cls=cls, cls_to_save=SeatSeason, pks=seats_pk, pks_name='seat', season_pk=season_pk)
-
+    driver = models.ForeignKey('Driver', related_name='seats', verbose_name=_('driver'), default=None, null=True)
 
     @classmethod
     def check_list_in_season(cls, seats_pk, season_pk):
@@ -308,13 +275,12 @@ class Seat(models.Model):
         }
 
     def __str__(self):
-        return _('%(driver)s in %(team)s/%(competition)s') \
-               % {'driver': self.contender.driver, 'team': self.team,
-                  'competition': self.contender.competition}
+        return _('%(driver)s in %(team)s') \
+               % {'driver': self.driver, 'team': self.team}
 
     class Meta:
-        unique_together = ('team', 'contender')
-        ordering = ['current', 'contender__driver__last_name', 'team']
+        unique_together = ('team', 'driver',)
+        ordering = ['driver__last_name', 'team']
         verbose_name = _('Seat')
         verbose_name_plural = _('Seats')
 
@@ -365,8 +331,6 @@ class Season(AbstractRankModel):
     year = models.IntegerField(verbose_name=_('year'))
     competition = models.ForeignKey(Competition, related_name='seasons', verbose_name=_('competition'))
     rounds = models.IntegerField(blank=True, null=True, default=None, verbose_name=_('rounds'))
-    teams = models.ManyToManyField(Team, related_name='seasons', through='TeamSeason',
-                                   verbose_name=_('teams'))
     punctuation = models.CharField(max_length=20, null=True, default=None, verbose_name=_('punctuation'))
 
     @property
@@ -374,16 +338,39 @@ class Season(AbstractRankModel):
         return {}
 
     @property
-    def contenders(self):
-        """ As season is related with seats, this method is a shorcut to get contenders """
-        seats = [seat.pk for seat in self.seats.all()]
-        return Contender.objects.filter(seats__pk__in=seats).distinct()
+    def drivers(self):
+        """ As season is related with seats, this method is a shorcut to get drivers """
+        return Driver.objects.filter(seats__results__race__season=self).distinct()
 
-    def get_stats_cls(self, contender):
-        return contender.get_season(self)
+    @property
+    def teams(self):
+        """ As season is related with seats, this method is a shorcut to get teams """
+        return Team.objects.filter(seats__results__race__season=self).distinct()
+
+    def _abstract_seats(self, exclude=False):
+        seat_filter = {'team__competitions__seasons': self}
+        seats = Seat.objects.filter(**seat_filter)
+        filter_or_exclude = 'filter' if not exclude else 'exclude'
+        return getattr(seats, filter_or_exclude)(
+
+            Q(periods__from_year__lte=self.year) | Q(periods__from_year__isnull=True),
+            Q(periods__until_year__gte=self.year) | Q(periods__until_year__isnull=True)
+        ).distinct()
+
+    @property
+    def seats(self):
+        return self._abstract_seats()
+
+    @property
+    def no_seats(self):
+        return self._abstract_seats(exclude=True)
+
+    def get_stats_cls(self, driver):
+        return driver.get_season(self)
 
     def get_team_stats_cls(self, team):
-        return TeamSeason.objects.get(season=self, team=team)
+        team_season, created = TeamSeason.objects.get_or_create(season=self, team=team)
+        return team_season
 
     def get_punctuation_config(self, punctuation_code=None):
         """ Getting the punctuation config. Chosen punctuation will be override temporarily by code kwarg """
@@ -504,8 +491,6 @@ class Race(models.Model):
         errors = {}
         season = getattr(self, 'season', None)
         if season:
-            if self.round > self.season.rounds:
-                errors['round'] = _('Max rounds in this season: %(rounds)d') % {'rounds': self.season.rounds}
             if self._grandprix_exception():
                 errors['grand_prix'] = _("%(grand_prix)s is not a/an %(competition)s Grand Prix") \
                                        % {'grand_prix': self.grand_prix, 'competition': self.season.competition}
@@ -517,6 +502,26 @@ class Race(models.Model):
         """ Return the first result that match with filter """
         results = self.results.filter(**kwargs)
         return results.first().seat if results.count() else None
+
+    def _abstract_seats(self, exclude=False):
+        seat_filter = {'team__competitions__seasons__races': self}
+        seat_exclude = {'driver__seats__results__race': self}
+        seats = Seat.objects.filter(**seat_filter)
+        if exclude:
+            seats = seats.exclude(**seat_exclude)
+
+        return seats.filter(
+            Q(periods__from_year__lte=self.season.year) | Q(periods__from_year__isnull=True),
+            Q(periods__until_year__gte=self.season.year) | Q(periods__until_year__isnull=True)
+        ).distinct()
+
+    @property
+    def seats(self):
+        return self._abstract_seats()
+
+    @property
+    def no_seats(self):
+        return self._abstract_seats(exclude=True)
 
     @property
     def pole(self):
@@ -594,72 +599,6 @@ class Race(models.Model):
         verbose_name_plural = _('Races')
 
 
-class SeatSeason(models.Model):
-    """ Model created to validate restriction between both models """
-    seat = models.ForeignKey('Seat', related_name='seasons_seat')
-    season = models.ForeignKey('Season', related_name='seats_season')
-
-    @staticmethod
-    def get_seat_season_errors(seat, season):
-        """ Check if seat is valid in current season competition """
-        seat_competition = seat.contender.competition
-        season_competition = season.competition
-        errors = []
-        if seat_competition != season_competition:
-            errors.append(
-                _('%(season)s is not a/an %(competition)s season')
-                % {'season': season, 'competition': seat_competition}
-            )
-        return errors
-
-    @staticmethod
-    def get_seat_team_season_error(team, season):
-        """ Check if team is valid in current season """
-        " Team must be related with season before of save Seat/Season rel "
-        errors = []
-        if season.pk:
-            season_teams = [season_team.pk for season_team in season.teams.all()]
-            if team.pk not in season_teams:
-                errors.append(
-                    _('%(team)s is not a team of %(season)s') % {'team': team, 'season': season}
-                )
-        return errors
-
-    def clean(self, *args, **kwargs):
-        """ Check validation """
-        seat = self.seat
-        season = self.season
-        errors = []
-        errors.extend(self.get_seat_season_errors(seat, season))
-        errors.extend(self.get_seat_team_season_error(seat.team, season))
-        if errors:
-            raise ValidationError(errors)
-        super(SeatSeason, self).clean()
-
-    def save(self, *args, **kwargs):
-        """ Force to validate before of save """
-        self.clean()
-        super(SeatSeason, self).save(*args, **kwargs)
-
-    class Meta:
-        auto_created = True
-        db_table = 'driver27_seat_seasons'
-
-
-def seat_seasons(sender, instance, action, pk_set, **kwargs):  #noqa
-    """ Signal in DriverCompetitionTeam.seasons to avoid seasons which not is in competition """
-    if action == 'pre_add':
-        errors = []
-        for pk in list(pk_set):
-            season = Season.objects.get(pk=pk)
-            errors.extend(SeatSeason.get_seat_season_errors(instance, season))
-            errors.extend(SeatSeason.get_seat_team_season_error(instance.team, season))
-        if errors:
-            raise ValidationError(errors)
-
-m2m_changed.connect(seat_seasons, sender=SeatSeason)
-
-
 @python_2_unicode_compatible
 class TeamSeason(TeamStatsModel):
     """ TeamSeason model, only for validation although it is saved in DB"""
@@ -675,7 +614,7 @@ class TeamSeason(TeamStatsModel):
     def get_results(self, limit_races=None, **extra_filter):
         """ Return all results of team in season """
         results_filter = self.stats_filter_kwargs
-        return get_results(limit_races=limit_races, **dict(results_filter, **extra_filter))
+        return Result.wizard(limit_races=limit_races, **dict(results_filter, **extra_filter))
 
     def get_points(self, limit_races=None, punctuation_config=None):
         """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
@@ -714,31 +653,6 @@ class TeamSeason(TeamStatsModel):
         positions_str = ''.join([str(x).zfill(3) for x in position_list])
         return positions_str
 
-    def clean(self, *args, **kwargs):
-        """ Check if team participate in competition """
-        if hasattr(self, 'team') and hasattr(self, 'season'):
-            team = self.team
-            team_competitions = [competition.pk for competition in team.competitions.all()]
-            if self.season.competition.pk not in team_competitions:
-                raise ValidationError(
-                    _('Team %(team)s doesn\'t participate in %(competition)s')
-                    % {'team': self.team, 'competition': self.season.competition}
-                )
-        super(TeamSeason, self).clean()
-
-    @classmethod
-    def delete_seat_exception(cls, team, season):
-        """ Force IntegrityError when delete a team with seats in season """
-        if cls.check_delete_seat_restriction(team=team, season=season):
-            raise IntegrityError('You cannot delete a team with seats in this season.'
-                                 'Delete seats before')
-
-    @staticmethod
-    def check_delete_seat_restriction(team, season):
-        seats_count = SeatSeason.objects.filter(seat__team=team, season=season).count()
-        return bool(seats_count)
-        # return {'team': _('Seats with %(team)s exists in this season. Delete seats before.' % {'team': team})}
-
     def __str__(self):
         str_team = self.team.name
         if self.sponsor_name:
@@ -764,27 +678,62 @@ class Result(models.Model):
     comment = models.CharField(max_length=250, blank=True, null=True, default=None, verbose_name=_('comment'))
     points = models.IntegerField(default=0, blank=True, null=True, verbose_name=_('points'))
 
+    @classmethod
+    def wizard(cls, seat=None, driver=None, team=None,
+                    race=None, season=None, competition=None,
+                    limit_races=None,
+                    reverse_order=False,
+                    **extra_filters):
+        key_in_filters = {
+            'limit_races': 'race__round__lte',
+            'driver': 'seat__driver',
+            'team': 'seat__team',
+            'season': 'race__season',
+            'competition': 'race__season__competition',
+            'seat': 'seat',
+            'race': 'race'
+        }
+        filter_params = {}
+
+        # kwarg is each param with custom filter
+
+        for kwarg in key_in_filters.keys():
+            value = locals().get(kwarg)  # get the value of kwarg
+            if value:
+                key = key_in_filters.get(kwarg) # the key of filter is the value of kwarg in key_in_filter
+                filter_params[key] = value
+        filter_params.update(**extra_filters)
+
+        results = cls.objects.filter(**filter_params)
+
+        order_by_args = ('race__season', 'race__round') if not reverse_order else ('-race__season', '-race__round')
+
+        results = results.order_by(*order_by_args)
+        return results
+
+    def _validate_seat(self):
+        errors = {'seat': []}
+        if not self.race.season.competition.teams.filter(pk=self.seat.team.pk).exists():
+            errors['seat'].append('Team not in Competition')
+        if Result.objects.filter(seat__driver=self.seat.driver, race=self.race).exclude(pk=self.pk).exists():
+            errors['seat'].append('Exists a result with the same driver in this race (different Seat)')
+        if not self.race.season.seats.filter(pk=self.seat.pk).exists():
+            errors['seat'].append('Seat period is not coincident with Season year')
+        if errors['seat']:
+            raise ValidationError(errors)
+
+    def clean(self):
+        self._validate_seat()
+        super(Result, self).clean()
+
     def save(self, *args, **kwargs):
+        self._validate_seat()
         self.points = self.get_points()
         super(Result, self).save(*args, **kwargs)
 
-    def clean(self, *args, **kwargs):
-        # seat_errors = []
-        if self.seat.team not in self.race.season.teams.all():
-            # seat_errors.append(ValidationError(_('Team is not in current season'), code='invalid'))
-            raise ValidationError({'seat': _('Team (seat) is not in current season')})
-        if self.seat not in self.race.season.seats.all():
-            # seat_errors.append(ValidationError(_('Seat is not in current season'), code='invalid'))
-            raise ValidationError({'seat': _('Seat is not in current season')})
-        # if seat_errors:
-        #     seat_errors.append(ValidationError(_('Invalid Seat in this race.'), code='invalid'))
-        #     raise ValidationError(seat_errors, code='invalid')
-
-        super(Result, self).clean()
-
     @property
     def driver(self):
-        return self.seat.contender.driver
+        return self.seat.driver
 
     @property
     def team(self):
@@ -804,7 +753,7 @@ class Result(models.Model):
         if self.finish:
             string += ' - {finish}º'.format(finish=self.finish)
         else:
-            string += ' - ' + _('OUT')
+            string += ' - ' + _('DNF')
         return string
 
     class Meta:
@@ -816,31 +765,27 @@ class Result(models.Model):
 
 class ContenderSeason(object):
     """ ContenderSeason is not a model. Only for validation and ranks"""
-    contender = None
+    driver = None
     season = None
     teams = None
     contender_teams = None
     teams_verbose = None
 
-    def __init__(self, contender, season):
-        if not isinstance(contender, Contender) or not isinstance(season, Season):
-            raise ValidationError(_('contender is not a Contender or/and season is not a Season'))
-        self.contender = contender
+    def __init__(self, driver, season):
+        self.driver = driver
         self.season = season
-        self.seats = Seat.objects.filter(contender__pk=self.contender.pk, seasons__pk=self.season.pk)
+        self.seats = Seat.objects.filter(driver__pk=self.driver.pk, results__race__season__pk=self.season.pk)
         self.teams = Team.objects.filter(seats__in=self.seats)
         self.teams_verbose = ', '.join([team.name for team in self.teams])
 
-
-
     def get_results(self, limit_races=None, **extra_filter):
         """ Return results. Can be limited."""
-        return get_results(contender=self.contender, season=self.season, limit_races=limit_races, **extra_filter)
+        return Result.wizard(driver=self.driver, season=self.season, limit_races=limit_races, **extra_filter)
 
     def get_reverse_results(self, limit_races=None, **extra_filter):
         return self.get_results(limit_races=limit_races, reverse_order=True, **extra_filter)
 
-    def get_streak(self, **filters):
+    def get_streak(self, active=False, **filters):
         results = self.get_reverse_results()
         counter = 0
         return Streak(results=results).run(filters)
@@ -890,16 +835,6 @@ class ContenderSeason(object):
             position_list = self.get_positions_list(limit_races=limit_races)
         positions_str = ''.join([str(x).zfill(3) for x in position_list])
         return positions_str
-
-
-@receiver(pre_save)
-def pre_save_handler(sender, instance, *args, **kwargs):
-    """ Force full_clean in each model to validation """
-    model_list = (Driver, Team, Competition, Contender, Seat, Circuit,
-                  GrandPrix, Race, Season, Result, SeatSeason, TeamSeason)
-    if not isinstance(instance, model_list):
-        return
-    instance.full_clean()
 
 
 @receiver(pre_delete, sender=TeamSeason)

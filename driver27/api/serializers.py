@@ -1,6 +1,6 @@
 from django_countries.serializer_fields import CountryField
 from rest_framework import serializers
-from ..models import GrandPrix, Circuit, Season, Competition, Driver, Team, Contender, Seat, Race, Result
+from ..models import GrandPrix, Circuit, Season, Competition, Driver, Team, Seat, Race, Result, SeatPeriod
 from .common import DR27Serializer
 
 
@@ -62,8 +62,8 @@ class DriverSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Driver
-        fields = ('url', 'id', 'last_name', 'first_name', 'year_of_birth', 'country', 'competitions')
-        read_only_fields = ('competitions',)
+        fields = ('url', 'id', 'last_name', 'first_name', 'year_of_birth', 'country', 'seats')
+        read_only_fields = ('seats',)
 
 
 class NestedDriverSerializer(DriverSerializer):
@@ -87,66 +87,44 @@ class NestedTeamSerializer(TeamSerializer):
         fields = ('url', 'name', 'full_name', 'country')
 
 
-class ContenderSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField()
-    teams_details = serializers.SerializerMethodField()
-    driver_details = serializers.SerializerMethodField()
-
-    def get_teams_details(self, obj):
-        return NestedTeamSerializer(instance=obj.teams, many=True,
-                              context=self.context).data
-
-    def get_driver_details(self, obj):
-        return NestedDriverSerializer(instance=obj.driver, many=False,
-                                      context=self.context).data
-
-    # competition = CompetitionSerializer(many=False)
-
+class SeatPeriodSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Contender
-        fields = ('url', 'id', 'competition', 'driver', 'driver_details', 'teams', 'teams_details')
-
-
-#
-class NestedContenderSerializer(ContenderSerializer):
-    driver = NestedDriverSerializer(many=False)
-
-    class Meta:
-        model = Contender
-        fields = ('url', 'driver')
+        model = SeatPeriod
+        fields = '__all__'
 
 
 class SeatSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     team_details = serializers.SerializerMethodField()
-    contender_details = serializers.SerializerMethodField()
+    driver_details = serializers.SerializerMethodField()
+    periods = serializers.SerializerMethodField()
 
     def get_team_details(self, obj):
         return TeamSerializer(instance=obj.team, many=False,
                               context=self.context).data
 
-    def get_contender_details(self, obj):
-        return ContenderSerializer(instance=obj.contender, many=False,
-                                   context=self.context).data
+    def get_driver_details(self, obj):
+        return DriverSerializer(instance=obj.driver, many=False, context=self.context).data
+
+    def get_periods(self, obj):
+        return SeatPeriodSerializer(instance=obj.periods, many=True, context=self.context).data
 
     class Meta:
         model = Seat
-        fields = ('url', 'id', 'team', 'team_details', 'contender', 'contender_details', 'current', 'seasons')
+        fields = ('url', 'id', 'team', 'team_details', 'driver', 'driver_details', 'periods')
+        read_only_fields = ('periods',)
 
 
 class SeatRecapSerializer(serializers.ModelSerializer):
-    contender = serializers.SerializerMethodField()
+    driver = serializers.SerializerMethodField()
     team = serializers.SerializerMethodField()
 
-    def get_contender(self, obj):
-        contender = obj.contender
+    def get_driver(self, obj):
+        driver = obj.driver
         return {
-            'id': contender.id,
-            'driver': {
-                'id': contender.driver.id,
-                'first_name': contender.driver.first_name,
-                'last_name': contender.driver.last_name
-            }
+            'id': driver.id,
+            'first_name': driver.first_name,
+            'last_name': driver.last_name
         }
 
     def get_team(self, obj):
@@ -158,7 +136,7 @@ class SeatRecapSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Seat
-        fields = ('contender',
+        fields = ('driver',
                   'team')
 
 

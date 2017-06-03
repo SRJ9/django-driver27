@@ -6,23 +6,27 @@ try:
     from django.urls import reverse
 except ImportError:
     from django.core.urlresolvers import reverse
-from django.forms.models import inlineformset_factory, formset_factory
-from ..models import Season, Driver, Team, Competition, Circuit, Result, get_results_tuples
-from ..models import GrandPrix, Race, Contender, Seat, SeatSeason, TeamSeason, ContenderSeason
-from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, SeatSeasonAdmin, TeamAdmin
+from django.forms.models import inlineformset_factory
+from ..models import Season, Driver, Team, Competition, Circuit, get_results_tuples
+from ..models import GrandPrix, Race, Seat, TeamSeason, ContenderSeason
+from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, TeamAdmin
 from ..admin import CompetitionAdmin, CircuitAdmin, GrandPrixAdmin
-from ..admin import RaceAdmin, ContenderAdmin, RelatedCompetitionAdmin
-from ..admin import RaceInline, SeatInline, SeatSeasonInline, TeamSeasonInline
-from ..admin.formsets import RaceFormSet, SeatSeasonFormSet, TeamSeasonFormSet
+from ..admin import RaceAdmin, RelatedCompetitionAdmin
+from ..admin import RaceInline, TeamSeasonInline
+from ..admin.formsets import RaceFormSet
 from ..admin.common import AlwaysChangedModelForm
 from ..punctuation import get_punctuation_config
+from rest_framework.test import APITestCase
+
 
 class MockRequest(object):
     pass
 
+
 class MockSuperUser(object):
     def has_perm(self, perm):
         return True
+
 
 def get_request():
     request = MockRequest()
@@ -35,10 +39,7 @@ def get_fixtures_test():
     if hasattr(settings, 'PYTEST_SETTING') and settings.PYTEST_SETTING:
         return None
     else:
-        return ['circuits.json', 'competitions.json', 'drivers.json', 'grands-prix.json',
-                'seasons.json', 'teams.json', 'teams-season.json', 'contenders.json',
-                'seats.json',
-                'races.json', 'results.json']
+        return ['driver27.json', ]
 
 
 class FixturesTest(TestCase):
@@ -46,191 +47,85 @@ class FixturesTest(TestCase):
 
 
 class ViewTest(FixturesTest):
-
     def setUp(self):
         self.site = AdminSite()
         self.client = Client()
         self.factory = RequestFactory()
 
-    def test_competition_list(self):
+    def _GET_request(self, reverse_url, kwargs=None, code=200):
         # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-list'))
-
+        response = self.client.get(reverse(reverse_url, kwargs=kwargs))
         # Check that the response is 302 OK.
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, code)
+
+    def test_competition_list(self):
+        self._GET_request('dr27-competition-list')
 
     def test_competition_view(self):
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-view', kwargs={'competition_slug': 'f1'}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.get(reverse('dr27-competition-view', kwargs={'competition_slug': 'f19'}))
-        # Check that the response is 404.
-        self.assertEqual(response.status_code, 404)
+        self._GET_request('dr27-competition-view', kwargs={'competition_slug': 'f1'})
+        self._GET_request('dr27-competition-view', kwargs={'competition_slug': 'f19'}, code=404)
 
     def test_season_view(self):
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-view', kwargs={'competition_slug': 'f1', 'year': 2016}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
+        kwargs = {'competition_slug': 'f1', 'year': 2016}
+        self._GET_request('dr27-season-view', kwargs=kwargs)
+        self._GET_request('dr27-season-driver', kwargs=kwargs)
+        self._GET_request('dr27-season-driver-olympic', kwargs=kwargs)
+        self._GET_request('dr27-season-team', kwargs=kwargs)
+        self._GET_request('dr27-season-race-list', kwargs=kwargs)
 
-        response = self.client.get(reverse('dr27-season-driver', kwargs={'competition_slug': 'f1', 'year': 2016}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.get(reverse('dr27-season-driver-olympic', kwargs={'competition_slug': 'f1', 'year': 2016}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-
-        response = self.client.get(reverse('dr27-season-team', kwargs={'competition_slug': 'f1', 'year': 2016}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.get(reverse('dr27-season-race-list', kwargs={'competition_slug': 'f1', 'year': 2016}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.get(reverse('dr27-season-view', kwargs={'competition_slug': 'f19', 'year': 2006}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 404)
-
-
+        kwargs = {'competition_slug': 'f19', 'year': 2006}
+        self._GET_request('dr27-season-view', kwargs=kwargs, code=404)
 
     def test_race_view(self):
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-race-view', kwargs={'competition_slug': 'f1', 'year': 2016, 'race_id':1}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-race-view', kwargs={'competition_slug': 'f1', 'year': 2016, 'race_id': 200}))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 404)
+        kwargs = {'competition_slug': 'f1', 'year': 2016, 'race_id': 1}
+        self._GET_request('dr27-season-race-view', kwargs=kwargs)
+        kwargs = {'competition_slug': 'f1', 'year': 2016, 'race_id': 200}
+        self._GET_request('dr27-season-race-view', kwargs=kwargs, code=404)
 
     def test_driver_records_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016}
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-driver-record-index', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-season-driver-record-index', kwargs=kwargs)
         kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-season-driver-record', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-season-driver-streak', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-season-driver-record', kwargs=kwargs)
+        self._GET_request('dr27-season-driver-streak', kwargs=kwargs)
         kwargs['record'] = 'FFF'
-        response = self.client.get(reverse('dr27-season-driver-record',kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 404)
+        self._GET_request('dr27-season-driver-record', kwargs=kwargs, code=404)
 
     def test_driver_records_competition_view(self):
         kwargs = {'competition_slug': 'f1'}
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-driver', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-driver-record-index', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-competition-driver', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-record-index', kwargs=kwargs)
         kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-competition-driver-record', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-competition-driver-streak', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-competition-driver-record', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-streak', kwargs=kwargs)
         kwargs['record'] = 'FFF'
-        response = self.client.get(reverse('dr27-competition-driver-record', kwargs=kwargs))
-        # Check that the response is 404 KO.
-        self.assertEqual(response.status_code, 404)
+        self._GET_request('dr27-competition-driver-record', kwargs=kwargs, code=404)
 
     def test_team_records_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016}
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-team-record-index', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-season-team-record-index', kwargs=kwargs)
         kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-season-team-record', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-team-record-races', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-season-team-record-doubles', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-season-team-record', kwargs=kwargs)
+        self._GET_request('dr27-season-team-record-races', kwargs=kwargs)
+        self._GET_request('dr27-season-team-record-doubles', kwargs=kwargs)
         kwargs['record'] = 'FFF'
-        response = self.client.get(reverse('dr27-season-team-record', kwargs=kwargs))
-        # Check that the response is 404 KO.
-        self.assertEqual(response.status_code, 404)
+        self._GET_request('dr27-season-team-record', kwargs=kwargs, code=404)
 
     def test_team_records_competition_view(self):
         kwargs = {'competition_slug': 'f1'}
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-team', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-team-record-index', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-competition-team', kwargs=kwargs)
+        self._GET_request('dr27-competition-team-record-index', kwargs=kwargs)
         kwargs['record'] = 'POLE'
-        response = self.client.get(reverse('dr27-competition-team-record', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-team-record-races', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
-        response = self.client.get(reverse('dr27-competition-team-record-doubles', kwargs=kwargs))
-        # Check that the response is 200 OK.
-        self.assertEqual(response.status_code, 200)
-
-        # Issue a GET request.
+        self._GET_request('dr27-competition-team-record', kwargs=kwargs)
+        self._GET_request('dr27-competition-team-record-races', kwargs=kwargs)
+        self._GET_request('dr27-competition-team-record-doubles', kwargs=kwargs)
         kwargs['record'] = 'FFF'
-        response = self.client.get(reverse('dr27-competition-team-record', kwargs=kwargs))
-        # Check that the response is 404 KO.
-        self.assertEqual(response.status_code, 404)
+        self._GET_request('dr27-competition-team-record', kwargs=kwargs, code=404)
 
     def test_contender_season_points(self):
-        contender = Contender.objects.get(pk=1)
+        driver = Driver.objects.get(pk=1)
         season = Season.objects.get(pk=1)
-        contender_season = ContenderSeason(contender=contender, season=season)
+        contender_season = ContenderSeason(driver=driver, season=season)
 
         punctuation_config_a = get_punctuation_config('F1-25')
         contender_season_points_a = contender_season.get_points(punctuation_config=punctuation_config_a)
@@ -241,7 +136,6 @@ class ViewTest(FixturesTest):
     def test_result_tuple(self):
         seat = Seat.objects.get(pk=1)
         self.assertIsNotNone(get_results_tuples(seat=seat))
-
 
     def _check_get_changelist(self, ma):
         request = get_request()
@@ -258,10 +152,6 @@ class ViewTest(FixturesTest):
         season_form = ma.get_form(request=request, obj=season)
         self.assertTrue(ma.print_copy_season(obj=season))
         self.assertIsNotNone(SeasonAdminForm(season_form))
-
-
-        # request = self.factory.request(QUERY_STRING='copy=1')
-        # self.assertTrue(ma.get_changeform_initial_data(request=request))
 
     def _test_copy_url(self, COPY_URL, method_to_copy, data=None):
         season = Season.objects.get(pk=1)
@@ -301,30 +191,16 @@ class ViewTest(FixturesTest):
         season = Season.objects.get(pk=1)
 
         # races
-        COPY_RACES_URL=reverse('admin:dr27-copy-races', kwargs={'pk': season.pk})
+        COPY_RACES_URL = reverse('admin:dr27-copy-races', kwargs={'pk': season.pk})
         races = [race.pk for race in season.races.all()]
         self._test_copy_items(COPY_RACES_URL, 'get_copy_races', new_season, races)
 
-        # teams
-        COPY_TEAMS_URL=reverse('admin:dr27-copy-teams', kwargs={'pk': season.pk})
-        teams = [team.pk for team in season.teams.all()]
-        self._test_copy_items(COPY_TEAMS_URL, 'get_copy_teams', new_season, teams)
-
-        # seats
-        COPY_SEATS_URL=reverse('admin:dr27-copy-seats', kwargs={'pk': season.pk})
-        seats = [seat.pk for seat in season.seats.all()]
-        self._test_copy_items(COPY_SEATS_URL, 'get_copy_seats', new_season, seats)
-
         ma = SeasonAdmin(Season, self.site)
         self.assertIn(COPY_RACES_URL, ma.print_copy_races(season))
-        self.assertIn(COPY_TEAMS_URL, ma.print_copy_teams(season))
-        self.assertIn(COPY_SEATS_URL, ma.print_copy_seats(season))
 
     def test_driver_admin(self):
         ma = DriverAdmin(Driver, self.site)
         self._check_get_changelist(ma)
-        driver = Driver.objects.get(pk=1)
-        self.assertTrue(ma.print_competitions(driver))
 
     def test_team_admin(self):
         ma = TeamAdmin(Team, self.site)
@@ -360,34 +236,16 @@ class ViewTest(FixturesTest):
         return related_formset
 
     def test_race_formset(self):
-        self._test_season_formset_copy(Race, RaceFormSet, ('round', 'grand_prix', 'circuit', 'date', 'alter_punctuation'))
-
-    def test_seat_season_formset(self):
-        self._test_season_formset_copy(SeatSeason, SeatSeasonFormSet, ('seat', 'season',))
-
-    def test_team_season_delete(self):
-        season_post = {
-            'teams_season-TOTAL_FORMS': '1',
-            'teams_season-INITIAL_FORMS': '0',
-            'teams_season-MAX_NUM_FORMS': '',
-            'teams_season-0-id': 1,
-            'teams_season-0-team': 1,
-            'teams_season-0-season': 1,
-            'teams_season-0-DELETE': True
-        }
-        formset = self._test_season_formset(TeamSeason, formset=TeamSeasonFormSet, fields=('team', 'season',))
-        # formset.request = self.factory.request(QUERY_STRING='copy=1')
-        team_season_formset = formset(season_post)
-        # Invalid form. Team contains seats in that season.
-        self.assertFalse(team_season_formset.is_valid())
+        self._test_season_formset_copy(Race, RaceFormSet,
+                                       ('round', 'grand_prix', 'circuit', 'date', 'alter_punctuation'))
 
     def test_race_admin(self):
         ma = RaceAdmin(Race, self.site)
         self._check_get_changelist(ma)
         race = Race.objects.get(pk=1)
-        self.assertEquals(ma.print_pole(race), str(race.pole.contender.driver))
-        self.assertEquals(ma.print_winner(race), str(race.winner.contender.driver))
-        self.assertEquals(ma.print_fastest(race), str(race.fastest.contender.driver))
+        self.assertEquals(ma.print_pole(race), str(race.pole.driver))
+        self.assertEquals(ma.print_winner(race), str(race.winner.driver))
+        self.assertEquals(ma.print_fastest(race), str(race.fastest.driver))
         self.assertEquals(ma.clean_position('1'), 1)
 
     def _check_formfield_for_foreignkey(self, ma, request_obj, dbfield):
@@ -411,36 +269,6 @@ class ViewTest(FixturesTest):
     #     self.assertIsNone(ma.print_winner(race))
     #     self.assertIsNone(ma.print_fastest(race))
 
-    def test_contender_admin(self):
-        ma = ContenderAdmin(Contender, self.site)
-        self._check_get_changelist(ma)
-        contender = Contender.objects.get(pk=1)
-        self.assertIsNotNone(ma.print_current(contender))
-        request = get_request()
-        self.assertTrue(ma.get_form(request=request, obj=contender))
-
-
-    def test_seat_inline_admin(self):
-        ma = SeatInline(ContenderAdmin, self.site)
-        contender = Contender.objects.get(pk=1)
-        self._check_formfield_for_foreignkey(ma, request_obj=contender, dbfield=Seat.team.field)
-        team = Team.objects.get(pk=1)
-        self._check_formfield_for_foreignkey(ma, request_obj=team, dbfield=Seat.team.field)
-
-    def test_seat_season_admin(self):
-        ma = SeatSeasonAdmin(SeatSeason, self.site)
-        seat_season = SeatSeason.objects.get(pk=1)
-        request = get_request()
-        self.assertFalse(ma.has_add_permission(request=request))
-        self.assertTrue(ma.get_form(request=request, obj=seat_season))
-
-    def test_seat_season_inline_admin(self):
-        ma = SeatSeasonInline(SeasonAdmin, self.site)
-        season = Season.objects.get(pk=1)
-        self._check_formfield_for_foreignkey(ma, request_obj=season, dbfield=Seat.seasons.through.seat.field)
-        seat = Seat.objects.get(pk=1)
-        self._check_formfield_for_foreignkey(ma, request_obj=seat, dbfield=Seat.seasons.through.seat.field)
-
     def test_team_season_inline_admin(self):
         ma = TeamSeasonInline(SeasonAdmin, self.site)
         season = Season.objects.get(pk=1)
@@ -455,3 +283,61 @@ class ViewTest(FixturesTest):
         self.assertIsNone(related_competition.print_competitions(race))
 
 
+class DR27Api(APITestCase):
+    fixtures = get_fixtures_test()
+
+    def _GET_request(self, reverse_url, kwargs=None, code=200):
+        request_url = reverse(reverse_url, kwargs=kwargs)
+        response = self.client.get(request_url, format='json')
+        self.assertEqual(response.status_code, code)
+
+    def test_api_circuit(self):
+        self._GET_request('circuit-list')
+
+    def test_api_competition(self):
+        self._GET_request('competition-list')
+        self._GET_request('competition-detail', kwargs={'pk': 1})
+        self._GET_request('competition-next-race', kwargs={'pk': 1})
+        self._GET_request('competition-teams', kwargs={'pk': 1})
+
+    def test_api_driver(self):
+        self._GET_request('driver-list')
+        self._GET_request('driver-detail', kwargs={'pk': 1})
+
+    def test_api_grand_prix(self):
+        self._GET_request('grandprix-list')
+        self._GET_request('grandprix-detail', kwargs={'pk': 1})
+
+    def test_api_race(self):
+        self._GET_request('race-list')
+        self._GET_request('race-detail', kwargs={'pk': 1})
+        self._GET_request('race-no-start-seats', kwargs={'pk': 1})
+        self._GET_request('race-results', kwargs={'pk': 1})
+        self._GET_request('race-seats', kwargs={'pk': 1})
+
+    def test_api_result(self):
+        self._GET_request('result-list')
+        self._GET_request('result-detail', kwargs={'pk': 1})
+
+    def test_api_season(self):
+        self._GET_request('season-list')
+        self._GET_request('season-detail', kwargs={'pk': 1})
+        self._GET_request('season-next-race', kwargs={'pk': 1})
+        self._GET_request('season-no-seats', kwargs={'pk': 1})
+        self._GET_request('season-races', kwargs={'pk': 1})
+        self._GET_request('season-seats', kwargs={'pk': 1})
+        self._GET_request('season-standings', kwargs={'pk': 1})
+        self._GET_request('season-standings-team', kwargs={'pk': 1})
+        self._GET_request('season-teams', kwargs={'pk': 1})
+        self._GET_request('season-title', kwargs={'pk': 1})
+
+    def test_api_seat(self):
+        self._GET_request('seat-list')
+        self._GET_request('seat-detail', kwargs={'pk': 1})
+        self._GET_request('seat-periods', kwargs={'pk': 1})
+        self._GET_request('seatperiod-list')
+        self._GET_request('seatperiod-detail', kwargs={'pk': 1})
+
+    def test_api_team(self):
+        self._GET_request('team-list')
+        self._GET_request('team-detail', kwargs={'pk': 1})
