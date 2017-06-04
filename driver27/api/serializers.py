@@ -116,7 +116,7 @@ class SeatSerializer(serializers.ModelSerializer):
 
 
 class SeatRecapSerializer(serializers.ModelSerializer):
-    driver = serializers.SerializerMethodField()
+    driver_details = serializers.SerializerMethodField(method_name='get_driver')
     team = serializers.SerializerMethodField()
 
     def get_driver(self, obj):
@@ -136,8 +136,7 @@ class SeatRecapSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Seat
-        fields = ('driver',
-                  'team')
+        fields = ('driver_details', 'team')
 
 
 class ResultSerializer(serializers.ModelSerializer):
