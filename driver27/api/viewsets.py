@@ -140,9 +140,13 @@ class ResultViewSet(DR27ViewSet):
 
 
 # ViewSets define the view behavior.
-class DriverViewSet(DR27ViewSet):
+class DriverViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
     queryset = Driver.objects.all()
     serializer_class = DriverSerializer
+
+    @detail_route(methods=['get'])
+    def seats(self, request, pk=None):
+        return self.get_common_detail_route(request, 'seats', SeatSerializer)
 
 
 # ViewSets define the view behavior.

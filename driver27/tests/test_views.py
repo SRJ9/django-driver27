@@ -303,6 +303,7 @@ class DR27Api(APITestCase):
     def test_api_driver(self):
         self._GET_request('driver-list')
         self._GET_request('driver-detail', kwargs={'pk': 1})
+        self._GET_request('driver-seats', kwargs={'pk': 1})
 
     def test_api_grand_prix(self):
         self._GET_request('grandprix-list')
