@@ -54,3 +54,7 @@ class ResultInline(CompetitionFilterInline):
         points = obj.points
         return points if points else ''
 
+
+class SeatPeriodInline(admin.TabularInline):
+    model = SeatPeriod
+    extra = 2

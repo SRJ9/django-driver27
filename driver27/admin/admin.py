@@ -22,9 +22,9 @@ class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
         ('Overview', tab_overview),
     ]
 
+
 class CompetitionTeamInline(CompetitionFilterInline):
     model = CompetitionTeam
-
 
 
 class TeamAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
@@ -117,7 +117,6 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         copy_id = request.GET.get('copy')
         if copy_id:
             return self.get_season_copy(copy_id)
-
 
     def get_copy_item(self, request, pk, item_cls, items_plural, *args, **kwargs):
         season = Season.objects.get(pk=pk)
@@ -263,18 +262,31 @@ class RaceAdmin(CommonTabbedModelAdmin):
         return position
 
 
-
 class SeatAdmin(CommonTabbedModelAdmin):
-    list_display = ('driver', 'team',)
+    list_display = ('driver', 'team', 'print_periods')
     list_filter = ('driver', 'team',)
     tab_overview = (
         (None, {
                 'fields': ('team', 'driver')
         }),
     )
+    tab_periods = (
+        SeatPeriodInline,
+    )
     tabs = [
         ('Overview', tab_overview),
+        ('Periods', tab_periods),
     ]
+
+    def print_periods(self, obj):
+        periods = obj.periods.all()
+        if periods.count():
+            return ', '.join(['{from_year} to {until_year}'.format(from_year=period.from_year,
+                                                                   until_year=period.until_year) for period in periods])
+        else:
+            return None
+    print_periods.short_description = _('periods')
+
 
 class SeatPeriodAdmin(admin.ModelAdmin):
     pass
