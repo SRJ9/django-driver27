@@ -123,6 +123,41 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertRaises(ValidationError, self.get_test_result, **{'seat': seat_a, 'race': race,
                                                                     'qualifying': 2, 'finish': 2})
 
+    def test_rank_integrity(self):
+        seat_a = self.get_test_seat()
+        competition_a = self.get_test_competition_a()
+        season_a = self.get_test_season(competition=competition_a, year=2018)
+        race_season_a = self.get_test_race(season=season_a, round=1)
+        result_a = self.get_test_result(seat=seat_a, race=race_season_a, qualifying=1, finish=1)
+        rank_a = season_a.points_rank()
+        leader_points_a, leader_driver_a, leader_teams_a, leader_pos_a = rank_a[0]
+        self.assertEqual(leader_points_a, 25)
+
+        season_b = self.get_test_season(competition=competition_a, year=2019)
+        race_season_b = self.get_test_race(season=season_b, round=1)
+        result_b = self.get_test_result(seat=seat_a, race=race_season_b, qualifying=1, finish=1)
+
+        rank_b = season_b.points_rank()
+        leader_points_b, leader_driver_b, leader_teams_b, leader_pos_b = rank_b[0]
+        self.assertEqual(leader_points_b, 25)
+
+        rank_competition_a = competition_a.points_rank()
+        leader_points_comp_a, leader_driver_comp_a, leader_teams_comp_a, leader_pos_comp_a = rank_competition_a[0]
+        self.assertEqual(leader_points_comp_a, 50)
+
+        competition_c = self.get_test_competition_b()
+        season_c = self.get_test_season(competition=competition_c, year=2020)
+        race_season_c = self.get_test_race(season=season_c, round=1)
+        result_c = self.get_test_result(seat=seat_a, race=race_season_c, qualifying=1, finish=1)
+
+        rank_c = season_c.points_rank()
+        leader_points_c, leader_driver_c, leader_teams_c, leader_pos_c = rank_c[0]
+        self.assertEqual(leader_points_c, 25)
+
+        rank_competition_c = competition_c.points_rank()
+        leader_points_comp_c, leader_driver_comp_c, leader_teams_comp_c, leader_pos_comp_c = rank_competition_c[0]
+        self.assertEqual(leader_points_comp_c, 25)
+
     def test_duplicate_driver(self):
         seat_a = self.get_test_seat()
         seat_b = self.get_test_seat_b(seat_a)

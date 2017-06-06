@@ -34,8 +34,8 @@ class AbstractStatsModel(models.Model):
         except ValidationError:
             return None
 
-    def get_saved_points(self, limit_races=None):
-        results = self.get_results(limit_races=limit_races)
+    def get_saved_points(self, limit_races=None, **kwargs):
+        results = self.get_results(limit_races=limit_races, **kwargs)
         return [result.points for result in results if not result.wildcard and result.points is not None]
 
     def get_reverse_results(self, limit_races=None, **extra_filter):

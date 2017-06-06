@@ -32,7 +32,7 @@ class AbstractRankModel(models.Model):
         rank = []
         for driver in drivers:
             stat_cls = self.get_stats_cls(driver)
-            rank.append((stat_cls.get_points(punctuation_config=punctuation_config), driver,
+            rank.append((stat_cls.get_points(punctuation_config=punctuation_config, **self.stats_filter_kwargs), driver,
                          stat_cls.teams_verbose, stat_cls.get_positions_str()))
         rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
         return rank

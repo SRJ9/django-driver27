@@ -55,6 +55,10 @@ class Driver(AbstractStatsModel):
     teams = models.ManyToManyField('Team', through='Seat', related_name='drivers', verbose_name=_('teams'))
 
     @property
+    def result_filter_kwargs(self):
+        return {}
+
+    @property
     def is_active(self):
         last_season = Season.objects.order_by('-year')[0]
         return Season.objects.filter(races__results__seat__driver=self, pk=last_season.pk).count()
@@ -66,17 +70,17 @@ class Driver(AbstractStatsModel):
     def get_results(self, limit_races=None, **extra_filter):
         return Result.wizard(driver=self, limit_races=limit_races, **extra_filter)
 
-    def get_saved_points(self, limit_races=None):
-        results = self.get_results(limit_races=limit_races)
+    def get_saved_points(self, limit_races=None, **kwargs):
+        results = self.get_results(limit_races=limit_races, **kwargs)
         points = results.values_list('points', flat=True)
         return [point for point in points if point]
 
-    def get_points(self, limit_races=None, punctuation_config=None):
+    def get_points(self, limit_races=None, punctuation_config=None, **kwargs):
         if punctuation_config is None:
-            points_list = self.get_saved_points(limit_races=limit_races)
+            points_list = self.get_saved_points(limit_races=limit_races, **kwargs)
         else:
             points_list = []
-            results = self.get_results(limit_races=limit_races)
+            results = self.get_results(limit_races=limit_races, **kwargs)
             # Result can be the only param passed to get_results_tuple.
             # If results=false, get_results will be calculate without params, return all results of all competitions.
             # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
@@ -98,7 +102,6 @@ class Driver(AbstractStatsModel):
         ordering = ['last_name', 'first_name']
         verbose_name = _('Driver')
         verbose_name_plural = _('Drivers')
-
 
 
 @python_2_unicode_compatible
@@ -556,11 +559,11 @@ class TeamSeason(TeamStatsModel):
         results_filter = self.stats_filter_kwargs
         return Result.wizard(limit_races=limit_races, **dict(results_filter, **extra_filter))
 
-    def get_points(self, limit_races=None, punctuation_config=None):
+    def get_points(self, limit_races=None, punctuation_config=None, **kwargs):
         """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
 
         if punctuation_config is None:
-            points_list = self.get_saved_points(limit_races=limit_races)
+            points_list = self.get_saved_points(limit_races=limit_races, **kwargs)
         else:
             points_list = []
             results = self.get_results(limit_races=limit_races)
