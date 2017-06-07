@@ -94,6 +94,7 @@ class ViewTest(FixturesTest):
     def test_driver_records_competition_view(self):
         kwargs = {'competition_slug': 'f1'}
         self._GET_request('dr27-competition-driver', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-olympic', kwargs=kwargs)
         self._GET_request('dr27-competition-driver-record-index', kwargs=kwargs)
         kwargs['record'] = 'POLE'
         self._GET_request('dr27-competition-driver-record', kwargs=kwargs)

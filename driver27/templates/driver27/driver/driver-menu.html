@@ -22,4 +22,8 @@
     <li class="nav-item">
         <a class="nav-link" href="{% url 'dr27-competition-driver-record-index' competition.slug %}">{%  trans 'Records' %}</a>
     </li>
+
+            <li class="nav-item">
+        <a class="nav-link" href="{% url 'dr27-competition-driver-olympic' competition.slug %}">{%  trans 'Olympic' %}</a>
+    </li>
     {% endif %}

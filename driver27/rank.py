@@ -43,16 +43,16 @@ class AbstractRankModel(models.Model):
         """ The driver
         with superior race results (based on descending order, from number of
         wins to numbers of second-places down) will gain precedence. """
-        contenders = getattr(self, 'drivers').all()
+
+        """ Points driver rank. Scoring can be override by scoring_code param """
+        drivers = getattr(self, 'drivers').all()
         rank = []
-        for contender in contenders:
-            contender_season = contender.get_season(self)
-            position_list = contender_season.get_positions_list()
-            position_str = contender_season.get_positions_str(position_list=position_list)
-            rank.append((position_str,
-                         contender,
-                         contender_season.teams_verbose,
-                         position_list))
+        for driver in drivers:
+            stat_cls = self.get_stats_cls(driver)
+            position_list = stat_cls.get_positions_list()
+            position_str = stat_cls.get_positions_str(position_list=position_list)
+            rank.append((position_str, driver,
+                         stat_cls.teams_verbose, position_list))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 

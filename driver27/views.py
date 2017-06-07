@@ -116,16 +116,19 @@ def global_rank_view(request):
     return render(request, tpl, context)
 
 
-def driver_olympic_view(request, competition_slug, year):
-    season = get_season(competition_slug, year)
-    rank = season.olympic_rank()
+def driver_olympic_view(request, competition_slug, year=None):
+    season_or_competition = get_season_or_competition(competition_slug, year)
+    season, competition = split_season_and_competition(season_or_competition)
+    rank = season_or_competition.olympic_rank()
     rank_title = _('DRIVERS rank by olympic mode')
     tpl = 'driver27/driver/driver-list.html'
 
-    title = u'{season} [{title}]'.format(season=season, title=rank_title)
+    title = u'{season_or_competition} [{title}]'.format(season_or_competition=season_or_competition,
+                                                            title=rank_title)
 
     context = {'rank': rank,
                'season': season,
+               'competition': competition,
                'title': title,
                'positions': range(1, 21),
                'olympic': True}
