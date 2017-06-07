@@ -4,6 +4,7 @@ from .. import views
 from ..api import router
 
 urlpatterns = [
+    url(r'^global/', include('driver27.urls.global')),
     url(r'^$', views.competition_view, name='dr27-competition-list'),
     url(r'^(?P<competition_slug>[-\w\d]+)$', views.competition_view, name='dr27-competition-view'),
     url(r'^(?P<competition_slug>[-\w\d]+)/rank/', include('driver27.urls.competition')),

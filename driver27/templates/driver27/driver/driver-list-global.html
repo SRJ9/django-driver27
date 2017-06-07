@@ -1,0 +1,6 @@
+{% extends 'driver27/base.html' %}
+{% load i18n %}
+{% block dr27_content %}
+    {{ block.super }}
+    {% include 'driver27/driver/driver-list-table.html' %}
+{% endblock %}

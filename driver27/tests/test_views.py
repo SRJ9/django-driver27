@@ -291,6 +291,9 @@ class DR27Api(APITestCase):
         response = self.client.get(request_url, format='json')
         self.assertEqual(response.status_code, code)
 
+    def test_api_global(self):
+        self._GET_request('dr27-global-driver')
+
     def test_api_circuit(self):
         self._GET_request('circuit-list')
 

@@ -4,7 +4,7 @@ from django.http import Http404
 from django.shortcuts import render
 from django.utils.translation import ugettext as _
 
-from .models import Competition, Season, Race
+from .models import Competition, Season, Race, RankModel
 from .records import get_record_config, get_record_label_dict
 from .punctuation import get_punctuation_config, get_punctuation_label_dict
 
@@ -104,6 +104,16 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
 
 def driver_rank_view(request, competition_slug, year=None):
     return _rank_view(request, competition_slug, year, rank_model='driver')
+
+
+def global_rank_view(request):
+    rank = RankModel().points_rank()
+    rank_title = _('DRIVERS')
+    tpl = 'driver27/driver/driver-list-global.html'
+    context = {'rank': rank,
+               'title': rank_title}
+
+    return render(request, tpl, context)
 
 
 def driver_olympic_view(request, competition_slug, year):

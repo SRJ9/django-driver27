@@ -781,3 +781,22 @@ class ContenderSeason(object):
         positions_str = ''.join([str(x).zfill(3) for x in position_list])
         return positions_str
 
+
+class RankModel(AbstractRankModel):
+
+    @property
+    def stats_filter_kwargs(self):
+        return {}
+
+    def get_stats_cls(self, driver):
+        return driver
+
+    def get_team_stats_cls(self, team):
+        return team
+
+    @property
+    def drivers(self):
+        return Driver.objects.all()
+
+    class Meta:
+        abstract = True

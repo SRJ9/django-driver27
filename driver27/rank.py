@@ -11,6 +11,8 @@ except ImportError:
     pass
 
 
+
+
 class AbstractRankModel(models.Model):
 
     def get_stats_cls(self, contender):
@@ -135,3 +137,5 @@ class AbstractRankModel(models.Model):
 
     class Meta:
         abstract = True
+
+

@@ -5,23 +5,28 @@
 
 {% block bootstrap3_content %}
     <div class="container">
-    <h1>{% block title %}Driver27{% endblock %}</h1>
-      <div class="header clearfix">
-        <nav>
-          <ul class="nav nav-pills pull-xs-right">
-            <li class="nav-item">
-              <a class="nav-link active" href="/">{% trans 'Home' %} <span class="sr-only">(current)</span></a>
-            </li>
+        <h1>{% block title %}Driver27{% endblock %}</h1>
+        <div class="header clearfix">
+            <nav>
+                <ul class="nav nav-pills pull-xs-right">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">{% trans 'Home' %} <span
+                                class="sr-only">(current)</span></a>
+                    </li>
 
-              {% block dr27_menu %}
-              {% endblock %}
-          </ul>
-        </nav>
-          <h4>{{ title }}</h4>
-      </div>
-              {% block dr27_content %}
-              {% endblock %}
-      </div>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dr27-global-driver' %}">{% trans 'Global rank' %}</a>
+                    </li>
+
+                    {% block dr27_menu %}
+                    {% endblock %}
+                </ul>
+            </nav>
+            <h4>{{ title }}</h4>
+        </div>
+        {% block dr27_content %}
+        {% endblock %}
+    </div>
 
 {% endblock %}
 
