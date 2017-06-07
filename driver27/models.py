@@ -661,7 +661,8 @@ class Result(models.Model):
         if Result.objects.filter(seat__driver=self.seat.driver, race=self.race).exclude(pk=self.pk).exists():
             errors['seat'].append('Exists a result with the same driver in this race (different Seat)')
         if not self.race.season.seats.filter(pk=self.seat.pk).exists():
-            errors['seat'].append('Seat period is not coincident with Season year')
+            errors['seat'].append('{seat} is valid in {season_year}'.format(seat=self.seat,
+                                                                            season_year=self.race.season.year))
         if errors['seat']:
             raise ValidationError(errors)
 
@@ -684,7 +685,8 @@ class Result(models.Model):
 
     def points_calculator(self, punctuation_config):
         result_tuple = get_tuple_from_result(self)
-        return PointsCalculator(punctuation_config).calculator(result_tuple)
+        calculator = PointsCalculator(punctuation_config).calculator(result_tuple)
+        return calculator
 
     def get_points(self):
         """ Return points based on season scoring """
