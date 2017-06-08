@@ -1,11 +1,8 @@
 {% extends 'driver27/base.html' %}
 {% load i18n %}
 {% block dr27_menu %}
-    {% if season %}
-        {% include 'driver27/season/season-menu-pre.html' %}
-    {% else %}
-        {% include 'driver27/competition/competition-menu-pre.html' %}
-    {% endif %}
+
+    {% include 'driver27/_selector_menu.html' %}
     {% include 'driver27/driver/driver-menu.html' %}
 {% endblock %}
 {% block dr27_content %}
@@ -23,8 +20,10 @@
             <option value="
                 {% if season %}
                     {% url 'dr27-season-driver-record' season.competition.slug season.year record_code %}
-                {% else %}
+                {% elif competition %}
                     {% url 'dr27-competition-driver-record' competition.slug record_code %}
+                {% else %}
+                    {% url 'dr27-global-driver-record' record_code %}
                 {% endif %}"
             {% if record_code == record %}selected{% endif %}
             >{{ record_label }}</option>

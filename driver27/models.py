@@ -160,25 +160,27 @@ class Team(TeamStatsModel):
     competitions = models.ManyToManyField('Competition', through='CompetitionTeam', related_name='teams', verbose_name=_('competitions'))
     country = CountryField(verbose_name=_('country'), blank=True, null=True)
 
-    def get_results(self, competition, **extra_filter):
+    def get_results(self, competition=None, **extra_filter):
         """ Return all results of team in season """
         return Result.wizard(team=self, competition=competition, **extra_filter)
 
     def season_stats_cls(self, season):
         return TeamSeason.objects.get(season=season, team=self)
 
-    def get_total_races(self, competition, **filters):
+    def get_total_races(self, competition=None, **filters):
         return super(Team, self).get_total_races(competition=competition, **filters)
 
-    def get_doubles_races(self, competition, **filters):
+    def get_doubles_races(self, competition=None, **filters):
         return super(Team, self).get_doubles_races(competition=competition, **filters)
 
-    def get_total_stats(self, competition, **filters):
+    def get_total_stats(self, competition=None, **filters):
         return super(Team, self).get_total_stats(competition=competition, **filters)
 
-
-    def get_points(self, competition, punctuation_config=None):
-        seasons = Season.objects.filter(races__results__seat__team=self, competition=competition).distinct()
+    def get_points(self, competition=None, punctuation_config=None):
+        competition_filter = {}
+        if competition is not None:
+            competition_filter = {'competition': competition}
+        seasons = Season.objects.filter(races__results__seat__team=self, **competition_filter).distinct()
         points = 0
         for season in seasons:
             season_points = self.get_season(season).get_points(punctuation_config=punctuation_config)
@@ -797,6 +799,13 @@ class RankModel(AbstractRankModel):
     @property
     def drivers(self):
         return Driver.objects.all()
+
+    @property
+    def teams(self):
+        return Team.objects.all()
+
+    def __str__(self):
+        return _('Global rank')
 
     class Meta:
         abstract = True

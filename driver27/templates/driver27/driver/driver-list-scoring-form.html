@@ -2,8 +2,10 @@
         <div class="change_punctuation">
             {% if season %}
                 <form method="POST" action="{% url 'dr27-season-driver' season.competition.slug season.year %}">
-             {% else %}
+             {% elif competition %}
                 <form method="POST" action="{% url 'dr27-competition-driver' competition.slug %}">
+             {% else %}
+                <form method="POST" action="{% url 'dr27-global-driver' %}">
              {% endif %}
             {% csrf_token %}
                 <div class="form-group">

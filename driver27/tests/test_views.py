@@ -54,7 +54,8 @@ class ViewTest(FixturesTest):
 
     def _GET_request(self, reverse_url, kwargs=None, code=200):
         # Issue a GET request.
-        response = self.client.get(reverse(reverse_url, kwargs=kwargs))
+        the_reverse = reverse(reverse_url, kwargs=kwargs)
+        response = self.client.get(the_reverse)
         # Check that the response is 302 OK.
         self.assertEqual(response.status_code, code)
 
@@ -102,6 +103,18 @@ class ViewTest(FixturesTest):
         kwargs['record'] = 'FFF'
         self._GET_request('dr27-competition-driver-record', kwargs=kwargs, code=404)
 
+    def test_driver_records_global_view(self):
+        kwargs = {}
+        self._GET_request('dr27-global-index')
+        self._GET_request('dr27-global-driver')
+        self._GET_request('dr27-global-driver-olympic')
+        self._GET_request('dr27-global-driver-record-index')
+        kwargs['record'] = 'POLE'
+        self._GET_request('dr27-global-driver-record', kwargs=kwargs)
+        self._GET_request('dr27-global-driver-streak', kwargs=kwargs)
+        kwargs['record'] = 'FFF'
+        self._GET_request('dr27-global-driver-record', kwargs=kwargs, code=404)
+
     def test_team_records_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016}
         self._GET_request('dr27-season-team-record-index', kwargs=kwargs)
@@ -122,6 +135,17 @@ class ViewTest(FixturesTest):
         self._GET_request('dr27-competition-team-record-doubles', kwargs=kwargs)
         kwargs['record'] = 'FFF'
         self._GET_request('dr27-competition-team-record', kwargs=kwargs, code=404)
+        
+    def test_team_records_global_view(self):
+        kwargs = {}
+        self._GET_request('dr27-global-team')
+        self._GET_request('dr27-global-team-record-index')
+        kwargs['record'] = 'POLE'
+        self._GET_request('dr27-global-team-record', kwargs=kwargs)
+        self._GET_request('dr27-global-team-record-races', kwargs=kwargs)
+        self._GET_request('dr27-global-team-record-doubles', kwargs=kwargs)
+        kwargs['record'] = 'FFF'
+        self._GET_request('dr27-global-team-record', kwargs=kwargs, code=404)
 
     def test_contender_season_points(self):
         driver = Driver.objects.get(pk=1)
@@ -291,9 +315,6 @@ class DR27Api(APITestCase):
         request_url = reverse(reverse_url, kwargs=kwargs)
         response = self.client.get(request_url, format='json')
         self.assertEqual(response.status_code, code)
-
-    def test_api_global(self):
-        self._GET_request('dr27-global-driver')
 
     def test_api_circuit(self):
         self._GET_request('circuit-list')

@@ -1,33 +1,39 @@
 {% extends 'driver27/base.html' %}
 {% load bootstrap3 i18n %}
 
-{% block dr27_content %}
-{{ block.super }}
-            <table class="table table-condensed table-striped table-hover">
-                <tr>
-                    <th>{% trans 'Competition' %}</th>
-                    <th>{% trans 'Seasons' %}</th>
-                </tr>
-                {% for competition in competitions %}
-                <tr>
-                    <td><a href="{% url 'dr27-competition-view' competition.slug %}">{{ competition }}</a></td>
-                    <td>
-                        {% if competition.seasons.count %}
-                            <ul>
-                                {% for season in competition.seasons.all %}
-                                    <li>
-                                        <a href="{% url 'dr27-season-view' competition.slug season.year %}">
-                                            {{ season }}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
+{% block dr27_menu %}
+    {{ block.super }}
+{% endblock %}
 
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-            </table>
+
+
+{% block dr27_content %}
+    {{ block.super }}
+    <table class="table table-condensed table-striped table-hover">
+        <tr>
+            <th>{% trans 'Competition' %}</th>
+            <th>{% trans 'Seasons' %}</th>
+        </tr>
+        {% for competition in competitions %}
+            <tr>
+                <td><a href="{% url 'dr27-competition-view' competition.slug %}">{{ competition }}</a></td>
+                <td>
+                    {% if competition.seasons.count %}
+                        <ul>
+                            {% for season in competition.seasons.all %}
+                                <li>
+                                    <a href="{% url 'dr27-season-view' competition.slug season.year %}">
+                                        {{ season }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
 
 
 {% endblock %}

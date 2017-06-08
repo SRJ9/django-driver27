@@ -25,11 +25,14 @@ def get_competition(slug):
     return get_or_404(Competition, {'slug': slug}, _('Competition does not exist'))
 
 
-def get_season_or_competition(slug, year=None):
-    if year:
-        return get_season(slug, year)
+def get_season_or_competition(slug=None, year=None):
+    if slug is not None:
+        if year is not None:
+            return get_season(slug, year)
+        else:
+            return get_competition(slug)
     else:
-        return get_competition(slug)
+        return RankModel()
 
 
 def competition_view(request, competition_slug=None):
@@ -56,14 +59,27 @@ def season_view(request, competition_slug, year):
     return render(request, tpl, context)
 
 
+def global_view(request):
+    rank = RankModel()
+    driver_rank = rank.points_rank()
+    team_rank = rank.team_points_rank()
+    title = '{rank}'.format(rank=rank)
+    context = {'title': title, 'driver_rank': driver_rank, 'team_rank': team_rank}
+    tpl = 'driver27/global/global-view.html'
+    return render(request, tpl, context)
+
+
 def split_season_and_competition(season_or_competition):
     # if season_or_competition does not have 'competition' attr, season_or_competition is competition
     if hasattr(season_or_competition, 'competition'):
         season = season_or_competition
         competition = season.competition
-    else:
+    elif hasattr(season_or_competition, 'seasons'):
         season = None
         competition = season_or_competition
+    else:
+        season = None
+        competition = None
     return season, competition
 
 
@@ -102,21 +118,11 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
     return render(request, tpl, context)
 
 
-def driver_rank_view(request, competition_slug, year=None):
+def driver_rank_view(request, competition_slug=None, year=None):
     return _rank_view(request, competition_slug, year, rank_model='driver')
 
 
-def global_rank_view(request):
-    rank = RankModel().points_rank()
-    rank_title = _('DRIVERS')
-    tpl = 'driver27/driver/driver-list-global.html'
-    context = {'rank': rank,
-               'title': rank_title}
-
-    return render(request, tpl, context)
-
-
-def driver_olympic_view(request, competition_slug, year=None):
+def driver_olympic_view(request, competition_slug=None, year=None):
     season_or_competition = get_season_or_competition(competition_slug, year)
     season, competition = split_season_and_competition(season_or_competition)
     rank = season_or_competition.olympic_rank()
@@ -135,7 +141,7 @@ def driver_olympic_view(request, competition_slug, year=None):
     return render(request, tpl, context)
 
 
-def team_rank_view(request, competition_slug, year=None):
+def team_rank_view(request, competition_slug=None, year=None):
     return _rank_view(request, competition_slug, year, rank_model='team')
 
 
@@ -191,7 +197,7 @@ def get_record_common_context(request, competition_slug, year, record=None):
     return context
 
 
-def driver_record_view(request, competition_slug, year=None, record=None):
+def driver_record_view(request, competition_slug=None, year=None, record=None):
     context = get_record_common_context(request, competition_slug, year, record)
     rank = None
     season_or_competition = context.get('season_or_competition')
@@ -203,7 +209,7 @@ def driver_record_view(request, competition_slug, year=None, record=None):
     return render(request, tpl, context)
 
 
-def driver_streak_view(request, competition_slug, year=None, record=None):
+def driver_streak_view(request, competition_slug=None, year=None, record=None):
     context = get_record_common_context(request, competition_slug, year, record)
     rank = None
     season_or_competition = context.get('season_or_competition')
@@ -216,15 +222,15 @@ def driver_streak_view(request, competition_slug, year=None, record=None):
     return render(request, tpl, context)
 
 
-def team_record_doubles_view(request, competition_slug, year=None, record=None):
+def team_record_doubles_view(request, competition_slug=None, year=None, record=None):
     return team_record_view(request, competition_slug, year, record=record, rank_type='DOUBLES')
 
 
-def team_record_races_view(request, competition_slug, year=None, record=None):
+def team_record_races_view(request, competition_slug=None, year=None, record=None):
     return team_record_view(request, competition_slug, year, record=record, rank_type='RACES')
 
 
-def team_record_stats_view(request, competition_slug, year=None, record=None):
+def team_record_stats_view(request, competition_slug=None, year=None, record=None):
     return team_record_view(request, competition_slug, year, record=record, rank_type='STATS')
 
 

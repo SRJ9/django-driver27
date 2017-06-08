@@ -1,0 +1,7 @@
+{% if season %}
+    {% include 'driver27/season/season-menu-pre.html' %}
+{% elif competition %}
+    {% include 'driver27/competition/competition-menu-pre.html' %}
+{% else %}
+    {% include 'driver27/global/global-menu-pre.html' %}
+{% endif %}

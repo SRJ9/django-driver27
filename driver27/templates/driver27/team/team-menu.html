@@ -1,22 +1,39 @@
 {% load i18n %}
+    <li class="nav-item">
+        <a><<</a>
+    </li>
 {% if season %}
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'dr27-season-team' season.competition.slug season.year %}">{%  trans 'Teams' %}</a>
-</li>
-<li class="nav-item">
-    <a>>></a>
-</li>
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'dr27-season-team-record-index' season.competition.slug season.year %}">{%  trans 'Records' %}</a>
-</li>
+    <li class="nav-item">
+        <a class="nav-link"
+           href="{% url 'dr27-season-team' season.competition.slug season.year %}">{% trans 'Teams' %}</a>
+    </li>
+    <li class="nav-item">
+        <a>>></a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link"
+           href="{% url 'dr27-season-team-record-index' season.competition.slug season.year %}">{% trans 'Records' %}</a>
+    </li>
+{% elif competition %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'dr27-competition-team' competition.slug %}">{% trans 'Teams' %}</a>
+    </li>
+    <li class="nav-item">
+        <a>>></a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link"
+           href="{% url 'dr27-competition-team-record-index' competition.slug %}">{% trans 'Records' %}</a>
+    </li>
 {% else %}
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'dr27-competition-team' competition.slug %}">{%  trans 'Teams' %}</a>
-</li>
-<li class="nav-item">
-    <a>>></a>
-</li>
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'dr27-competition-team-record-index' competition.slug %}">{%  trans 'Records' %}</a>
-</li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'dr27-global-team' %}">{% trans 'Teams' %}</a>
+    </li>
+    <li class="nav-item">
+        <a>>></a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link"
+           href="{% url 'dr27-global-team-record-index' %}">{% trans 'Records' %}</a>
+    </li>
 {% endif %}

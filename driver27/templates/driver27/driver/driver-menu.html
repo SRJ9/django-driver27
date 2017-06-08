@@ -1,29 +1,51 @@
 {% load i18n %}
-    {% if season %}
+<li class="nav-item">
+    <a><<</a>
+</li>
+{% if season %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'dr27-season-driver' season.competition.slug season.year %}">{%  trans 'Drivers' %}</a>
+        <a class="nav-link"
+           href="{% url 'dr27-season-driver' season.competition.slug season.year %}">{% trans 'Drivers' %}</a>
     </li>
     <li class="nav-item">
         <a>>></a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'dr27-season-driver-record-index' season.competition.slug season.year %}">{%  trans 'Records' %}</a>
+        <a class="nav-link"
+           href="{% url 'dr27-season-driver-record-index' season.competition.slug season.year %}">{% trans 'Records' %}</a>
     </li>
 
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'dr27-season-driver-olympic' season.competition.slug season.year %}">{%  trans 'Olympic' %}</a>
+        <a class="nav-link"
+           href="{% url 'dr27-season-driver-olympic' season.competition.slug season.year %}">{% trans 'Olympic' %}</a>
     </li>
 
-    {% else %}
-            <li class="nav-item">
-        <a class="nav-link" href="{% url 'dr27-competition-driver' competition.slug %}">{%  trans 'Drivers' %}</a>
+{% elif competition %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'dr27-competition-driver' competition.slug %}">{% trans 'Drivers' %}</a>
     </li>
 
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'dr27-competition-driver-record-index' competition.slug %}">{%  trans 'Records' %}</a>
+        <a class="nav-link"
+           href="{% url 'dr27-competition-driver-record-index' competition.slug %}">{% trans 'Records' %}</a>
     </li>
 
-            <li class="nav-item">
-        <a class="nav-link" href="{% url 'dr27-competition-driver-olympic' competition.slug %}">{%  trans 'Olympic' %}</a>
+    <li class="nav-item">
+        <a class="nav-link"
+           href="{% url 'dr27-competition-driver-olympic' competition.slug %}">{% trans 'Olympic' %}</a>
     </li>
-    {% endif %}
+{% else %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'dr27-global-driver' %}">{% trans 'Drivers' %}</a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link"
+           href="{% url 'dr27-global-driver-record-index' %}">{% trans 'Records' %}</a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link"
+           href="{% url 'dr27-global-driver-olympic' %}">{% trans 'Olympic' %}</a>
+    </li>
+{% endif %}
