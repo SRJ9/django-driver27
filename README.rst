@@ -56,6 +56,11 @@ Versions
 -  0.22 (HAM McLaren 2008/BUT Brawn 2009)
 -  0.27-VIL (Gilles Villeneuve 27)
 
+0.24
+====
+-   Reformat Seat: Contender/Team => Driver/Team. Contender disappears. Seasons are based on seat periods.
+-   Global ranks
+
 0.23
 ====
 -   Refactor code

@@ -59,6 +59,11 @@ Versions
 -   0.22 (HAM McLaren 2008/BUT Brawn 2009)
 -   0.27-VIL (Gilles Villeneuve 27)
 
+0.24
+====
+-   Reformat Seat: Contender/Team => Driver/Team. Contender disappears. Seasons are based on seat periods.
+-   Global ranks
+
 0.23
 ====
 -   Refactor code
@@ -154,7 +159,7 @@ Todo
 
 -   [x] Add records by season (driver, team)
 -   [ ] Add records by driver/team career
--   [ ] Add records by competition
+-   [x] Add records by competition
 -   [ ] Add drivers profile with records, last\_wins, teams...
 -   [x] Add easy clone to Season
 -   [x] Translate
