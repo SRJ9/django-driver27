@@ -5,6 +5,7 @@ from django.utils.translation import ugettext as _
 def get_init_config():
     return {
         'RECORDS': {
+            'RACE': {'label': _('Race'), 'filter': {}},
             'POLE': {'label': _('Pole'), 'filter': {'qualifying__exact': 1}},
             'FIRST-ROW': {'label': _('First row'), 'filter': {'qualifying__gte': 1, 'qualifying__lte': 2},
                           'doubles': True},
