@@ -9,14 +9,14 @@ class Command(BaseCommand):
     @staticmethod
     def _create_result(row):
         for x in row:
-
-            if row[x] == '':
-                row[x] = None
-            elif x in ['qualifying', 'finish', 'points', 'race_id', 'seat_id']:
-                row[x] = int(row[x])
+            if x in ['qualifying', 'finish', 'points', 'race_id', 'seat_id']:
+                if row[x] == '':
+                    row[x] = None
+                else:
+                    row[x] = int(row[x])
             elif x in ['wildcard', 'fastest_lap', 'retired']:
                 row[x] = bool(row[x])
-        return Result.objects.create(**row)
+        # return Result.objects.create(**row)
 
     def add_arguments(self, parser):
         parser.add_argument('csv',)
