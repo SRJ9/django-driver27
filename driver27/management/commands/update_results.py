@@ -16,7 +16,7 @@ class Command(BaseCommand):
                     row[x] = int(row[x])
             elif x in ['wildcard', 'fastest_lap', 'retired']:
                 row[x] = bool(row[x])
-        # return Result.objects.create(**row)
+        return Result.objects.create(**row)
 
     def add_arguments(self, parser):
         parser.add_argument('csv',)
