@@ -10,12 +10,16 @@ from ..models import ContenderSeason
 from ..models import Driver, Competition, Circuit, Season, Result, CompetitionTeam, SeatPeriod
 from .. import lr_diff, lr_intr
 
+from django.contrib.admin import SimpleListFilter
+
+from django.db.models import Q
+
 
 class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     list_display = ('__str__', 'country',)
     tab_overview = (
         (None, {
-        'fields': ('last_name', 'first_name', 'year_of_birth', 'country')
+            'fields': ('last_name', 'first_name', 'year_of_birth', 'country')
         }),
     )
     tabs = [
@@ -32,7 +36,7 @@ class TeamAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     list_display = ('__str__', 'country', 'print_competitions')
     tab_overview = (
         (None, {
-                'fields': ('name', 'full_name', 'country')
+            'fields': ('name', 'full_name', 'country')
         }),
     )
     tab_competitions = (
@@ -57,7 +61,7 @@ class CompetitionAdmin(CommonTabbedModelAdmin):
     list_display = ('name', 'full_name')
     tab_overview = (
         (None, {
-        'fields': ('name', 'full_name', 'country', 'slug')
+            'fields': ('name', 'full_name', 'country', 'slug')
         }),
     )
     # tab_team = (
@@ -86,7 +90,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
     form = SeasonAdminForm
     tab_overview = (
         (None, {
-        'fields': ('year', 'competition', 'rounds', 'punctuation')
+            'fields': ('year', 'competition', 'rounds', 'punctuation')
         }),
     )
     tab_races = (
@@ -106,7 +110,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         if seasons.count():
             season = seasons.first()
             copy_dict = {
-                #'year': season.year+1,
+                # 'year': season.year+1,
                 'competition': season.competition,
                 'rounds': season.rounds,
                 'punctuation': season.punctuation
@@ -136,13 +140,12 @@ class SeasonAdmin(CommonTabbedModelAdmin):
                 'change': True,
                 'items_plural': items_plural,
                 'title': 'Copy {items_plural} from season {season_slug} > Step 2'.format(items_plural=items_plural,
-                                                                               season_slug=season),
+                                                                                         season_slug=season),
                 'step': 2
             }
             if post_season_destiny:
                 post_items_pk = request.POST.getlist('items', [])
                 check_list_in_season = item_cls.check_list_in_season(post_items_pk, post_season_destiny)
-
 
                 context.update(
                     {
@@ -163,13 +166,13 @@ class SeasonAdmin(CommonTabbedModelAdmin):
             context = {
                 'season': season,
                 'items': items,
-                'available_seasons':  available_seasons,
+                'available_seasons': available_seasons,
                 'opts': self.model._meta,
                 'app_label': self.model._meta.app_label,
                 'change': True,
                 'items_plural': items_plural,
                 'title': 'Copy {items_plural} from season {season_slug}'.format(items_plural=items_plural,
-                                                                               season_slug=season),
+                                                                                season_slug=season),
                 'step': 1
             }
 
@@ -187,6 +190,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
                                                                     copy_text=_('Copy'))
         else:
             return ''
+
     print_copy_season.short_description = _('Create new season from this')
     print_copy_season.allow_tags = True
 
@@ -199,15 +203,16 @@ class SeasonAdmin(CommonTabbedModelAdmin):
 
     def print_copy_races(self, obj):
         return self.print_copy_link(obj, "admin:dr27-copy-races", _('copy races'))
+
     print_copy_races.short_description = _('copy races')
     print_copy_races.allow_tags = True
-
 
     def get_urls(self, *args, **kwargs):
         urls = super(SeasonAdmin, self).get_urls(*args, **kwargs)
         new_urls = [
-            url(r'^(?P<pk>[\d]+)/get_copy_races/$', self.admin_site.admin_view(self.get_copy_races), name='dr27-copy-races'),
-        ] + urls
+                       url(r'^(?P<pk>[\d]+)/get_copy_races/$', self.admin_site.admin_view(self.get_copy_races),
+                           name='dr27-copy-races'),
+                   ] + urls
         return new_urls
 
 
@@ -243,14 +248,17 @@ class RaceAdmin(CommonTabbedModelAdmin):
 
     def print_pole(self, obj):
         return self.print_seat(obj.pole)
+
     print_pole.short_description = _('Pole')
 
     def print_winner(self, obj):
         return self.print_seat(obj.winner)
+
     print_winner.short_description = _('Winner')
 
     def print_fastest(self, obj):
         return self.print_seat(obj.fastest)
+
     print_fastest.short_description = _('Fastest')
 
     @staticmethod
@@ -262,12 +270,30 @@ class RaceAdmin(CommonTabbedModelAdmin):
         return position
 
 
+class SeatPeriodFilter(SimpleListFilter):
+    title = 'period'
+    parameter_name = 'period'
+
+    def lookups(self, request, model_admin):
+        periods = Season.objects.order_by().values_list('year', flat=True).distinct()
+        return [(p, p) for p in periods]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(
+                Q(periods__from_year__lte=self.value()) | Q(periods__from_year__isnull=True),
+                Q(periods__until_year__gte=self.value()) | Q(periods__until_year__isnull=True)
+            ).distinct()
+        else:
+            return queryset
+
+
 class SeatAdmin(CommonTabbedModelAdmin):
     list_display = ('driver', 'team', 'print_periods')
-    list_filter = ('driver', 'team',)
+    list_filter = (SeatPeriodFilter, 'driver', 'team', )
     tab_overview = (
         (None, {
-                'fields': ('team', 'driver')
+            'fields': ('team', 'driver')
         }),
     )
     tab_periods = (
@@ -285,11 +311,16 @@ class SeatAdmin(CommonTabbedModelAdmin):
                                                                    until_year=period.until_year) for period in periods])
         else:
             return None
+
     print_periods.short_description = _('periods')
+
+    class Media:
+        js = ['driver27/js/list_filter_collapse.js']
 
 
 class SeatPeriodAdmin(admin.ModelAdmin):
     pass
+
 
 admin.site.register(Driver, DriverAdmin)
 admin.site.register(Team, TeamAdmin)
@@ -300,4 +331,3 @@ admin.site.register(Season, SeasonAdmin)
 admin.site.register(Race, RaceAdmin)
 admin.site.register(Seat, SeatAdmin)
 admin.site.register(SeatPeriod, SeatPeriodAdmin)
-
