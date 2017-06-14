@@ -209,12 +209,26 @@ def driver_record_view(request, competition_slug=None, year=None, record=None):
     return render(request, tpl, context)
 
 
-def driver_streak_view(request, competition_slug=None, year=None, record=None):
+def driver_active_streak_view(request, competition_slug=None, year=None, record=None):
+    return driver_streak_view(request, competition_slug=competition_slug, year=year, record=record, active=True)
+
+
+def driver_top_streak_view(request, competition_slug=None, year=None, record=None):
+    return driver_streak_view(request, competition_slug=competition_slug, year=year, record=record, max_streak=True)
+
+
+def driver_top_streak_active_view(request, competition_slug=None, year=None, record=None):
+    return driver_streak_view(request, competition_slug=competition_slug, year=year, record=record,
+                              active=True, max_streak=True)
+
+
+def driver_streak_view(request, competition_slug=None, year=None, record=None, active=False, max_streak=False):
     context = get_record_common_context(request, competition_slug, year, record)
     rank = None
     season_or_competition = context.get('season_or_competition')
     if record:
-        rank = season_or_competition.streak_rank(**context.get('record_filter')) if 'record_filter' in context else None
+        rank = season_or_competition.streak_rank(active=active, max_streak=max_streak,
+                                                 **context.get('record_filter')) if 'record_filter' in context else None
     context.pop('record_filter', None)
     context['rank'] = rank
     context['streak'] = True
@@ -247,4 +261,5 @@ def team_record_view(request, competition_slug, year, rank_type, record=None):
     # context['races'] = (rank_type in ('RACES', 'RACES-DOUBLES'))
     tpl = 'driver27/team/team-record.html'
     return render(request, tpl, context)
+
 

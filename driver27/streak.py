@@ -4,9 +4,11 @@ import re
 
 class Streak(object):
     results = None
+    max_streak = False
 
-    def __init__(self, results):
+    def __init__(self, results, max_streak=False):
         self.results = results
+        self.max_streak = max_streak
 
     @staticmethod
     def get_builtin_function(builtin_key):
@@ -65,9 +67,16 @@ class Streak(object):
 
     def run(self, filters):
         count = 0
+        max_count = 0
         for result in self.results:
             is_ok = self.checked_filters(result, filters)
             if not is_ok:
-                break
+                if self.max_streak:
+                    count = 0
+                    continue
+                else:
+                    break
             count += 1
-        return count
+            if self.max_streak and count > max_count:
+                max_count = count
+        return max_count if self.max_streak else count

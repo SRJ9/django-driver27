@@ -60,7 +60,7 @@
             var record = $('#record').val();
             var streak = $('#streak').prop('checked');
             var streak_str='';
-            if(streak){
+            if(record && streak){
                 streak_str = '/streak';
             }
             location.href = record.trim() + streak_str;
