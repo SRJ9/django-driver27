@@ -87,7 +87,8 @@ class AbstractRankModel(models.Model):
         rank = []
         for contender in contenders:
             stat_cls = self.get_stats_cls(contender)
-            rank.append((stat_cls.get_streak(active=active, **filters), contender, stat_cls.teams_verbose))
+            if active and stat_cls.is_active:
+                rank.append((stat_cls.get_streak(**filters), contender, stat_cls.teams_verbose))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 

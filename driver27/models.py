@@ -60,8 +60,12 @@ class Driver(AbstractStatsModel):
 
     @property
     def is_active(self):
-        last_season = Season.objects.order_by('-year')[0]
-        return Season.objects.filter(races__results__seat__driver=self, pk=last_season.pk).count()
+        seasons_ordered_by_desc_year = Season.objects.order_by('-year')
+        if seasons_ordered_by_desc_year.count():
+            last_year = seasons_ordered_by_desc_year[0].year
+            return Result.objects.filter(seat__driver=self, race__season__year=last_year).count()
+        else:
+            return True
 
     @property
     def teams_verbose(self):
@@ -732,9 +736,8 @@ class ContenderSeason(object):
     def get_reverse_results(self, limit_races=None, **extra_filter):
         return self.get_results(limit_races=limit_races, reverse_order=True, **extra_filter)
 
-    def get_streak(self, active=False, **filters):
+    def get_streak(self, **filters):
         results = self.get_reverse_results()
-        counter = 0
         return Streak(results=results).run(filters)
 
     def get_stats(self, **filters):

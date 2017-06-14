@@ -45,12 +45,9 @@ class AbstractStatsModel(models.Model):
     def is_active(self):
         raise NotImplementedError('Not implemented property')
 
-    def get_streak(self, active=False, **filters):
-        if active and self.is_active:
-            results = self.get_reverse_results()
-            return Streak(results=results).run(filters)
-        else:
-            return 0
+    def get_streak(self, **filters):
+        results = self.get_reverse_results()
+        return Streak(results=results).run(filters)
 
     def get_races(self, **filters):
         """ Return only race id of team in season """
