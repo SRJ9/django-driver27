@@ -12,7 +12,20 @@ except ImportError:
     pass
 
 
-class AbstractStatsModel(models.Model):
+class AbstractStreakModel(object):
+    def get_reverse_results(self, *args, **kwargs):
+        raise NotImplementedError('Not implemented property')
+
+    @property
+    def is_active(self):
+        raise NotImplementedError('Not implemented property')
+
+    def get_streak(self, max_streak=False, **filters):
+        results = self.get_reverse_results()
+        return Streak(results=results, max_streak=max_streak).run(filters)
+
+
+class AbstractStatsModel(AbstractStreakModel, models.Model):
 
     @property
     def result_filter_kwargs(self):
@@ -40,14 +53,6 @@ class AbstractStatsModel(models.Model):
 
     def get_reverse_results(self, limit_races=None, **extra_filter):
         return self.get_results(limit_races=limit_races, reverse_order=True, **extra_filter)
-
-    @property
-    def is_active(self):
-        raise NotImplementedError('Not implemented property')
-
-    def get_streak(self, max_streak=False, **filters):
-        results = self.get_reverse_results()
-        return Streak(results=results, max_streak=max_streak).run(filters)
 
     def get_races(self, **filters):
         """ Return only race id of team in season """

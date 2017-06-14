@@ -16,7 +16,7 @@ from exclusivebooleanfield.fields import ExclusiveBooleanField
 from swapfield.fields import SwapIntegerField
 from . import lr_intr, lr_diff, season_bulk_copy
 from django.db.models.sql import constants
-from .stats import AbstractStatsModel, TeamStatsModel
+from .stats import AbstractStreakModel, AbstractStatsModel, TeamStatsModel
 from .rank import AbstractRankModel
 
 from django.db.models import Q
@@ -714,7 +714,7 @@ class Result(models.Model):
         verbose_name_plural = _('Results')
 
 
-class ContenderSeason(object):
+class ContenderSeason(AbstractStreakModel):
     """ ContenderSeason is not a model. Only for validation and ranks"""
     driver = None
     season = None
@@ -735,10 +735,6 @@ class ContenderSeason(object):
 
     def get_reverse_results(self, limit_races=None, **extra_filter):
         return self.get_results(limit_races=limit_races, reverse_order=True, **extra_filter)
-
-    def get_streak(self, **filters):
-        results = self.get_reverse_results()
-        return Streak(results=results).run(filters)
 
     def get_stats(self, **filters):
         """ Count 1 by each result """
