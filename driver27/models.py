@@ -716,6 +716,7 @@ class Result(models.Model):
 
 class ContenderSeason(AbstractStreakModel):
     """ ContenderSeason is not a model. Only for validation and ranks"""
+
     driver = None
     season = None
     teams = None
@@ -744,6 +745,10 @@ class ContenderSeason(AbstractStreakModel):
         results = self.get_results(limit_races=limit_races)
         points = results.values_list('points', flat=True)
         return [point for point in points if point]
+
+    @property
+    def is_active(self):
+        return True
 
     def get_points(self, limit_races=None, punctuation_config=None):
         """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""

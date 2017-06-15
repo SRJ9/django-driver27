@@ -81,13 +81,13 @@ class AbstractRankModel(models.Model):
         rank = sorted(rank, key=lambda x: x[0], reverse=True)
         return rank
 
-    def streak_rank(self, active=False, max_streak=False, **filters):
+    def streak_rank(self, only_actives=False, max_streak=False, **filters):
         """ Get driver rank based on record filter """
         contenders = getattr(self, 'drivers').all()
         rank = []
         for contender in contenders:
             stat_cls = self.get_stats_cls(contender)
-            if active and not stat_cls.is_active:
+            if only_actives and not stat_cls.is_active:
                 continue
             rank.append((stat_cls.get_streak(max_streak=max_streak, **filters), contender, stat_cls.teams_verbose))
         rank = sorted(rank, key=lambda x: x[0], reverse=True)

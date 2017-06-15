@@ -210,7 +210,7 @@ def driver_record_view(request, competition_slug=None, year=None, record=None):
 
 
 def driver_active_streak_view(request, competition_slug=None, year=None, record=None):
-    return driver_streak_view(request, competition_slug=competition_slug, year=year, record=record, active=True)
+    return driver_streak_view(request, competition_slug=competition_slug, year=year, record=record, only_actives=True)
 
 
 def driver_top_streak_view(request, competition_slug=None, year=None, record=None):
@@ -219,19 +219,33 @@ def driver_top_streak_view(request, competition_slug=None, year=None, record=Non
 
 def driver_top_streak_active_view(request, competition_slug=None, year=None, record=None):
     return driver_streak_view(request, competition_slug=competition_slug, year=year, record=record,
-                              active=True, max_streak=True)
+                              only_actives=True, max_streak=True)
 
 
-def driver_streak_view(request, competition_slug=None, year=None, record=None, active=False, max_streak=False):
+def get_streak_value_for_selector(only_actives=False, max_streak=False):
+    if not only_actives:
+        if max_streak:
+            streak_value = 'streak_top'
+        else:
+            streak_value = 'streak'
+    else:
+        if max_streak:
+            streak_value = 'streak_top_actives'
+        else:
+            streak_value = 'streak_actives'
+    return streak_value
+
+
+def driver_streak_view(request, competition_slug=None, year=None, record=None, only_actives=False, max_streak=False):
     context = get_record_common_context(request, competition_slug, year, record)
     rank = None
     season_or_competition = context.get('season_or_competition')
     if record:
-        rank = season_or_competition.streak_rank(active=active, max_streak=max_streak,
+        rank = season_or_competition.streak_rank(only_actives=only_actives, max_streak=max_streak,
                                                  **context.get('record_filter')) if 'record_filter' in context else None
     context.pop('record_filter', None)
     context['rank'] = rank
-    context['streak'] = True
+    context['streak'] = get_streak_value_for_selector(only_actives=only_actives, max_streak=max_streak)
     tpl = 'driver27/driver/driver-record.html'
     return render(request, tpl, context)
 

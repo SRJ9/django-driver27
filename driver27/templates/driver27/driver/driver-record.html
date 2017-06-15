@@ -7,17 +7,17 @@
 {% endblock %}
 {% block dr27_content %}
     {{ block.super }}
-{% load champion_filter i18n %}
+    {% load champion_filter i18n %}
     <form method="POST" class="form-inline">
-    {% csrf_token %}
+        {% csrf_token %}
         <div class="col-md-4 form-group">
-        <label for="record" class="control-label">Record:</label>
-        <select id="record" name="record" onchange="change_record()" class="form-control input-sm">
-            {% if not record %}
-                <option value="">---</option>
-            {% endif %}
-            {% for record_code, record_label in record_codes %}
-            <option value="
+            <label for="record" class="control-label">Record:</label>
+            <select id="record" name="record" onchange="change_record()" class="form-control input-sm">
+                {% if not record %}
+                    <option value="">---</option>
+                {% endif %}
+                {% for record_code, record_label in record_codes %}
+                    <option value="
                 {% if season %}
                     {% url 'dr27-season-driver-record' season.competition.slug season.year record_code %}
                 {% elif competition %}
@@ -25,43 +25,76 @@
                 {% else %}
                     {% url 'dr27-global-driver-record' record_code %}
                 {% endif %}"
-            {% if record_code == record %}selected{% endif %}
-            >{{ record_label }}</option>
-            {% endfor %}
-        </select>
-            <input type="checkbox" name="streak" id="streak" onchange="change_record()"
-            {% if streak %}checked{% endif %}
-            ><label for="streak">{%  trans 'Streak' %}</label>
+                            {% if record_code == record %}selected{% endif %}
+                    >{{ record_label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4 form-group">
+            <label for="streak" class="control-label">{% trans 'Streak' %}</label>
+            <select id="streak" name="streak" onchange="change_record()" class="form-control input-sm">
+                <option value="">---</option>
+                <option value="streak" {% if streak == 'streak' %}selected{% endif %}>
+                    {% trans 'Current streak. Inactive drivers are included' %}
+                </option>
+                {% if not season %}
+                    <option value="streak_actives" {% if streak == 'streak_actives' %}selected{% endif %}>
+                        {% trans 'Current streak. Inactive drivers are excluded' %}
+                    </option>
+                {% endif %}
+                <option value="streak_top" {% if streak == 'streak_top' %}selected{% endif %}>
+                    {% trans 'Best streak. Inactive drivers are included' %}
+                </option>
+                {% if not season %}
+                    <option value="streak_top_actives" {% if streak == 'streak_top_actives' %}selected{% endif %}>
+                        {% trans 'Best streak. Inactive drivers are excluded' %}
+                    </option>
+                {% endif %}
+            </select>
         </div>
     </form>
     {% if rank %}
-<table class="table table-condensed table-striped table-hover">
-    <tr>
-        <th>{%  trans 'Count' %}</th>
-        <th>{%  trans 'Driver' %}</th>
-        <th>{%  trans 'Team' %}</th>
-    </tr>
-    {% for count,driver,team in rank %}
-        <tr>
-        <td>{{ count }}</td>
-        <td>{{ driver }}</td>
-        <td>{{ team }}</td>
-        </tr>
-    {% endfor %}
+        <table class="table table-condensed table-striped table-hover">
+            <tr>
+                <th>{% trans 'Count' %}</th>
+                <th>{% trans 'Driver' %}</th>
+                <th>{% trans 'Team' %}</th>
+            </tr>
+            {% for count,driver,team in rank %}
+                <tr>
+                    <td>{{ count }}</td>
+                    <td>{{ driver }}</td>
+                    <td>{{ team }}</td>
+                </tr>
+            {% endfor %}
 
-    </table>
+        </table>
     {% endif %}
 {% endblock %}
 
 {% block bootstrap3_extra_script %}
     {{ block.super }}
     <script type="text/javascript">
-        function change_record(){
+        function change_record() {
             var record = $('#record').val();
-            var streak = $('#streak').prop('checked');
-            var streak_str='';
-            if(record && streak){
-                streak_str = '/streak';
+            var streak = $('#streak').val();
+            var streak_str = '';
+            if (record && streak) {
+                switch (streak) {
+                    case 'streak':
+                        streak_str = "streak/";
+                        break;
+                    case 'streak_actives':
+                        streak_str = "streak/actives/";
+                        break;
+                    case 'streak_top':
+                        streak_str = "streak/top/";
+                        break;
+                    case 'streak_top_actives':
+                        streak_str = "streak/top-actives/";
+                        break;
+                }
+
             }
             location.href = record.trim() + streak_str;
         }
