@@ -49,7 +49,7 @@ class AbstractRankModel(models.Model):
         rank = []
         for driver in drivers:
             stat_cls = self.get_stats_cls(driver)
-            position_list = stat_cls.get_positions_list()
+            position_list = stat_cls.get_positions_list(**self.stats_filter_kwargs)
             position_str = stat_cls.get_positions_str(position_list=position_list)
             rank.append((position_str, driver,
                          stat_cls.teams_verbose, position_list))
