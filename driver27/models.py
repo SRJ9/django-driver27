@@ -655,7 +655,8 @@ class Result(models.Model):
 
         results = cls.objects.filter(**filter_params)
 
-        order_by_args = ('race__season', 'race__round') if not reverse_order else ('-race__season', '-race__round')
+        order_by_args = ('race__season__year', 'race__date', 'race__season__pk', 'race__round') \
+            if not reverse_order else ('-race__season__year', '-race__date', '-race__season__pk', '-race__round')
 
         results = results.order_by(*order_by_args)
         return results
