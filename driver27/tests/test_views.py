@@ -59,8 +59,8 @@ class ViewTest(FixturesTest):
         # Check that the response is 302 OK.
         self.assertEqual(response.status_code, code)
 
-    def test_competition_list(self):
-        self._GET_request('dr27-competition-list')
+    # def test_competition_list(self):
+    #     self._GET_request('dr27-competition-list')
 
     def test_competition_view(self):
         self._GET_request('dr27-competition-view', kwargs={'competition_slug': 'f1'})

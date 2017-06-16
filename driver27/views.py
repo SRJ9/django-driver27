@@ -35,17 +35,11 @@ def get_season_or_competition(slug=None, year=None):
         return RankModel()
 
 
-def competition_view(request, competition_slug=None):
-    if competition_slug is not None:
-        competition_obj = get_competition(slug=competition_slug)
-        title = '{competition}'.format(competition=competition_obj)
-        context = {'competition': competition_obj, 'title': title}
-        tpl = 'driver27/competition/competition-view.html'
-    else:
-        competitions = Competition.objects.all()
-        title = _('Competitions')
-        context = {'competitions': competitions, 'title': title}
-        tpl = 'driver27/competition/competition-list.html'
+def competition_view(request, competition_slug):
+    competition_obj = get_competition(slug=competition_slug)
+    title = '{competition}'.format(competition=competition_obj)
+    context = {'competition': competition_obj, 'title': title}
+    tpl = 'driver27/competition/competition-view.html'
     return render(request, tpl, context)
 
 
