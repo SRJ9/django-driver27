@@ -49,6 +49,14 @@ def competition_view(request, competition_slug=None):
     return render(request, tpl, context)
 
 
+def global_view(request):
+    seasons = Season.objects.order_by('year', 'competition')
+    title = _('Global view')
+    context = {'seasons': seasons, 'title': title}
+    tpl = 'driver27/global/global-view.html'
+    return render(request, tpl, context)
+
+
 def season_view(request, competition_slug, year):
     season = get_season(competition_slug, year)
     driver_rank = season.points_rank()
@@ -56,16 +64,6 @@ def season_view(request, competition_slug, year):
     title = '{competition}/{year:d}'.format(competition=season.competition, year=season.year)
     context = {'season': season, 'title': title, 'driver_rank': driver_rank, 'team_rank': team_rank}
     tpl = 'driver27/season/season-view.html'
-    return render(request, tpl, context)
-
-
-def global_view(request):
-    rank = RankModel()
-    driver_rank = rank.points_rank()
-    team_rank = rank.team_points_rank()
-    title = '{rank}'.format(rank=rank)
-    context = {'title': title, 'driver_rank': driver_rank, 'team_rank': team_rank}
-    tpl = 'driver27/global/global-view.html'
     return render(request, tpl, context)
 
 

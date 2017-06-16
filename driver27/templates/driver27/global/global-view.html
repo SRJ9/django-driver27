@@ -1,5 +1,5 @@
 {% extends 'driver27/base.html' %}
-{% load i18n %}
+{% load champion_filter i18n %}
 {% block dr27_menu %}
     {% include 'driver27/global/global-menu-pre.html' %}
     {% include 'driver27/global/global-menu.html' %}
@@ -7,19 +7,37 @@
 {% block dr27_content %}
     {{ block.super }}
 
-    <div class="row">
-    <div class="col-md-6">
-    {% with rank=driver_rank %}
-        {% include 'driver27/driver/driver-list-table.html' %}
-    {% endwith %}
-    </div>
-
-    <div class="col-md-6">
-
-    {% with rank=team_rank %}
-        {% include 'driver27/team/team-list-table.html' %}
-    {% endwith %}
-
-    </div>
-    </div>
+    <table class="table table-condensed table-striped table-hover">
+        <tr>
+            <th class="col-md-2">{% trans 'Season' %}</th>
+            <th class="col-md-2">{% trans 'Competition' %}</th>
+            <th class="col-md-1">{% trans 'Year' %}</th>
+            <th class="col-md-4">{% trans 'Driver leader' %}</th>
+            <th class="col-md-3">{% trans 'Team leader' %}</th>
+        </tr>
+        {% for season in seasons %}
+            <tr>
+                <td>
+                    <a href="{% url 'dr27-season-view' season.competition.slug season.year %}">
+                        {{ season }}
+                    </a>
+                </td>
+                <td>
+                    <a href="{% url 'dr27-competition-view' season.competition.slug %}">
+                        {{ season.competition }}
+                    </a>
+                </td>
+                <td>
+                    {{ season.year }}
+                </td>
+                <td>
+                    {{ season.pk | champion_filter | safe }}
+                    {{ season.leader.0 }} {{ season.leader.1 }} ({{ season.leader.2 }})
+                </td>
+                <td>
+                    {{ season.team_leader.0 }} {{ season.team_leader.1 }}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
 {% endblock %}

@@ -18,8 +18,7 @@ from django.contrib import admin
 from .views import index
 
 urlpatterns = [
-    url(r'^$', index),
     url(r'^admin/', admin.site.urls),
-    url(r'^dr27/', include('driver27.urls'))
+    url(r'^', include('driver27.urls'))
 ]
 
