@@ -51,18 +51,11 @@ class ViewTest(FixturesTest):
         for model in models:
             url = base_admin + '/' + model + '/'
             resp = client.get(url, follow=True)
-            self.assertEqual(resp.status_code, 200, url)
+            self.assertEqual(resp.status_code, 200, url + ' code='+str(resp.status_code))
             url = base_admin + '/' + model + '/add/'
             resp = client.get(url, follow=True)
-            self.assertEqual(resp.status_code, 200, url)
+            self.assertEqual(resp.status_code, 200, url + ' code='+str(resp.status_code))
             url = base_admin + '/' + model + '/1/change/'
             resp = client.get(url, follow=True)
-            self.assertEqual(resp.status_code, 200, url)
-
-    def test_season(self):
-        season = Season.objects.get(pk=1)
-        self.assertGreater(season.teams.count(), 0)
-        self.assertGreater(season.drivers.count(), 0)
-        self.assertEquals(season.pending_races(), 0)
-        self.assertEquals(season.pending_points(), 0)
+            self.assertEqual(resp.status_code, 200, url + ' code='+str(resp.status_code))
 
