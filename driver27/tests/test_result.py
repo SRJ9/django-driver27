@@ -7,6 +7,12 @@ from django.core.exceptions import ValidationError
 
 
 class ResultTestCase(TestCase, CommonResultTestCase):
+    def _insert_massive_results(self, seat, season, results):
+        for new_result in results:
+            cur_race = self.get_test_race(season=season, round=new_result['round'])
+            del new_result['round']
+            self.get_test_result(race=cur_race, seat=seat, **new_result)
+
     def test_result_shorcuts(self):
         seat = self.get_test_seat()
         competition = self.get_test_competition()
@@ -87,6 +93,7 @@ class ResultTestCase(TestCase, CommonResultTestCase):
     def test_streak_results(self):
         record_config = get_record_config('PODIUM').get('filter')
         seat = self.get_test_seat()
+        driver = seat.driver
         competition_1 = self.get_test_competition()
         season_1 = self.get_test_season(competition=competition_1)
         self.get_test_competition_team(competition=competition_1, team=seat.team)
@@ -102,13 +109,10 @@ class ResultTestCase(TestCase, CommonResultTestCase):
             {'round': 8, 'finish': 3, 'qualifying': 3},
         ]
 
-        for new_result in results_1:
-            cur_race = self.get_test_race(season=season_1, round=new_result['round'])
-            del new_result['round']
-            self.get_test_result(race=cur_race, seat=seat, **new_result)
+        self._insert_massive_results(seat=seat, season=season_1, results=results_1)
 
-        self.assertEqual(seat.driver.get_streak(**record_config), 2)
-        self.assertEqual(seat.driver.get_streak(max_streak=True, **record_config), 5)
+        self.assertEqual(driver.get_streak(**record_config), 2)
+        self.assertEqual(driver.get_streak(max_streak=True, **record_config), 5)
 
         # season 2
         # same competition
@@ -124,13 +128,10 @@ class ResultTestCase(TestCase, CommonResultTestCase):
             {'round': 4, 'finish': 1, 'qualifying': 12}
         ]
 
-        for new_result in results_2:
-            cur_race = self.get_test_race(season=season_2, round=new_result['round'])
-            del new_result['round']
-            self.get_test_result(race=cur_race, seat=seat, **new_result)
+        self._insert_massive_results(seat=seat, season=season_2, results=results_2)
 
-        self.assertEqual(seat.driver.get_streak(**record_config), 6)
-        self.assertEqual(seat.driver.get_season(season_2).get_streak(**record_config), 4)
+        self.assertEqual(driver.get_streak(**record_config), 6)
+        self.assertEqual(driver.get_season(season_2).get_streak(**record_config), 4)
 
         # season 3
         # diff competition
@@ -149,14 +150,11 @@ class ResultTestCase(TestCase, CommonResultTestCase):
             {'round': 5, 'finish': 1, 'qualifying': 1}
         ]
 
-        for new_result in results_3:
-            cur_race = self.get_test_race(season=season_3, round=new_result['round'])
-            del new_result['round']
-            self.get_test_result(race=cur_race, seat=seat, **new_result)
+        self._insert_massive_results(seat=seat, season=season_3, results=results_3)
 
-        self.assertEqual(seat.driver.get_streak(**record_config), 11)
-        self.assertEqual(seat.driver.get_streak(result_filter={'competition': competition_2}, **record_config), 5)
-        self.assertEqual(seat.driver.get_season(season_3).get_streak(**record_config), 5)
+        self.assertEqual(driver.get_streak(**record_config), 11)
+        self.assertEqual(driver.get_streak(result_filter={'competition': competition_2}, **record_config), 5)
+        self.assertEqual(driver.get_season(season_3).get_streak(**record_config), 5)
 
         # season 4
         # back to competition 1
@@ -170,14 +168,11 @@ class ResultTestCase(TestCase, CommonResultTestCase):
             {'round': 2, 'finish': 1, 'qualifying': 2},
         ]
 
-        for new_result in results_4:
-            cur_race = self.get_test_race(season=season_4, round=new_result['round'])
-            del new_result['round']
-            self.get_test_result(race=cur_race, seat=seat, **new_result)
+        self._insert_massive_results(seat=seat, season=season_4, results=results_4)
 
-        self.assertEqual(seat.driver.get_streak(**record_config), 13)
-        self.assertEqual(seat.driver.get_streak(result_filter={'competition': competition_1}, **record_config), 8)
-        self.assertEqual(seat.driver.get_season(season_4).get_streak(**record_config), 2)
+        self.assertEqual(driver.get_streak(**record_config), 13)
+        self.assertEqual(driver.get_streak(result_filter={'competition': competition_1}, **record_config), 8)
+        self.assertEqual(driver.get_season(season_4).get_streak(**record_config), 2)
 
         # bye streak
         # max_streak is past_streak and curr streak is 1
@@ -187,21 +182,27 @@ class ResultTestCase(TestCase, CommonResultTestCase):
             {'round': 4, 'finish': 1, 'qualifying': 2},
         ]
 
-        for new_result in results_bye_streak:
-            cur_race = self.get_test_race(season=season_4, round=new_result['round'])
-            del new_result['round']
-            self.get_test_result(race=cur_race, seat=seat, **new_result)
+        self._insert_massive_results(seat=seat, season=season_4, results=results_bye_streak)
 
-        self.assertEqual(seat.driver.get_streak(**record_config), 1)
-        self.assertEqual(seat.driver.get_streak(result_filter={'competition': competition_1}, **record_config), 1)
-        self.assertEqual(seat.driver.get_season(season_4).get_streak(**record_config), 1)
-        self.assertEqual(seat.driver.get_streak(max_streak=True, **record_config), 13)
-        self.assertEqual(seat.driver.get_streak(max_streak=True, result_filter={'competition': competition_1},
+        self.assertEqual(driver.get_streak(**record_config), 1)
+        self.assertEqual(driver.get_streak(result_filter={'competition': competition_1}, **record_config), 1)
+        self.assertEqual(driver.get_season(season_4).get_streak(**record_config), 1)
+        self.assertEqual(driver.get_streak(max_streak=True, **record_config), 13)
+        self.assertEqual(driver.get_streak(max_streak=True, result_filter={'competition': competition_1},
                                                 **record_config), 8)
-        self.assertEqual(seat.driver.get_season(season_4).get_streak(max_streak=True, **record_config), 2)
+        self.assertEqual(driver.get_season(season_4).get_streak(max_streak=True, **record_config), 2)
         # and records in competition_2/season_3 are not altered
-        self.assertEqual(seat.driver.get_streak(result_filter={'competition': competition_2}, **record_config), 5)
-        self.assertEqual(seat.driver.get_season(season_3).get_streak(**record_config), 5)
+        self.assertEqual(driver.get_streak(result_filter={'competition': competition_2}, **record_config), 5)
+        self.assertEqual(driver.get_season(season_3).get_streak(**record_config), 5)
+
+        # check records
+        self.assertEqual(driver.get_stats(**record_config), 19, 'Global record')
+        self.assertEqual(driver.get_stats(competition=competition_1, **record_config), 14, 'Record in comp_1')
+        self.assertEqual(driver.get_stats(competition=competition_2, **record_config), 5, 'Record in comp_2')
+        self.assertEqual(driver.get_stats(season=season_1, **record_config), 7, 'Record in season_1')
+        self.assertEqual(driver.get_stats(season=season_2, **record_config), 4, 'Record in season_2')
+        self.assertEqual(driver.get_stats(season=season_3, **record_config), 5, 'Record in season_3')
+        self.assertEqual(driver.get_stats(season=season_4, **record_config), 3, 'Record in season_4')
 
     def test_rank(self):
         seat_a = self.get_test_seat()
