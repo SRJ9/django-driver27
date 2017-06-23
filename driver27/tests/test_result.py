@@ -2,6 +2,7 @@
 from django.test import TestCase
 from .common import CommonResultTestCase
 from ..models import Result, Seat, TeamSeason, ContenderSeason, SeatPeriod, CompetitionTeam
+from ..records import get_record_config
 from django.core.exceptions import ValidationError
 
 
@@ -82,6 +83,73 @@ class ResultTestCase(TestCase, CommonResultTestCase):
 
     def test_result_seat_exception(self):
         self.assertRaises(ValidationError, self.get_test_result)
+
+    def test_streak_results(self):
+        record_config = get_record_config('PODIUM').get('filter')
+        seat = self.get_test_seat()
+        competition_1 = self.get_test_competition()
+        season_1 = self.get_test_season(competition=competition_1)
+        self.get_test_competition_team(competition=competition_1, team=seat.team)
+
+        results_1 = [
+            {'round': 1, 'finish': 3, 'qualifying': 4},
+            {'round': 2, 'finish': 2, 'qualifying': 13},
+            {'round': 3, 'finish': 1, 'qualifying': 2},
+            {'round': 4, 'finish': 1, 'qualifying': 1},
+            {'round': 5, 'finish': 1, 'qualifying': 1},
+            {'round': 6, 'finish': 8, 'qualifying': 5},
+            {'round': 7, 'finish': 3, 'qualifying': 4},
+            {'round': 8, 'finish': 3, 'qualifying': 3},
+        ]
+
+        for new_result in results_1:
+            cur_race = self.get_test_race(season=season_1, round=new_result['round'])
+            del new_result['round']
+            self.get_test_result(race=cur_race, seat=seat, **new_result)
+
+        self.assertEqual(seat.driver.get_streak(**record_config), 2)
+        self.assertEqual(seat.driver.get_streak(max_streak=True, **record_config), 5)
+
+        # season 2
+        year_2 = season_1.year+1
+        season_2 = self.get_test_season(competition=competition_1, year=year_2)
+
+        results_2 = [
+            {'round': 1, 'finish': 3, 'qualifying': 4},
+            {'round': 2, 'finish': 2, 'qualifying': 11},
+            {'round': 3, 'finish': 1, 'qualifying': 20},
+            {'round': 4, 'finish': 1, 'qualifying': 12}
+        ]
+
+        for new_result in results_2:
+            cur_race = self.get_test_race(season=season_2, round=new_result['round'])
+            del new_result['round']
+            self.get_test_result(race=cur_race, seat=seat, **new_result)
+
+        self.assertEqual(seat.driver.get_streak(**record_config), 6)
+        self.assertEqual(seat.driver.get_season(season_2).get_streak(**record_config), 4)
+
+        # season 3
+        year_3 = season_2.year+1
+        competition_2 = self.get_test_competition_2()
+        self.get_test_competition_team(competition=competition_2, team=seat.team)
+        season_3 = self.get_test_season(competition=competition_2, year=year_3)
+
+        results_3 = [
+            {'round': 1, 'finish': 1, 'qualifying': 2},
+            {'round': 2, 'finish': 2, 'qualifying': 2},
+            {'round': 3, 'finish': 3, 'qualifying': 2},
+            {'round': 4, 'finish': 1, 'qualifying': 1},
+            {'round': 5, 'finish': 1, 'qualifying': 1}
+        ]
+
+        for new_result in results_3:
+            cur_race = self.get_test_race(season=season_3, round=new_result['round'])
+            del new_result['round']
+            self.get_test_result(race=cur_race, seat=seat, **new_result)
+
+        self.assertEqual(seat.driver.get_streak(**record_config), 11)
+        self.assertEqual(seat.driver.get_season(season_3).get_streak(**record_config), 5)
 
     def test_rank(self):
         seat_a = self.get_test_seat()
