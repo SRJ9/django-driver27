@@ -99,7 +99,7 @@ class Driver(AbstractStatsModel):
         return ContenderSeason(driver=self, season=season)
 
     def __str__(self):
-        return ', '.join((self.last_name, self.first_name))
+        return u', '.join((self.last_name, self.first_name))
 
     class Meta:
         unique_together = ('last_name', 'first_name')
@@ -138,7 +138,7 @@ class Competition(AbstractRankModel):
         super(Competition, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return u'{name}'.format(name=self.name)
 
     class Meta:
         ordering = ['name']
@@ -224,7 +224,7 @@ class Seat(models.Model):
     driver = models.ForeignKey('Driver', related_name='seats', verbose_name=_('driver'), default=None, null=True)
 
     def __str__(self):
-        return _('%(driver)s in %(team)s') \
+        return _(u'%(driver)s in %(team)s') \
                % {'driver': self.driver, 'team': self.team}
 
     class Meta:
@@ -329,8 +329,13 @@ class Season(AbstractRankModel):
 
     def pending_races(self):
         """ Based on rounds field, return races count when race doesn't have any result """
-        past_races = Race.objects.filter(season=self, results__pk__isnull=False).distinct().count()
-        pending_races = (self.rounds - past_races)
+        """ If rounds is None, rounds will setted to races in season"""
+        races = Race.objects.filter(season=self)
+        past_races = races.filter(results__pk__isnull=False).distinct().count()
+        rounds = self.rounds
+        if rounds is None:
+            rounds = Race.objects.filter(season=self).count()
+        pending_races = (rounds - past_races)
         return pending_races
 
     def pending_points(self, punctuation_code=None):
@@ -393,7 +398,7 @@ class Season(AbstractRankModel):
         return self.get_leader(team=True)
 
     def __str__(self):
-        return '/'.join((self.competition.name, str(self.year)))
+        return '{competition}/{year}'.format(competition=self.competition, year=self.year)
 
     class Meta:
         unique_together = ('year', 'competition')
@@ -668,7 +673,7 @@ class Result(models.Model):
         if Result.objects.filter(seat__driver=self.seat.driver, race=self.race).exclude(pk=self.pk).exists():
             errors['seat'].append('Exists a result with the same driver in this race (different Seat)')
         if not self.race.season.seats.filter(pk=self.seat.pk).exists():
-            errors['seat'].append('{seat} is valid in {season_year}'.format(seat=self.seat,
+            errors['seat'].append('{seat} is not valid in {season_year}'.format(seat=self.seat,
                                                                             season_year=self.race.season.year))
         if errors['seat']:
             raise ValidationError(errors)

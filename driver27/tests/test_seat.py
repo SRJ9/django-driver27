@@ -9,6 +9,8 @@ class SeatTestCase(TestCase, CommonSeatTestCase):
         seat = self.get_test_seat()
         driver = seat.driver
         team = seat.team
-        expected_seat = '{driver} in {team}'.format(driver=str(driver), team=str(team))
+        expected_seat = '{driver} in {team}'.format(driver=driver, team=team)
         self.assertEquals(str(seat), expected_seat)
+
+
 

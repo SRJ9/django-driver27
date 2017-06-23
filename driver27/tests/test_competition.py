@@ -6,6 +6,6 @@ from slugify import slugify
 
 class CompetitionTestCase(TestCase, CommonCompetitionTestCase):
     def test_competition_unicode(self):
-        competition = self.get_test_competition_a()
+        competition = self.get_test_competition()
         self.assertEquals(competition.slug, slugify(competition.name))
         self.assertEqual(str(competition), retro_encode(competition.name))

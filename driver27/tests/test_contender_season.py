@@ -12,7 +12,7 @@ class ContenderSeasonTestCase(TestCase, CommonSeatTestCase, CommonSeasonTestCase
         self.assertRaises(AttributeError, ContenderSeason,
                           **{'driver': driver, 'season': season})
         seat = self.get_test_seat()
-        competition = self.get_test_competition_a()
+        competition = self.get_test_competition()
         season = self.get_test_season(competition=competition)
         driver = seat.driver
         self.assertTrue(ContenderSeason(driver=driver, season=season))

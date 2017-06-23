@@ -7,19 +7,27 @@ from django.core.exceptions import ValidationError
 
 class ResultTestCase(TestCase, CommonResultTestCase):
     def test_result_shorcuts(self):
-        result = self.get_test_result()
+        seat = self.get_test_seat()
+        competition = self.get_test_competition()
+        season = self.get_test_season(competition=competition)
+        race = self.get_test_race(season=season)
+        self.get_test_competition_team(competition=competition, team=seat.team)
+        result = self.get_test_result(seat=seat, race=race)
         self.assertEquals(result.driver, result.seat.driver)
         self.assertEquals(result.team, result.seat.team)
 
     def test_result_fastest_unique(self):
-        result = self.get_test_result()
+        seat_a = self.get_test_seat()
+        competition = self.get_test_competition()
+        season = self.get_test_season(competition=competition)
+        race = self.get_test_race(season=season)
+        self.get_test_competition_team(competition=competition, team=seat_a.team)
+        result = self.get_test_result(seat=seat_a, race=race)
         result.fastest_lap = True
         self.assertIsNone(result.save())
-        seat_a = result.seat
-        race = result.race
-        self.assertEquals(Result.objects.get(race=race, seat=seat_a).fastest_lap, True)
+        self.assertEquals(result.fastest_lap, True)
         # create result_b
-        seat_b = self.get_test_seat_b(seat_a=seat_a)
+        seat_b = self.get_test_seat_teammate(seat_a=seat_a)
         result_b = self.get_test_result(seat=seat_b, race=race)
         result_b.fastest_lap = True
         self.assertIsNone(result_b.save())
@@ -29,12 +37,12 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEquals(Result.objects.get(race=race, seat=seat_b).fastest_lap, True)
 
     def test_result_points(self):
-        result = self.get_test_result()
-        seat = result.seat
-        race = result.race
-        season = race.season
-        # season.punctuation = 'F1-25'
-        # self.assertIsNone(season.save())
+        seat = self.get_test_seat()
+        competition = self.get_test_competition()
+        season = self.get_test_season(competition=competition)
+        race = self.get_test_race(season=season)
+        self.get_test_competition_team(competition=competition, team=seat.team)
+        result = self.get_test_result(seat=seat, race=race)
 
         result.qualifying = 2
         result.finish = 2
@@ -57,7 +65,12 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEquals(race.fastest, result.seat)
 
     def test_result_str(self):
-        result = self.get_test_result()
+        seat = self.get_test_seat()
+        competition = self.get_test_competition()
+        season = self.get_test_season(competition=competition)
+        race = self.get_test_race(season=season)
+        self.get_test_competition_team(competition=competition, team=seat.team)
+        result = self.get_test_result(race=race, seat=seat)
         result.finish = 14
         result_str = '{seat} ({race})'.format(seat=result.seat, race=result.race)
         result_str_checkered_flag = result_str + ' - {finish}º'.format(finish=result.finish)
@@ -68,18 +81,17 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEqual(str(result), result_str_out)
 
     def test_result_seat_exception(self):
-        self.get_test_result(raise_seat_exception=True)
+        self.assertRaises(ValidationError, self.get_test_result)
 
     def test_rank(self):
-        result_a = self.get_test_result(qualifying=2, finish=1)
-        seat_a = result_a.seat
-        race = result_a.race
-        # set season
-        season = race.season
-        # season.punctuation = 'F1-25'
-        # self.assertIsNone(season.save())
+        seat_a = self.get_test_seat()
+        competition = self.get_test_competition()
+        season = self.get_test_season(competition=competition)
+        race = self.get_test_race(season=season)
+        self.get_test_competition_team(competition=competition, team=seat_a.team)
+        result_a = self.get_test_result(seat=seat_a, race=race, qualifying=2, finish=1)
 
-        seat_b = self.get_test_seat_b(seat_a=seat_a)
+        seat_b = self.get_test_seat_teammate(seat_a=seat_a)
         self.get_test_result(seat=seat_b, race=race, qualifying=1, finish=3)
 
         # pole
@@ -103,20 +115,19 @@ class ResultTestCase(TestCase, CommonResultTestCase):
 
     def test_team_competition_validation(self):
         seat_a = self.get_test_seat()
-        competition = self.get_test_competition_a()
+        competition = self.get_test_competition()
         season_year = 2018
         season = self.get_test_season(competition=competition, year=season_year)
         race = self.get_test_race(season=season, round=1)
         self.assertRaises(ValidationError, self.get_test_result, **{'seat': seat_a, 'race': race,
-                                                                    'qualifying': 2, 'finish': 2,
-                                                                    'raise_team_exception': True})
+                                                                    'qualifying': 2, 'finish': 2})
 
     def test_period_limitation(self):
         period_year = 2017
         seat_a = self.get_test_seat()
         self.assertTrue(SeatPeriod.objects.create(seat=seat_a, from_year=period_year, until_year=period_year))
 
-        competition = self.get_test_competition_a()
+        competition = self.get_test_competition()
         season_year = 2018
         season = self.get_test_season(competition=competition, year=season_year)
         race = self.get_test_race(season=season, round=1)
@@ -125,9 +136,11 @@ class ResultTestCase(TestCase, CommonResultTestCase):
 
     def test_rank_integrity(self):
         seat_a = self.get_test_seat()
-        competition_a = self.get_test_competition_a()
+        competition_a = self.get_test_competition()
         season_a = self.get_test_season(competition=competition_a, year=2018)
         race_season_a = self.get_test_race(season=season_a, round=1)
+        self.get_test_competition_team(competition=competition_a, team=seat_a.team)
+
         result_a = self.get_test_result(seat=seat_a, race=race_season_a, qualifying=1, finish=1)
         rank_a = season_a.points_rank()
         leader_points_a, leader_driver_a, leader_teams_a, leader_pos_a = rank_a[0]
@@ -145,9 +158,10 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         leader_points_comp_a, leader_driver_comp_a, leader_teams_comp_a, leader_pos_comp_a = rank_competition_a[0]
         self.assertEqual(leader_points_comp_a, 50)
 
-        competition_c = self.get_test_competition_b()
+        competition_c = self.get_test_competition_2()
         season_c = self.get_test_season(competition=competition_c, year=2020)
         race_season_c = self.get_test_race(season=season_c, round=1)
+        self.get_test_competition_team(competition=competition_c, team=seat_a.team)
         result_c = self.get_test_result(seat=seat_a, race=race_season_c, qualifying=1, finish=1)
 
         rank_c = season_c.points_rank()
@@ -158,22 +172,30 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         leader_points_comp_c, leader_driver_comp_c, leader_teams_comp_c, leader_pos_comp_c = rank_competition_c[0]
         self.assertEqual(leader_points_comp_c, 25)
 
+    def test_seat_team_exception(self):
+        seat = self.get_test_seat()
+        race = self.get_test_race()
+        result_args = {'seat': seat, 'race': race, 'qualifying': 1, 'finish': 3}
+        self.assertRaises(ValidationError, self.get_test_result, **result_args)
+
     def test_duplicate_driver(self):
         seat_a = self.get_test_seat()
-        seat_b = self.get_test_seat_b(seat_a)
-        seat_c = self.get_test_seat_c(seat_a)
-        competition = self.get_test_competition_a()
-        race = self.get_test_race(competition=competition, round=1)
-        self.assertTrue(self.get_test_result(seat=seat_a, race=race, qualifying=1, finish=3))
-        # seat_a and seat_c are the same driver in different teams. Only one seat by driver in race.
-        self.assertRaises(ValidationError, self.get_test_result, **{'seat': seat_c, 'race': race,
-                                                                    'qualifying': 2, 'finish': 2})
+        competition = self.get_test_competition()
+        self.assertTrue(self.get_test_competition_team(competition=competition, team=seat_a.team))
+        season = self.get_test_season(competition=competition)
+        race = self.get_test_race(season=season)
+        result_a_args = {'seat': seat_a, 'race': race, 'qualifying': 1, 'finish': 3}
+        result_a = self.get_test_result(**result_a_args)
+
+        seat_a_other_team = self.get_test_seat_same_driver_other_team(seat_a)
+        result_b_args = {'seat': seat_a_other_team, 'race': race, 'qualifying': 2, 'finish': 2}
+        self.assertRaises(ValidationError, self.get_test_result, **result_b_args)
         self.assertEqual(race.results.count(), 1)
 
         # test swapfield. Seat_a loses the pole, Seat_b is poleman
+        seat_b = self.get_test_seat_teammate(seat_a)
         self.assertTrue(self.get_test_result(seat=seat_b, race=race, qualifying=1, finish=3))
         self.assertEqual(race.results.count(), 2)
-
         self.assertEqual(race.pole, seat_b)
 
 
