@@ -21,6 +21,8 @@ class AbstractStreakModel(object):
         raise NotImplementedError('Not implemented property')
 
     def get_streak(self, max_streak=False, result_filter=None, **filters):
+        if not result_filter:
+            result_filter = {}
         results = self.get_reverse_results(**result_filter)
         return Streak(results=results, max_streak=max_streak).run(filters)
 
