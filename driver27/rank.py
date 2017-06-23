@@ -73,6 +73,7 @@ class AbstractRankModel(models.Model):
 
     def stats_rank(self, **filters):
         """ Get driver rank based on record filter """
+        filters.update(**self.stats_filter_kwargs)
         contenders = getattr(self, 'drivers').all()
         rank = []
         for contender in contenders:
@@ -83,6 +84,7 @@ class AbstractRankModel(models.Model):
 
     def streak_rank(self, only_actives=False, max_streak=False, **filters):
         """ Get driver rank based on record filter """
+        filters.update(**self.stats_filter_kwargs)
         contenders = getattr(self, 'drivers').all()
         rank = []
         for contender in contenders:
