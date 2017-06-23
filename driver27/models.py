@@ -14,7 +14,7 @@ from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField
 from swapfield.fields import SwapIntegerField
-from . import lr_intr, lr_diff, season_bulk_copy
+from . import lr_intr, lr_diff
 from django.db.models.sql import constants
 from .stats import AbstractStreakModel, AbstractStatsModel, TeamStatsModel
 from .rank import AbstractRankModel

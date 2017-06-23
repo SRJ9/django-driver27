@@ -3,6 +3,7 @@ from django.test import TestCase
 from .common import CommonResultTestCase
 from ..models import Result, Seat, TeamSeason, ContenderSeason, SeatPeriod, CompetitionTeam
 from ..records import get_record_config
+from ..punctuation import get_punctuation_config
 from django.core.exceptions import ValidationError
 
 
@@ -204,6 +205,13 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEqual(driver.get_stats(season=season_3, **record_config), 5, 'Record in season_3')
         self.assertEqual(driver.get_stats(season=season_4, **record_config), 3, 'Record in season_4')
 
+        self.assertTrue(driver.is_active)
+
+        punctuation_config = get_punctuation_config('F1-10+6')
+
+        self.assertEqual(driver.get_points(), 418)
+        self.assertEqual(driver.get_points(punctuation_config=punctuation_config), 150)
+
     def test_rank(self):
         seat_a = self.get_test_seat()
         competition = self.get_test_competition()
@@ -227,6 +235,7 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEquals(len(season.team_points_rank()), 1) # seat a and seat b is in the same team
         self.assertEquals(season.leader[1], seat_a.driver) # seat a.driver is the winner, the leader
         self.assertEquals(season.team_leader[1], seat_a.team)
+        self.assertEqual(season.runner_up[1], seat_b.driver)
 
         # contenderseason.get_points
         driver_a = seat_a.driver
