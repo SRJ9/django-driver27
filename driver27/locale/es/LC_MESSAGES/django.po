@@ -461,7 +461,7 @@ msgstr "Mejor racha contando pilotos inactivos"
 
 #: driver27/templates/driver27/driver/driver-record.html:50
 msgid "Best streak. Inactive drivers are excluded"
-msgstr "Racha actual contando pilotos inactivos"
+msgstr "Mejor racha contando pilotos inactivos"
 
 #: driver27/templates/driver27/driver/driver-record.html:59
 #: driver27/templates/driver27/team/team-record.html:93
