@@ -43,19 +43,19 @@ class ViewTest(FixturesTest):
         self.client = Client()
         self.factory = RequestFactory()
 
-    def test_spider_admin(self):
-        client = Client()
-        client.login(username='admin', password='pass')
-        base_admin = '/admin/driver27'
-        models = ['circuit', 'competition', 'driver', 'grandprix', 'race', 'season', 'seat', 'team']
-        for model in models:
-            url = base_admin + '/' + model + '/'
-            resp = client.get(url, follow=True)
-            self.assertEqual(resp.status_code, 200, url + ' code='+str(resp.status_code))
-            url = base_admin + '/' + model + '/add/'
-            resp = client.get(url, follow=True)
-            self.assertEqual(resp.status_code, 200, url + ' code='+str(resp.status_code))
-            url = base_admin + '/' + model + '/1/change/'
-            resp = client.get(url, follow=True)
-            self.assertEqual(resp.status_code, 200, url + ' code='+str(resp.status_code))
+    # def test_spider_admin(self):
+    #     client = Client()
+    #     client.login(username='admin', password='pass')
+    #     base_admin = '/admin/driver27'
+    #     models = ['circuit', 'competition', 'driver', 'grandprix', 'race', 'season', 'seat', 'team']
+    #     for model in models:
+    #         url = base_admin + '/' + model + '/'
+    #         resp = client.get(url, follow=True)
+    #         self.assertEqual(resp.status_code, 200, url + ' code='+str(resp.status_code))
+    #         url = base_admin + '/' + model + '/add/'
+    #         resp = client.get(url, follow=True)
+    #         self.assertEqual(resp.status_code, 200, url + ' code='+str(resp.status_code))
+    #         url = base_admin + '/' + model + '/1/change/'
+    #         resp = client.get(url, follow=True)
+    #         self.assertEqual(resp.status_code, 200, url + ' code='+str(resp.status_code))
 
