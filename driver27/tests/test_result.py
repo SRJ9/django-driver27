@@ -6,6 +6,8 @@ from ..records import get_record_config
 from ..punctuation import get_punctuation_config
 from django.core.exceptions import ValidationError
 
+from collections import namedtuple
+
 
 class ResultTestCase(TestCase, CommonResultTestCase):
     def _insert_massive_results(self, seat, season, results):
@@ -93,10 +95,11 @@ class ResultTestCase(TestCase, CommonResultTestCase):
 
     def test_streak_results(self):
         record_config = get_record_config('PODIUM').get('filter')
+        RankEntry = namedtuple('RankEntry', 'point driver teams position_str')
         seat = self.get_test_seat()
         driver = seat.driver
         competition_1 = self.get_test_competition()
-        season_1 = self.get_test_season(competition=competition_1)
+        season_1 = self.get_test_season(competition=competition_1, rounds=8)
         self.get_test_competition_team(competition=competition_1, team=seat.team)
 
         results_1 = [
@@ -114,6 +117,11 @@ class ResultTestCase(TestCase, CommonResultTestCase):
 
         self.assertEqual(driver.get_streak(**record_config), 2)
         self.assertEqual(driver.get_streak(max_streak=True, **record_config), 5)
+
+        season_1_leader = RankEntry(*season_1.leader)
+        self.assertEqual(driver.get_points(season=season_1), 142)
+        self.assertEqual(season_1_leader.point, driver.get_points(season=season_1))
+        self.assertTrue(season_1.has_champion())
 
         # season 2
         # same competition
@@ -133,6 +141,10 @@ class ResultTestCase(TestCase, CommonResultTestCase):
 
         self.assertEqual(driver.get_streak(**record_config), 6)
         self.assertEqual(driver.get_season(season_2).get_streak(**record_config), 4)
+
+        season_2_leader = RankEntry(*season_2.leader)
+        self.assertEqual(driver.get_points(season=season_2), 83)
+        self.assertEqual(season_2_leader.point, driver.get_points(season=season_2))
 
         # season 3
         # diff competition
@@ -156,6 +168,11 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEqual(driver.get_streak(**record_config), 11)
         self.assertEqual(driver.get_streak(result_filter={'competition': competition_2}, **record_config), 5)
         self.assertEqual(driver.get_season(season_3).get_streak(**record_config), 5)
+
+        season_3_leader = RankEntry(*season_3.leader)
+        self.assertEqual(driver.get_points(season=season_3), 108)
+        self.assertEqual(season_3_leader.point, driver.get_points(season=season_3))
+
 
         # season 4
         # back to competition 1
@@ -211,6 +228,10 @@ class ResultTestCase(TestCase, CommonResultTestCase):
 
         self.assertEqual(driver.get_points(), 418)
         self.assertEqual(driver.get_points(punctuation_config=punctuation_config), 150)
+
+        season_4_leader = RankEntry(*season_4.leader)
+        self.assertEqual(driver.get_points(season=season_4), 85)
+        self.assertEqual(season_4_leader.point, driver.get_points(season=season_4))
 
     def test_rank(self):
         seat_a = self.get_test_seat()
