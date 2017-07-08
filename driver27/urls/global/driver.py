@@ -6,6 +6,6 @@ driver_path = 'dr27-global'
 
 urlpatterns = \
     [
-        url(r'^(?P<driver_id>[-\w\d]+)/$', views.driver_profile_view, name='dr27-profile-list'),
+        url(r'^(?P<driver_id>\d+)/$', views.driver_profile_view, name='dr27-profile-view'),
     ]
 urlpatterns += dr27_driver_urls(driver_path)

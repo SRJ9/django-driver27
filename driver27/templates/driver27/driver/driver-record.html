@@ -63,7 +63,7 @@
             {% for count,driver,team in rank %}
                 <tr>
                     <td>{{ count }}</td>
-                    <td>{{ driver }}</td>
+                    <td><a href="{% url 'dr27-profile-view' driver.pk %}">{{ driver }}</a></td>
                     <td>{{ team }}</td>
                 </tr>
             {% endfor %}

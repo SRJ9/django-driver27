@@ -32,7 +32,7 @@
                 </td>
                 <td>
                     {{ season.pk | champion_filter | safe }}
-                    {{ season.leader.0 }} {{ season.leader.1 }} ({{ season.leader.2 }})
+                    {{ season.leader.0 }} <a href="{% url 'dr27-profile-view' season.leader.1.pk %}">{{ season.leader.1 }}</a> ({{ season.leader.2 }})
                 </td>
                 <td>
                     {{ season.team_leader.0 }} {{ season.team_leader.1 }}
