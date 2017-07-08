@@ -440,7 +440,7 @@ class Season(AbstractRankModel):
 
     class Meta:
         unique_together = ('year', 'competition')
-        ordering = ['competition__name', 'year']
+        ordering = ['year', 'competition__name', ]
         verbose_name = _('Season')
         verbose_name_plural = _('Seasons')
 
