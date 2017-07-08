@@ -11,11 +11,11 @@
         </tr>
         </thead>
 
-        {% for positions_str,driver,team, positions_list in rank %}
+        {% for entry in rank %}
             <tr>
-                <td><a href="{% url 'dr27-profile-view' driver.pk %}">{{ driver }}</a></td>
-                <td>{{ team }}</td>
-                {% for position in positions_list %}
+                <td><a href="{% url 'dr27-profile-view' entry.driver.pk %}">{{ entry.driver }}</a></td>
+                <td>{{ entry.teams }}</td>
+                {% for position in entry.pos_list %}
                     <td>{{ position }}</td>
                 {% endfor %}
             </tr>

@@ -60,11 +60,11 @@
                 <th>{% trans 'Driver' %}</th>
                 <th>{% trans 'Team' %}</th>
             </tr>
-            {% for count,driver,team in rank %}
+            {% for entry in rank %}
                 <tr>
-                    <td>{{ count }}</td>
-                    <td><a href="{% url 'dr27-profile-view' driver.pk %}">{{ driver }}</a></td>
-                    <td>{{ team }}</td>
+                    <td>{{ entry.stat }}</td>
+                    <td><a href="{% url 'dr27-profile-view' entry.driver.pk %}">{{ entry.driver }}</a></td>
+                    <td>{{ entry.teams }}</td>
                 </tr>
             {% endfor %}
 

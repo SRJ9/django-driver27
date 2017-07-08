@@ -9,15 +9,15 @@
     </tr>
     </thead>
 
-    {% for points,driver,team, positions in rank %}
+    {% for entry in rank %}
         <tr>
-        <td id="points_{{ forloop.counter }}">{{ points }}</td>
-        <td><a href="{% url 'dr27-profile-view' driver.pk %}">{{ driver }}</a>
+        <td id="points_{{ forloop.counter }}">{{ entry.points }}</td>
+        <td><a href="{% url 'dr27-profile-view' entry.driver.pk %}">{{ entry.driver }}</a>
             {% if forloop.counter == 1%}
                 {{ season.pk | champion_filter | safe}}
             {% endif %}
         </td>
-        <td>{{ team }}</td>
+        <td>{{ entry.teams }}</td>
         </tr>
     {% endfor %}
 

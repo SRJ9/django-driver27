@@ -392,7 +392,7 @@ class Season(AbstractRankModel):
         can be obtained in the remaining races."""
         pending_points = self.pending_points(punctuation_code=punctuation_code)
         leader = self.get_leader(rank=rank, punctuation_code=punctuation_code)
-        return leader[0] - pending_points if leader else None
+        return leader['points'] - pending_points if leader else None
 
     def only_title_contenders(self, punctuation_code=None):
         """ They are only candidates for the title if they can reach the leader by adding all the pending points."""
@@ -401,7 +401,7 @@ class Season(AbstractRankModel):
 
         title_rank = []
         if leader_window:
-            title_rank = [entry for entry in rank if entry[0] >= leader_window]
+            title_rank = [entry for entry in rank if entry['points'] >= leader_window]
         return title_rank
 
     def has_champion(self, punctuation_code=None):

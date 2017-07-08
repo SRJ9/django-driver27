@@ -95,7 +95,6 @@ class ResultTestCase(TestCase, CommonResultTestCase):
 
     def test_streak_results(self):
         record_config = get_record_config('PODIUM').get('filter')
-        RankEntry = namedtuple('RankEntry', 'point driver teams position_str')
         seat = self.get_test_seat()
         driver = seat.driver
         competition_1 = self.get_test_competition()
@@ -118,9 +117,8 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEqual(driver.get_streak(**record_config), 2)
         self.assertEqual(driver.get_streak(max_streak=True, **record_config), 5)
 
-        season_1_leader = RankEntry(*season_1.leader)
         self.assertEqual(driver.get_points(season=season_1), 142)
-        self.assertEqual(season_1_leader.point, driver.get_points(season=season_1))
+        self.assertEqual(season_1.leader['points'], driver.get_points(season=season_1))
         self.assertTrue(season_1.has_champion())
 
         # season 2
@@ -142,9 +140,8 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEqual(driver.get_streak(**record_config), 6)
         self.assertEqual(driver.get_season(season_2).get_streak(**record_config), 4)
 
-        season_2_leader = RankEntry(*season_2.leader)
         self.assertEqual(driver.get_points(season=season_2), 83)
-        self.assertEqual(season_2_leader.point, driver.get_points(season=season_2))
+        self.assertEqual(season_2.leader['points'], driver.get_points(season=season_2))
 
         # season 3
         # diff competition
@@ -169,9 +166,8 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEqual(driver.get_streak(result_filter={'competition': competition_2}, **record_config), 5)
         self.assertEqual(driver.get_season(season_3).get_streak(**record_config), 5)
 
-        season_3_leader = RankEntry(*season_3.leader)
         self.assertEqual(driver.get_points(season=season_3), 108)
-        self.assertEqual(season_3_leader.point, driver.get_points(season=season_3))
+        self.assertEqual(season_3.leader['points'], driver.get_points(season=season_3))
 
 
         # season 4
@@ -207,7 +203,7 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEqual(driver.get_season(season_4).get_streak(**record_config), 1)
         self.assertEqual(driver.get_streak(max_streak=True, **record_config), 13)
         self.assertEqual(driver.get_streak(max_streak=True, result_filter={'competition': competition_1},
-                                                **record_config), 8)
+                                           **record_config), 8)
         self.assertEqual(driver.get_season(season_4).get_streak(max_streak=True, **record_config), 2)
         # and records in competition_2/season_3 are not altered
         self.assertEqual(driver.get_streak(result_filter={'competition': competition_2}, **record_config), 5)
@@ -229,9 +225,8 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEqual(driver.get_points(), 418)
         self.assertEqual(driver.get_points(punctuation_config=punctuation_config), 150)
 
-        season_4_leader = RankEntry(*season_4.leader)
         self.assertEqual(driver.get_points(season=season_4), 85)
-        self.assertEqual(season_4_leader.point, driver.get_points(season=season_4))
+        self.assertEqual(season_4.leader['points'], driver.get_points(season=season_4))
 
     def test_rank(self):
         seat_a = self.get_test_seat()
@@ -254,9 +249,9 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEquals(len(season.points_rank()), 2)
         self.assertEquals(len(season.olympic_rank()), 2)
         self.assertEquals(len(season.team_points_rank()), 1) # seat a and seat b is in the same team
-        self.assertEquals(season.leader[1], seat_a.driver) # seat a.driver is the winner, the leader
-        self.assertEquals(season.team_leader[1], seat_a.team)
-        self.assertEqual(season.runner_up[1], seat_b.driver)
+        self.assertEquals(season.leader['driver'], seat_a.driver) # seat a.driver is the winner, the leader
+        self.assertEquals(season.team_leader['team'], seat_a.team)
+        self.assertEqual(season.runner_up['driver'], seat_b.driver)
 
         # contenderseason.get_points
         driver_a = seat_a.driver
@@ -293,21 +288,18 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.get_test_competition_team(competition=competition_a, team=seat_a.team)
 
         result_a = self.get_test_result(seat=seat_a, race=race_season_a, qualifying=1, finish=1)
-        rank_a = season_a.points_rank()
-        leader_points_a, leader_driver_a, leader_teams_a, leader_pos_a = rank_a[0]
-        self.assertEqual(leader_points_a, 25)
+        self.assertEqual(season_a.leader['points'], 25)
 
         season_b = self.get_test_season(competition=competition_a, year=2019)
         race_season_b = self.get_test_race(season=season_b, round=1)
         result_b = self.get_test_result(seat=seat_a, race=race_season_b, qualifying=1, finish=1)
 
         rank_b = season_b.points_rank()
-        leader_points_b, leader_driver_b, leader_teams_b, leader_pos_b = rank_b[0]
-        self.assertEqual(leader_points_b, 25)
+        self.assertEqual(season_b.leader['points'], 25)
 
         rank_competition_a = competition_a.points_rank()
-        leader_points_comp_a, leader_driver_comp_a, leader_teams_comp_a, leader_pos_comp_a = rank_competition_a[0]
-        self.assertEqual(leader_points_comp_a, 50)
+        leader_comp_a = rank_competition_a[0]
+        self.assertEqual(leader_comp_a['points'], 50)
 
         competition_c = self.get_test_competition_2()
         season_c = self.get_test_season(competition=competition_c, year=2020)
@@ -316,12 +308,12 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         result_c = self.get_test_result(seat=seat_a, race=race_season_c, qualifying=1, finish=1)
 
         rank_c = season_c.points_rank()
-        leader_points_c, leader_driver_c, leader_teams_c, leader_pos_c = rank_c[0]
-        self.assertEqual(leader_points_c, 25)
+        leader_c = rank_c[0]
+        self.assertEqual(leader_c['points'], 25)
 
         rank_competition_c = competition_c.points_rank()
-        leader_points_comp_c, leader_driver_comp_c, leader_teams_comp_c, leader_pos_comp_c = rank_competition_c[0]
-        self.assertEqual(leader_points_comp_c, 25)
+        leader_comp_c = rank_competition_c[0]
+        self.assertEqual(leader_comp_c['points'], 25)
 
     def test_seat_team_exception(self):
         seat = self.get_test_seat()

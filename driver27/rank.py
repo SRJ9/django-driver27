@@ -11,8 +11,6 @@ except ImportError:
     pass
 
 
-
-
 class AbstractRankModel(models.Model):
 
     def get_stats_cls(self, contender):
@@ -34,9 +32,13 @@ class AbstractRankModel(models.Model):
         rank = []
         for driver in drivers:
             stat_cls = self.get_stats_cls(driver)
-            rank.append((stat_cls.get_points(punctuation_config=punctuation_config, **self.stats_filter_kwargs), driver,
-                         stat_cls.teams_verbose, stat_cls.get_positions_str()))
-        rank = sorted(rank, key=lambda x: (x[0], x[3]), reverse=True)
+            rank.append({'points': stat_cls.get_points(punctuation_config=punctuation_config,
+                                                       **self.stats_filter_kwargs),
+                         'driver': driver,
+                         'teams': stat_cls.teams_verbose,
+                         'pos_str': stat_cls.get_positions_str()
+                         })
+        rank = sorted(rank, key=lambda x: (x['points'], x['pos_str']), reverse=True)
         return rank
 
     def olympic_rank(self):
@@ -51,9 +53,12 @@ class AbstractRankModel(models.Model):
             stat_cls = self.get_stats_cls(driver)
             position_list = stat_cls.get_positions_list(**self.stats_filter_kwargs)
             position_str = stat_cls.get_positions_str(position_list=position_list)
-            rank.append((position_str, driver,
-                         stat_cls.teams_verbose, position_list))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+            rank.append({'pos_str': position_str,
+                         'driver': driver,
+                         'teams': stat_cls.teams_verbose,
+                         'pos_list': position_list
+                         })
+        rank = sorted(rank, key=lambda x: x['pos_str'], reverse=True)
         return rank
 
     def team_points_rank(self, punctuation_code=None):
@@ -66,32 +71,40 @@ class AbstractRankModel(models.Model):
         for team in teams:
             team_stats_cls = self.get_team_stats_cls(team)
             team_stats_kw = self.stats_filter_kwargs
-            rank.append((team_stats_cls.get_points(punctuation_config=punctuation_config, **team_stats_kw), team,
-                         team_stats_cls.get_positions_str()))
-        rank = sorted(rank, key=lambda x: (x[0], x[2]), reverse=True)
+            rank.append({'points': team_stats_cls.get_points(punctuation_config=punctuation_config,
+                                                             **team_stats_kw),
+                         'team': team,
+                         'pos_str': team_stats_cls.get_positions_str()
+                         })
+        rank = sorted(rank, key=lambda x: (x['points'], x['pos_str']), reverse=True)
         return rank
 
     def stats_rank(self, **filters):
         """ Get driver rank based on record filter """
         filters.update(**self.stats_filter_kwargs)
-        contenders = getattr(self, 'drivers').all()
+        drivers = getattr(self, 'drivers').all()
         rank = []
-        for contender in contenders:
-            stat_cls = self.get_stats_cls(contender)
-            rank.append((stat_cls.get_stats(**filters), contender, stat_cls.teams_verbose))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+        for driver in drivers:
+            stat_cls = self.get_stats_cls(driver)
+            rank.append({'stat': stat_cls.get_stats(**filters),
+                         'driver': driver,
+                         'teams': stat_cls.teams_verbose})
+        rank = sorted(rank, key=lambda x: x['stat'], reverse=True)
         return rank
 
     def streak_rank(self, only_actives=False, max_streak=False, **filters):
         """ Get driver rank based on record filter """
-        contenders = getattr(self, 'drivers').all()
+        drivers = getattr(self, 'drivers').all()
         rank = []
-        for contender in contenders:
-            stat_cls = self.get_stats_cls(contender)
+        for driver in drivers:
+            stat_cls = self.get_stats_cls(driver)
             if only_actives and not stat_cls.is_active:
                 continue
-            rank.append((stat_cls.get_streak(result_filter=self.stats_filter_kwargs, max_streak=max_streak, **filters), contender, stat_cls.teams_verbose))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+            rank.append({'streak': stat_cls.get_streak(result_filter=self.stats_filter_kwargs,
+                                                       max_streak=max_streak, **filters),
+                         'driver': driver,
+                         'teams': stat_cls.teams_verbose})
+        rank = sorted(rank, key=lambda x: x['streak'], reverse=True)
         return rank
 
     @staticmethod
