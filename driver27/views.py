@@ -4,7 +4,7 @@ from django.http import Http404
 from django.shortcuts import render
 from django.utils.translation import ugettext as _
 
-from .models import Competition, Season, Race, RankModel
+from .models import Competition, Season, Race, RankModel, Driver
 from .records import get_record_config, get_record_label_dict
 from .punctuation import get_punctuation_config, get_punctuation_label_dict
 
@@ -268,4 +268,18 @@ def team_record_view(request, competition_slug, year, rank_type, record=None):
     tpl = 'driver27/team/team-record.html'
     return render(request, tpl, context)
 
+
+def driver_profile_view(request, driver_id):
+    driver = get_or_404(Driver, {'pk': driver_id}, _('Driver does not exist'))
+    by_season = driver.get_multiple_records_by_season(append_points=True)
+    by_competition = driver.get_multiple_records_by_competition(append_points=True)
+    context = {
+        'driver': driver,
+        'by_season': by_season,
+        'by_competition': by_competition,
+        'stats': driver.get_multiple_records(append_points=True),
+        'title': 'Profile of {driver}'.format(driver=driver)
+    }
+    tpl = 'driver27/driver/driver-profile.html'
+    return render(request, tpl, context)
 

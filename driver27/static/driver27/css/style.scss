@@ -3,52 +3,68 @@
   font-variant: small-caps;
   border-radius: 15%;
 }
+
 .retired {
   @extend .result;
-  background-color:red;
+  background-color: red;
 }
-.fastest{
+
+.fastest {
   @extend .result;
-  background-color:blue;
+  background-color: blue;
 }
-.wildcard{
+
+.wildcard {
   @extend .result;
-  background-color:orange;
+  background-color: orange;
 }
 
-.finish_1{
-  background-color:gold !important;
-  font-size:1.8em;
+.finish_1 {
+  background-color: gold !important;
+  font-size: 1.8em;
 }
 
-.finish_2{
-  background-color:silver !important;
-  font-size:1.6em;
+.finish_2 {
+  background-color: silver !important;
+  font-size: 1.6em;
 }
 
-.finish_3{
-  background-color:#CD7F32 !important;
-  font-size:1.3em;
+.finish_3 {
+  background-color: #CD7F32 !important;
+  font-size: 1.3em;
 }
 
-.points{
+.points {
   background-color: darkseagreen;
 }
 
-tr:not(.points){
-  font-size:0.9em;
+tr:not(.points) {
+  font-size: 0.9em;
 }
 
 .result_error {
   background-color: #E34A3E;
 }
 
-.champion_points, .champion_tag{
-    font-size:1.3em;
-    font-weight: bolder;
+.champion_points, .champion_tag {
+  font-size: 1.3em;
+  font-weight: bolder;
 }
 
-select[name='scoring']{
+select[name='scoring'] {
   display: inline-table;
   max-width: 300px;
+}
+
+span.summary_count {
+  font-size: 3em;
+}
+
+.driver_image.demo {
+  width: 100px;
+  height: 100px;
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+  border: 4px solid #5cb85c;
 }

@@ -41,4 +41,15 @@ select[name='scoring'] {
   display: inline-table;
   max-width: 300px; }
 
+span.summary_count {
+  font-size: 3em; }
+
+.driver_image.demo {
+  width: 100px;
+  height: 100px;
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+  border: 4px solid #5cb85c; }
+
 /*# sourceMappingURL=style.css.map */

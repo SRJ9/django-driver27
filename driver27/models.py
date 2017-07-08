@@ -59,6 +59,14 @@ class Driver(AbstractStatsModel):
         return {}
 
     @property
+    def seasons(self):
+        return Season.objects.filter(races__results__seat__driver=self).distinct()
+
+    @property
+    def competitions(self):
+        return Competition.objects.filter(seasons__in=self.seasons.all()).distinct()
+
+    @property
     def is_active(self):
         seasons_ordered_by_desc_year = Season.objects.order_by('-year')
         if seasons_ordered_by_desc_year.count():
@@ -67,9 +75,12 @@ class Driver(AbstractStatsModel):
         else:
             return True
 
+    def _teams_verbose(self, teams):
+        return ', '.join([team.name for team in teams])
+
     @property
     def teams_verbose(self):
-        return ', '.join([team.name for team in self.teams.all()])
+        return self._teams_verbose(self.teams.all())
 
     def get_results(self, limit_races=None, **extra_filter):
         return Result.wizard(driver=self, limit_races=limit_races, **extra_filter)
@@ -97,6 +108,33 @@ class Driver(AbstractStatsModel):
 
     def season_stats_cls(self, season):
         return ContenderSeason(driver=self, season=season)
+
+    def get_multiple_records_by_season(self, records_list=None, append_points=False, **kwargs):
+        stats_by_season = []
+        for season in self.seasons.all():
+            stats_by_season.append(
+                {
+                    'competition': season.competition,
+                    'year': season.year,
+                    'teams': self.get_season(season=season).teams_verbose,
+                    'stats': self.get_multiple_records(records_list=records_list,
+                                                       append_points=append_points, season=season, **kwargs)
+                }
+            )
+        return stats_by_season
+
+    def get_multiple_records_by_competition(self, records_list=None, append_points=False, **kwargs):
+        stats_by_competition = []
+        for competition in self.competitions.all():
+            stats_by_competition.append(
+                {
+                    'competition': competition,
+                    'stats': self.get_multiple_records(records_list=records_list,
+                                                       append_points=append_points,
+                                                       competition=competition, **kwargs)
+                }
+            )
+        return stats_by_competition
 
     def __str__(self):
         return u', '.join((self.last_name, self.first_name))
@@ -607,10 +645,14 @@ class TeamSeason(TeamStatsModel):
         positions_str = ''.join([str(x).zfill(3) for x in position_list])
         return positions_str
 
-    def __str__(self):
+    def get_name_in_season(self):
         str_team = self.team.name
         if self.sponsor_name:
             str_team = self.sponsor_name
+        return str_team
+
+    def __str__(self):
+        str_team = self.get_name_in_season()
         return '{team} in {season}'.format(team=str_team, season=self.season)
 
     class Meta:
@@ -734,7 +776,19 @@ class ContenderSeason(AbstractStreakModel):
         self.season = season
         self.seats = Seat.objects.filter(driver__pk=self.driver.pk, results__race__season__pk=self.season.pk)
         self.teams = Team.objects.filter(seats__in=self.seats)
-        self.teams_verbose = ', '.join([team.name for team in self.teams])
+        self.teams_verbose = self.get_teams_verbose()
+
+    def get_teams_verbose(self):
+        # In case of sponsor_name, it will be show in teams_verbose
+        teams_verbose = []
+        for team in self.teams:
+            team_season = TeamSeason.objects.filter(team=team, season=self.season)
+            if team_season.exists():
+                team_verbose = '{team}'.format(team=team_season.first().get_name_in_season())
+            else:
+                team_verbose = team.name
+            teams_verbose.append(team_verbose)
+        return ', '.join(teams_verbose)
 
     def get_results(self, limit_races=None, **extra_filter):
         """ Return results. Can be limited."""

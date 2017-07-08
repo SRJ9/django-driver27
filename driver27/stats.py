@@ -1,6 +1,7 @@
 from .streak import Streak
 from django.core.exceptions import ValidationError
 from django.db import models
+from .records import get_record_config
 try:
     from .models import Season
 except ImportError:
@@ -48,6 +49,18 @@ class AbstractStatsModel(AbstractStreakModel, models.Model):
             return season_stats
         except ValidationError:
             return None
+
+    def get_multiple_records(self, records_list=None, append_points=False, **kwargs):
+        multiple_records = {}
+        if records_list is None:
+            records_list = ['RACE', 'POLE', 'WIN', 'PODIUM', 'FASTEST']
+        for record in records_list:
+            record_config = get_record_config(record).get('filter')
+            record_stat = self.get_stats(**dict(kwargs, **record_config))
+            multiple_records[record] = record_stat
+        if append_points:
+            multiple_records['POINTS'] = self.get_points(**kwargs)
+        return multiple_records
 
     def get_saved_points(self, limit_races=None, **kwargs):
         results = self.get_results(limit_races=limit_races, **kwargs)

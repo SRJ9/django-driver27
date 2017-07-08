@@ -1,0 +1,77 @@
+{% extends 'driver27/base.html' %}
+{% load static %}
+{% block dr27_content %}
+    {{ block.super }}
+    <div class="container-fluid">
+        <div class="col-md-9">
+            <div class="driver_image demo col-xs-12 col-md-3"><span class="text-center">Photo</span></div>
+            <div class="col-xs-12 col-md-9">
+                <h1>
+                    <small>{{ driver.first_name }}</small>
+                    {{ driver.last_name }} </h1>
+                <i class="{{ driver.country.flag_css }}"></i>
+            </div>
+            <div class="clearfix"></div>
+            <div class="col-md-12">
+                {% if by_season %}
+                    <h3>Stats by season</h3>
+                    <table class="table table-striped text-right table-responsive">
+                    <thead>
+                    <tr>
+                        <th>Competition</th>
+                        <th>Year</th>
+                        <th>Teams</th>
+                        <th>Races</th>
+                        <th>P1</th>
+                        <th>WIN</th>
+                        <th>1-3</th>
+                        <th>FL</th>
+                        <th>Pts</th>
+                    </tr>
+                    </thead>
+
+                        {% for season in by_season %}
+                            <tr>
+                                <td>{{ season.competition }}</td>
+                                <td>{{ season.year }}</td>
+                                <td>{{ season.teams }}</td>
+                                <td>{{ season.stats.RACE }}</td>
+                                <td>{{ season.stats.POLE }}</td>
+                                <td>{{ season.stats.WIN }}</td>
+                                <td>{{ season.stats.PODIUM }}</td>
+                                <td>{{ season.stats.FASTEST }}</td>
+                                <td>{{ season.stats.POINTS }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% else %}
+                    No results
+                {% endif %}
+
+            </div>
+
+        </div>
+        <div class="col-md-3 driver_summary">
+                <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.RACE }}</span> races</div>
+                <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.POLE }}</span> poles</div>
+                <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.WIN }}</span> wins</div>
+                <div class="clearfix"></div>
+                <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.PODIUM }}</span> podiums</div>
+                <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.FASTEST }}</span> fastest laps</div>
+                <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.POINTS }}</span> points</div>
+
+        </div>
+        <div class="clearfix"></div>
+
+
+    </div>
+
+
+
+{% endblock %}
+
+{% block bootstrap3_extra_head %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
+
+{% endblock %}
