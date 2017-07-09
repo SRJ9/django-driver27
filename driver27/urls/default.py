@@ -30,6 +30,7 @@ def dr27_race_urls(base_path):
 def dr27_team_urls(base_path):
     return [
         url(r'^$', views.team_rank_view, name=base_path+'-team'),
+        url(r'^olympic/$', views.team_olympic_view, name=base_path+'-team-olympic'),
         url(r'^record$', views.team_record_stats_view, name=base_path+'-team-record-index'),
         url(r'^record/(?P<record>[-\w\d]+)$', views.team_record_stats_view, name=base_path+'-team-record'),
         url(r'^record/(?P<record>[-\w\d]+)/races$', views.team_record_races_view, name=base_path+'-team-record-races'),

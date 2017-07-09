@@ -151,6 +151,21 @@ class AbstractRankModel(models.Model):
     def team_doubles_rank(self, **filters):
         return self.team_rank('get_doubles_races', **filters)
 
+    def olympic_team_rank(self):
+        """ Points team rank. Scoring can be override by scoring_code param """
+        teams = getattr(self, 'teams').all()
+        rank = []
+        for team in teams:
+            stat_cls = self.get_stats_cls(team)
+            position_list = stat_cls.get_positions_list(**self.stats_filter_kwargs)
+            position_str = stat_cls.get_positions_str(position_list=position_list)
+            rank.append({'pos_str': position_str,
+                         'team': team,
+                         'pos_list': position_list
+                         })
+        rank = sorted(rank, key=lambda x: x['pos_str'], reverse=True)
+        return rank
+
     class Meta:
         abstract = True
 

@@ -1,0 +1,25 @@
+{% load champion_filter i18n %}
+{% if rank %}
+    <table class="table table-condensed table-striped table-hover">
+        <thead>
+        <tr>
+            <th>{% trans 'Team' %}</th>
+            {% for position in positions %}
+                <th>{{ position }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+
+        {% for entry in rank %}
+            <tr>
+                <td>{{ entry.team }}</td>
+                {% for position in entry.pos_list %}
+                    <td>{{ position }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+
+    </table>
+{% else %}
+    <p>No teams</p>
+{% endif %}

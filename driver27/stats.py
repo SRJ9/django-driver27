@@ -14,6 +14,9 @@ except ImportError:
 
 
 class AbstractStreakModel(object):
+    def get_results(self, *args, **kwargs):
+        raise NotImplementedError('Not implemented property')
+
     def get_reverse_results(self, *args, **kwargs):
         raise NotImplementedError('Not implemented property')
 
@@ -27,14 +30,30 @@ class AbstractStreakModel(object):
         results = self.get_reverse_results(**result_filter)
         return Streak(results=results, max_streak=max_streak).run(filters)
 
+    def get_positions_list(self, limit_races=None, competition=None):
+        """ Return a list with the count of each 20 first positions """
+        results = self.get_results(limit_races=limit_races, competition=competition)
+        finished = results.values_list('finish', flat=True)
+        last_position = 20
+        positions = []
+        for x in range(1, last_position+1):
+            position_count = len([finish for finish in finished if finish==x])
+            positions.append(position_count)
+        return positions
+
+    def get_positions_str(self, position_list=None, limit_races=None):
+        """ Return a str with position_list to order """
+        " Each list item will be filled to zeros until get three digits e.g. 1 => 001, 12 => 012 "
+        if not position_list:
+            position_list = self.get_positions_list(limit_races=limit_races)
+        positions_str = ''.join([str(x).zfill(3) for x in position_list])
+        return positions_str
+
 
 class AbstractStatsModel(AbstractStreakModel, models.Model):
 
     @property
     def result_filter_kwargs(self):
-        raise NotImplementedError('Not implemented property')
-
-    def get_results(self, *args, **kwargs):
         raise NotImplementedError('Not implemented property')
 
     def get_points(self, *args, **kwargs):
@@ -78,24 +97,7 @@ class AbstractStatsModel(AbstractStreakModel, models.Model):
         """ Count 1 by each result """
         return self.get_results(**filters).count()
 
-    def get_positions_list(self, limit_races=None, competition=None):
-        """ Return a list with the count of each 20 first positions """
-        results = self.get_results(limit_races=limit_races, competition=competition)
-        finished = results.values_list('finish', flat=True)
-        last_position = 20
-        positions = []
-        for x in range(1, last_position+1):
-            position_count = len([finish for finish in finished if finish==x])
-            positions.append(position_count)
-        return positions
 
-    def get_positions_str(self, position_list=None, limit_races=None):
-        """ Return a str with position_list to order """
-        " Each list item will be filled to zeros until get three digits e.g. 1 => 001, 12 => 012 "
-        if not position_list:
-            position_list = self.get_positions_list(limit_races=limit_races)
-        positions_str = ''.join([str(x).zfill(3) for x in position_list])
-        return positions_str
 
     class Meta:
         abstract = True
