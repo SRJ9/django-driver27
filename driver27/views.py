@@ -228,8 +228,7 @@ def driver_record_seasons_view(request, competition_slug=None, year=None, record
         rank = season_or_competition.seasons_rank(**context.get('record_filter')) if 'record_filter' in context else None
     context.pop('record_filter', None)
     context['rank'] = rank
-    context['by_season'] = True
-    context['streak'] = 'seasons'
+    context['rank_opt'] = 'seasons'
     tpl = 'driver27/driver/driver-record.html'
     return render(request, tpl, context)
 
@@ -270,7 +269,7 @@ def driver_streak_view(request, competition_slug=None, year=None, record=None, o
                                                  **context.get('record_filter')) if 'record_filter' in context else None
     context.pop('record_filter', None)
     context['rank'] = rank
-    context['streak'] = get_streak_value_for_selector(only_actives=only_actives, max_streak=max_streak)
+    context['rank_opt'] = get_streak_value_for_selector(only_actives=only_actives, max_streak=max_streak)
     tpl = 'driver27/driver/driver-record.html'
     return render(request, tpl, context)
 

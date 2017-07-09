@@ -116,11 +116,11 @@ class AbstractRankModel(models.Model):
             stat_cls = self.get_stats_cls(driver)
             if only_actives and not stat_cls.is_active:
                 continue
-            rank.append({'streak': stat_cls.get_streak(result_filter=self.stats_filter_kwargs,
-                                                       max_streak=max_streak, **filters),
+            rank.append({'stat': stat_cls.get_streak(result_filter=self.stats_filter_kwargs,
+                                                     max_streak=max_streak, **filters),
                          'driver': driver,
                          'teams': stat_cls.teams_verbose})
-        rank = sorted(rank, key=lambda x: x['streak'], reverse=True)
+        rank = sorted(rank, key=lambda x: x['stat'], reverse=True)
         return rank
 
     @staticmethod

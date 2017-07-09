@@ -32,25 +32,25 @@
         </div>
         <div class="col-md-4 form-group">
             <label for="streak" class="control-label">{% trans 'Streak' %}</label>
-            <select id="streak" name="streak" onchange="change_record()" class="form-control input-sm">
+            <select id="rank_opt" name="rank_opt" onchange="change_record()" class="form-control input-sm">
                 <option value="">---</option>
-                <option value="streak" {% if streak == 'streak' %}selected{% endif %}>
+                <option value="streak" {% if rank_opt == 'streak' %}selected{% endif %}>
                     {% trans 'Current streak. Inactive drivers are included' %}
                 </option>
                 {% if not season %}
-                    <option value="streak_actives" {% if streak == 'streak_actives' %}selected{% endif %}>
+                    <option value="streak_actives" {% if rank_opt == 'streak_actives' %}selected{% endif %}>
                         {% trans 'Current streak. Inactive drivers are excluded' %}
                     </option>
                 {% endif %}
-                <option value="streak_top" {% if streak == 'streak_top' %}selected{% endif %}>
+                <option value="streak_top" {% if rank_opt == 'streak_top' %}selected{% endif %}>
                     {% trans 'Best streak. Inactive drivers are included' %}
                 </option>
                 {% if not season %}
-                    <option value="streak_top_actives" {% if streak == 'streak_top_actives' %}selected{% endif %}>
+                    <option value="streak_top_actives" {% if rank_opt == 'streak_top_actives' %}selected{% endif %}>
                         {% trans 'Best streak. Inactive drivers are excluded' %}
                     </option>
 
-                    <option value="seasons" {% if streak == 'seasons' %}selected{% endif %}>
+                    <option value="seasons" {% if rank_opt == 'seasons' %}selected{% endif %}>
                         {% trans 'Record by season' %}
                     </option>
                 {% endif %}
@@ -62,18 +62,19 @@
             <tr>
                 <th>{% trans 'Count' %}</th>
                 <th>{% trans 'Driver' %}</th>
-                <th>{% trans 'Team' %}</th>            {% if by_season %}
-
-                <th>{% trans 'Season' %}</th>
-            {% endif %}
+                <th>{% trans 'Team' %}</th>
+                {% if rank_opt == 'seasons' %}
+                    <th>{% trans 'Season' %}</th>
+                {% endif %}
             </tr>
             {% for entry in rank %}
                 <tr>
                     <td>{{ entry.stat }}</td>
                     <td><a href="{% url 'dr27-profile-view' entry.driver.pk %}">{{ entry.driver }}</a></td>
-                    <td>{{ entry.teams }}</td>        {% if by_season %}
-                    <td>{{ entry.season }}</td>
-                {% endif %}
+                    <td>{{ entry.teams }}</td>
+                    {% if rank_opt == 'seasons'  %}
+                        <td>{{ entry.season }}</td>
+                    {% endif %}
                 </tr>
             {% endfor %}
 
@@ -86,29 +87,29 @@
     <script type="text/javascript">
         function change_record() {
             var record = $('#record').val();
-            var streak = $('#streak').val();
-            var streak_str = '';
-            if (record && streak) {
-                switch (streak) {
+            var rank_opt = $('#rank_opt').val();
+            var rank_str = '';
+            if (record && rank_opt) {
+                switch (rank_opt) {
                     case 'streak':
-                        streak_str = "streak/";
+                        rank_str = "streak/";
                         break;
                     case 'streak_actives':
-                        streak_str = "streak/actives/";
+                        rank_str = "streak/actives/";
                         break;
                     case 'streak_top':
-                        streak_str = "streak/top/";
+                        rank_str = "streak/top/";
                         break;
                     case 'streak_top_actives':
-                        streak_str = "streak/top-actives/";
+                        rank_str = "streak/top-actives/";
                         break;
                     case 'seasons':
-                        streak_str = "seasons/";
+                        rank_str = "seasons/";
                         break;
                 }
 
             }
-            location.href = record.trim() + streak_str;
+            location.href = record.trim() + rank_str;
         }
     </script>
 {% endblock %}
