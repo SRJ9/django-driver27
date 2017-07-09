@@ -92,6 +92,22 @@ class AbstractRankModel(models.Model):
         rank = sorted(rank, key=lambda x: x['stat'], reverse=True)
         return rank
 
+    def seasons_rank(self, **filters):
+        """ Get driver rank based on record filter """
+        filters.update(**self.stats_filter_kwargs)
+        drivers = getattr(self, 'drivers').all()
+        rank = []
+        for driver in drivers:
+            stat_cls = self.get_stats_cls(driver)
+            driver_seasons = driver.seasons.filter(**self.stats_filter_kwargs)
+            for season in driver_seasons:
+                rank.append({'stat': stat_cls.get_stats(season=season, **filters),
+                             'driver': driver,
+                             'teams': stat_cls.teams_verbose,
+                             'season': season})
+        rank = sorted(rank, key=lambda x: x['stat'], reverse=True)
+        return rank
+
     def streak_rank(self, only_actives=False, max_streak=False, **filters):
         """ Get driver rank based on record filter """
         drivers = getattr(self, 'drivers').all()

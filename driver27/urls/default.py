@@ -9,6 +9,8 @@ def dr27_driver_urls(base_path):
         url(r'^olympic/$', views.driver_olympic_view, name=base_path+'-driver-olympic'),
         url(r'^record/$', views.driver_record_view, name=base_path+'-driver-record-index'),
         url(r'^record/(?P<record>[-\w\d]+)/$', views.driver_record_view, name=base_path+'-driver-record'),
+        url(r'^record/(?P<record>[-\w\d]+)/seasons/$', views.driver_record_seasons_view,
+            name=base_path+'-driver-seasons'),
         url(r'^record/(?P<record>[-\w\d]+)/streak/$', views.driver_streak_view, name=base_path+'-driver-streak'),
         url(r'^record/(?P<record>[-\w\d]+)/streak/actives/$', views.driver_active_streak_view,
             name=base_path+'-driver-active-streak'),

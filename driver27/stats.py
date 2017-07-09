@@ -97,8 +97,6 @@ class AbstractStatsModel(AbstractStreakModel, models.Model):
         """ Count 1 by each result """
         return self.get_results(**filters).count()
 
-
-
     class Meta:
         abstract = True
 
