@@ -657,10 +657,11 @@ class Result(models.Model):
 
     @classmethod
     def wizard(cls, seat=None, driver=None, team=None,
-                    race=None, season=None, competition=None,
-                    limit_races=None,
-                    reverse_order=False,
-                    **extra_filters):
+               race=None, season=None, competition=None,
+               grand_prix=None, circuit=None,
+               limit_races=None,
+               reverse_order=False,
+               **extra_filters):
         key_in_filters = {
             'limit_races': 'race__round__lte',
             'driver': 'seat__driver',
@@ -668,7 +669,9 @@ class Result(models.Model):
             'season': 'race__season',
             'competition': 'race__season__competition',
             'seat': 'seat',
-            'race': 'race'
+            'race': 'race',
+            'grand_prix': 'race__grand_prix',
+            'circuit': 'race__circuit'
         }
         filter_params = {}
 
