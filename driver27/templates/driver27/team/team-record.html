@@ -11,7 +11,7 @@
     {% load champion_filter i18n %}
     <form method="POST" class="form-inline">
         {% csrf_token %}
-        <div class="form-group">
+        <div class="form-group col-md-4">
             <label for="record" class="control-label">Record:</label>
             <select id="record" name="record" onchange="change_record()" class="form-control input-sm">
                 {% if not record %}
@@ -75,7 +75,28 @@
                 {% endif %}
             </select>
         </div>
-        <div class="clear"></div>
+        <div class="col-md-4 form-group">
+            <label for="rank_opt" class="control-label">{% trans 'Streak' %}</label>
+            <select id="rank_opt" name="rank_opt" class="form-control input-sm" onchange="change_rank_opt(this)">
+
+                {% if season %}
+                    {% with streak_url='dr27-season-team-streak' streak_top_url='dr27-season-team-top-streak' %}
+                        {% include 'driver27/team/team-streak-opt.html' %}
+                    {% endwith %}
+                {% elif competition %}
+                    {% with streak_url='dr27-competition-team-streak' streak_top_url='dr27-competition-team-top-streak' %}
+                        {% include 'driver27/team/team-streak-opt.html' %}
+                    {% endwith %}
+                {% else %}
+                    {% with streak_url='dr27-global-team-streak' streak_top_url='dr27-global-team-top-streak' %}
+                        {% include 'driver27/team/team-streak-opt.html' %}
+                    {% endwith %}
+                {% endif %}
+            </select>
+        </div>
+    </form>
+
+    <div class="clear"></div>
 
     </form>
     {% if rank %}
@@ -93,10 +114,10 @@
                 <th>{% trans 'Count' %}</th>
                 <th>{% trans 'Team' %}</th>
             </tr>
-            {% for count,team in rank %}
+            {% for entry in rank %}
                 <tr>
-                    <td>{{ count }}</td>
-                    <td>{{ team }}</td>
+                    <td>{{ entry.stat }}</td>
+                    <td>{{ entry.team }}</td>
                 </tr>
             {% endfor %}
 
@@ -109,7 +130,13 @@
     <script type="text/javascript">
         function change_record() {
             var record = $('#record').val();
-            location.href = record;
+            location.href = record.trim();
+        }
+
+        function change_rank_opt(selector){
+            selected = $(selector).find(':selected');
+            if(selected)
+                location.href = selected.data('streakUrl');
         }
     </script>
 {% endblock %}

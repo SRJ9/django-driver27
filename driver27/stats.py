@@ -2,15 +2,6 @@ from .streak import Streak
 from django.core.exceptions import ValidationError
 from django.db import models
 from .records import get_record_config
-try:
-    from .models import Season
-except ImportError:
-    pass
-
-try:
-    from .models import get_results
-except ImportError:
-    pass
 
 
 class AbstractStreakModel(object):
@@ -24,11 +15,13 @@ class AbstractStreakModel(object):
     def is_active(self):
         raise NotImplementedError('Not implemented property')
 
-    def get_streak(self, max_streak=False, result_filter=None, **filters):
+    def get_streak(self, max_streak=False, result_filter=None, unique_by_race=False, **filters):
+        from .models import get_tuples_from_results
         if not result_filter:
             result_filter = {}
         results = self.get_reverse_results(**result_filter)
-        return Streak(results=results, max_streak=max_streak).run(filters)
+        results_tuples = get_tuples_from_results(results=results)
+        return Streak(results=results_tuples, max_streak=max_streak, unique_by_race=unique_by_race).run(filters)
 
     def get_positions_list(self, limit_races=None, competition=None):
         """ Return a list with the count of each 20 first positions """
@@ -51,6 +44,13 @@ class AbstractStreakModel(object):
 
 
 class AbstractStatsModel(AbstractStreakModel, models.Model):
+
+    def get_results(self, *args, **kwargs):
+        raise NotImplementedError('Not implemented property')
+
+    @property
+    def is_active(self):
+        raise NotImplementedError('Not implemented property')
 
     @property
     def result_filter_kwargs(self):

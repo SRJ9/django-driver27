@@ -246,6 +246,10 @@ def driver_top_streak_active_view(request, competition_slug=None, year=None, rec
                               only_actives=True, max_streak=True)
 
 
+def team_top_streak_view(request, competition_slug=None, year=None, record=None):
+    return team_streak_view(request, competition_slug=competition_slug, year=year, record=record, max_streak=True)
+
+
 def get_streak_value_for_selector(only_actives=False, max_streak=False):
     if not only_actives:
         if max_streak:
@@ -271,6 +275,22 @@ def driver_streak_view(request, competition_slug=None, year=None, record=None, o
     context['rank'] = rank
     context['rank_opt'] = get_streak_value_for_selector(only_actives=only_actives, max_streak=max_streak)
     tpl = 'driver27/driver/driver-record.html'
+    return render(request, tpl, context)
+
+
+def team_streak_view(request, competition_slug=None, year=None, record=None, only_actives=False, max_streak=False):
+    context = get_record_common_context(request, competition_slug, year, record)
+    rank = None
+    season_or_competition = context.get('season_or_competition')
+    if record:
+        rank = season_or_competition.streak_team_rank(only_actives=only_actives, max_streak=max_streak,
+                                                      **context.get('record_filter')) \
+            if 'record_filter' in context else None
+    context.pop('record_filter', None)
+    context['rank'] = rank
+    context['rank_opt'] = get_streak_value_for_selector(only_actives=only_actives, max_streak=max_streak)
+    context['rank_type'] = 'RACES'
+    tpl = 'driver27/team/team-record.html'
     return render(request, tpl, context)
 
 

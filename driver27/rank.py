@@ -123,6 +123,24 @@ class AbstractRankModel(models.Model):
         rank = sorted(rank, key=lambda x: x['stat'], reverse=True)
         return rank
 
+    def streak_team_rank(self, only_actives=False, max_streak=False, **filters):
+        """ Get team rank based on record filter """
+        teams = getattr(self, 'teams').all()
+        rank = []
+
+        print(filters)
+
+        for team in teams:
+            stat_cls = self.get_stats_cls(team)
+            if only_actives and not stat_cls.is_active:
+                continue
+
+            rank.append({'stat': stat_cls.get_streak(unique_by_race=True, result_filter=self.stats_filter_kwargs,
+                                                     max_streak=max_streak, **filters),
+                         'team': team})
+        rank = sorted(rank, key=lambda x: x['stat'], reverse=True)
+        return rank
+
     @staticmethod
     def get_team_rank_method(rank_type):
         """ Dict with distinct teams rank method, depending of rank_type param """
@@ -154,8 +172,8 @@ class AbstractRankModel(models.Model):
         for team in teams:
             team_stats_cls = self.get_team_stats_cls(team)
             total = getattr(team_stats_cls, total_method)(**filters)
-            rank.append((total, team))
-        rank = sorted(rank, key=lambda x: x[0], reverse=True)
+            rank.append({'stat': total, 'team': team})
+        rank = sorted(rank, key=lambda x: x['stat'], reverse=True)
         return rank
 
     def team_stats_rank(self, **filters):
