@@ -206,6 +206,10 @@ class Team(TeamStatsModel):
     competitions = models.ManyToManyField('Competition', through='CompetitionTeam', related_name='teams', verbose_name=_('competitions'))
     country = CountryField(verbose_name=_('country'), blank=True, null=True)
 
+    @property
+    def seasons(self):
+        return Season.objects.filter(races__results__seat__team=self).distinct()
+
     def get_results(self, competition=None, **extra_filter):
         """ Return all results of team in season """
         return Result.wizard(team=self, competition=competition, **extra_filter)
@@ -222,7 +226,9 @@ class Team(TeamStatsModel):
     def get_total_stats(self, competition=None, **filters):
         return super(Team, self).get_total_stats(competition=competition, **filters)
 
-    def get_points(self, competition=None, punctuation_config=None):
+    def get_points(self, season=None, competition=None, punctuation_config=None):
+        if season is not None:
+            return self.get_season(season).get_points(punctuation_config=punctuation_config)
         competition_filter = {}
         if competition is not None:
             competition_filter = {'competition': competition}
@@ -232,6 +238,34 @@ class Team(TeamStatsModel):
             season_points = self.get_season(season).get_points(punctuation_config=punctuation_config)
             points += season_points if season_points else 0
         return points
+
+    def get_multiple_records_by_season(self, records_list=None, append_points=False, **kwargs):
+        stats_by_season = []
+        for season in self.seasons.all():
+            num_of_seats = season.seats.filter(team=self)
+            stats_by_season.append(
+                {
+                    'competition': season.competition,
+                    'year': season.year,
+                    'num_of_seats': num_of_seats,
+                    'stats': self.get_multiple_records(records_list=records_list,
+                                                       append_points=append_points, season=season, **kwargs)
+                }
+            )
+        return stats_by_season
+
+    def get_multiple_records_by_competition(self, records_list=None, append_points=False, **kwargs):
+        stats_by_competition = []
+        for competition in self.competitions.all():
+            stats_by_competition.append(
+                {
+                    'competition': competition,
+                    'stats': self.get_multiple_records(records_list=records_list,
+                                                       append_points=append_points,
+                                                       competition=competition, **kwargs)
+                }
+            )
+        return stats_by_competition
 
     def __str__(self):
         return self.name

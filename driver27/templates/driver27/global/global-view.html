@@ -35,7 +35,7 @@
                     {{ season.leader.points }} <a href="{% url 'dr27-profile-view' season.leader.driver.pk %}">{{ season.leader.driver }}</a> ({{ season.leader.teams }})
                 </td>
                 <td>
-                    {{ season.team_leader.points }} {{ season.team_leader.team }}
+                    {{ season.team_leader.points }} <a href="{% url 'dr27-profile-team-view' season.team_leader.team.pk %}">{{ season.team_leader.team }}</a>
                 </td>
             </tr>
         {% endfor %}

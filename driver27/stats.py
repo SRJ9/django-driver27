@@ -75,7 +75,10 @@ class AbstractStatsModel(AbstractStreakModel, models.Model):
             records_list = ['RACE', 'POLE', 'WIN', 'PODIUM', 'FASTEST']
         for record in records_list:
             record_config = get_record_config(record).get('filter')
-            record_stat = self.get_stats(**dict(kwargs, **record_config))
+            if hasattr(self, 'get_total_races') and record == 'RACE':
+                record_stat = self.get_total_races(**dict(kwargs, **record_config))
+            else:
+                record_stat = self.get_stats(**dict(kwargs, **record_config))
             multiple_records[record] = record_stat
         if append_points:
             multiple_records['POINTS'] = self.get_points(**kwargs)

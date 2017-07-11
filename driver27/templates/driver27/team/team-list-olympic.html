@@ -12,7 +12,7 @@
 
         {% for entry in rank %}
             <tr>
-                <td>{{ entry.team }}</td>
+                <td><a href="{% url 'dr27-profile-team-view' entry.team.pk %}">{{ entry.team }}</a></td>
                 {% for position in entry.pos_list %}
                     <td>{{ position }}</td>
                 {% endfor %}

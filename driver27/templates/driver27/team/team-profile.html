@@ -6,9 +6,7 @@
         <div class="col-md-9">
             <div class="driver_image demo col-xs-12 col-md-3"><span class="placeholder-img-text">Photo</span></div>
             <div class="col-xs-12 col-md-9">
-                <h1>
-                    <small>{{ driver.first_name }}</small>
-                    {{ driver.last_name }} <i class="{{ driver.country.flag_css }}"></i></h1>
+                <h1>{{ team.full_name }} <i class="{{ team.country.flag_css }}"></i></h1>
 
             </div>
             <div class="clearfix"></div>
@@ -20,7 +18,6 @@
                         <tr>
                             <th>Competition</th>
                             <th>Year</th>
-                            <th>Teams</th>
                             <th>Races</th>
                             <th>P1</th>
                             <th>WIN</th>
@@ -36,7 +33,6 @@
                                     <a href="{% url 'dr27-competition-view' season.competition.slug %}">{{ season.competition }}</a>
                                 </td>
                                 <td><a href="{% url 'dr27-season-view' season.competition.slug season.year %}">{{ season.year }}</a></td>
-                                <td>{{ season.teams }}</td>
                                 <td>{{ season.stats.RACE }}</td>
                                 <td>{{ season.stats.POLE }}</td>
                                 <td>{{ season.stats.WIN }}</td>
