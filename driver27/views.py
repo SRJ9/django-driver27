@@ -289,7 +289,7 @@ def team_streak_view(request, competition_slug=None, year=None, record=None, onl
     context.pop('record_filter', None)
     context['rank'] = rank
     context['rank_opt'] = get_streak_value_for_selector(only_actives=only_actives, max_streak=max_streak)
-    context['rank_type'] = 'RACES'
+
     tpl = 'driver27/team/team-record.html'
     return render(request, tpl, context)
 
@@ -315,8 +315,7 @@ def team_record_view(request, competition_slug, year, rank_type, record=None):
         rank = season_or_competition.get_team_rank(rank_type, **context.get('record_filter')) if 'record_filter' in context else None
     context['rank'] = rank
     context['rank_opt'] = rank_type
-    context['doubles_record_codes'] = get_record_label_dict(doubles=True)
-    # context['races'] = (rank_type in ('RACES', 'RACES-DOUBLES'))
+    context['doubles_record_codes'] = [double_code for double_code, double_label in get_record_label_dict(doubles=True)]
     tpl = 'driver27/team/team-record.html'
     return render(request, tpl, context)
 
@@ -366,27 +365,27 @@ def team_record_redirect_view(request):
     record = request.POST.get('record', '')
     rank_opt = request.POST.get('rank_opt')
 
+    request_args = [competition_slug, year, record]
+    reverse_args = [arg for arg in request_args if arg]
+
     if competition_slug and year:
         base_reverse_url = 'dr27-season'
-        reverse_args = [competition_slug, year, record]
     elif competition_slug:
         base_reverse_url = 'dr27-competition'
-        reverse_args = [competition_slug, record]
     else:
         base_reverse_url = 'dr27-global'
-        reverse_args = [record]
 
     if not rank_opt:
         rank_opt = 'stats'
 
     reverse_url = \
         {
-            'streak': reverse(base_reverse_url+'-team-streak', args=reverse_args),
-            'streak_top': reverse(base_reverse_url+'-team-top-streak', args=reverse_args),
-            'doubles': reverse(base_reverse_url+'-team-record-doubles', args=reverse_args),
-            'races': reverse(base_reverse_url+'-team-record-races', args=reverse_args),
-            'stats': reverse(base_reverse_url+'-team-record', args=reverse_args)
+            'streak': 'team-streak',
+            'streak_top': 'team-top-streak',
+            'doubles': 'team-record-doubles',
+            'races': 'team-record-races',
+            'stats': 'team-record'
         }.get(rank_opt, None)
 
-    return redirect(reverse_url)
+    return redirect(reverse(base_reverse_url+'-'+reverse_url, args=reverse_args))
 
