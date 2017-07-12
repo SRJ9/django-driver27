@@ -149,9 +149,9 @@ Todo
 ====
 
 -  [x] Add records by season (driver, team)
--  [ ] Add records by driver/team career
+-  [x] Add records by driver/team career
 -  [x] Add records by competition
--  [ ] Add drivers profile with records, last\_wins, teams...
+-  [x] Add drivers profile with records, last\_wins, teams...
 -  [x] Add easy clone to Season
 -  [x] Translate
 -  [ ] 1980's punctuation. Only 11 best results.
