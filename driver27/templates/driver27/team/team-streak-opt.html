@@ -1,36 +1,19 @@
 {% load i18n %}
-<option value=""
-        {% if season %}
-        data-streak-url="{% url 'dr27-season-team-record' season.competition.slug season.year record %}"
-        {% elif competition %}
-        data-streak-url="{% url 'dr27-competition-team-record' competition.slug record %}"
-        {% else %}
-
-        data-streak-url="{% url 'dr27-global-team-record' record %}"
-        {% endif %}
->
+<option value="">
     ---
 </option>
-<option value="streak" {% if rank_opt == 'streak' %}selected{% endif %}
-        {% if season %}
-        data-streak-url="{% url streak_url season.competition.slug season.year record %}"
-        {% elif competition %}
-        data-streak-url="{% url streak_url competition.slug record %}"
-        {% else %}
-
-        data-streak-url="{% url streak_url record %}"
-        {% endif %}
->
+<option value="streak" {% if rank_opt|lower == 'streak' %}selected{% endif %}>
     {% trans 'Current streak.' %}
 </option>
-<option value="streak_top" {% if rank_opt == 'streak_top' %}selected{% endif %}
-        {% if season %}
-        data-streak-url="{% url streak_top_url season.competition.slug season.year record %}"
-        {% elif competition %}
-        data-streak-url="{% url streak_top_url competition.slug record %}"
-        {% else %}
-
-        data-streak-url="{% url streak_top_url record %}"
-        {% endif %}>
+<option value="streak_top" {% if rank_opt|lower == 'streak_top' %}selected{% endif %}>
     {% trans 'Best streak.' %}
+</option>
+<option value="stats" {% if rank_opt|lower == 'stats' %}selected{% endif %}>
+    {% trans 'Record by drivers of team.' %}
+</option>
+<option value="races" {% if rank_opt|lower == 'races' %}selected{% endif %}>
+    {% trans 'Records by race with at least one driver.' %}
+</option>
+<option value="doubles" {% if rank_opt|lower == 'doubles' %}selected{% endif %}>
+    {% trans 'Records by race with at least two drivers.' %}
 </option>

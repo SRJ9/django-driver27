@@ -1,11 +1,4 @@
 {% for record_code, record_label in record_codes %}
-
-{% if season %}
-<option value="{% url record_url season.competition.slug season.year record_code %}"
-{% elif competition %}
-<option value="{% url record_url competition.slug record_code %}"
-{% else %}
-<option value="{% url record_url record_code %}"
-{% endif %}
+<option value="{{ record_code }}"
 {% if record_code == record and rank_type == rank_group %}selected{% endif %}>{{ record_label }}</option>
 {% endfor %}

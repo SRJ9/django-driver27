@@ -9,89 +9,28 @@
 {% block dr27_content %}
     {{ block.super }}
     {% load champion_filter i18n %}
-    <form method="POST" class="form-inline">
+    <form method="POST" class="form-inline"  action="{% url 'dr27-team-record-redir' %}" onchange="this.submit()">>
         {% csrf_token %}
         <div class="form-group col-md-4">
+        {% if competition %}
+            <input type="hidden" name="competition" value="{{ competition.slug }}"/>
+        {% endif %}
+        {% if season %}
+            <input type="hidden" name="year" value="{{ season.year }}"/>
+        {% endif %}
             <label for="record" class="control-label">Record:</label>
-            <select id="record" name="record" onchange="change_record()" class="form-control input-sm">
+            <select id="record" name="record" class="form-control input-sm">
                 {% if not record %}
                     <option value="">---</option>
                 {% endif %}
-
-                {% if season %}
-                    <optgroup label="{% trans 'Total' %}">
-                        {% with rank_group='STATS' record_url='dr27-season-team-record' %}
-                            {% include 'driver27/team/team-record-optgroup.html' %}
-                        {% endwith %}
-                    </optgroup>
-
-                    <optgroup label="{% trans 'Races with at least one' %}">
-                        {% with rank_group='RACES' record_url='dr27-season-team-record-races' %}
-                            {% include 'driver27/team/team-record-optgroup.html' %}
-                        {% endwith %}
-                    </optgroup>
-
-                    <optgroup label="{% trans 'Races with doubles' %}">
-                        {% with rank_group='DOUBLES' record_url='dr27-season-team-record-doubles' record_codes=doubles_record_codes %}
-                            {% include 'driver27/team/team-record-optgroup.html' %}
-                        {% endwith %}
-                    </optgroup>
-                {% elif competition %}
-                    <optgroup label="{% trans 'Total' %}">
-                        {% with rank_group='STATS' record_url='dr27-competition-team-record' %}
-                            {% include 'driver27/team/team-record-optgroup.html' %}
-                        {% endwith %}
-                    </optgroup>
-
-                    <optgroup label="{% trans 'Races with at least one' %}">
-                        {% with rank_group='RACES' record_url='dr27-competition-team-record-races' %}
-                            {% include 'driver27/team/team-record-optgroup.html' %}
-                        {% endwith %}
-                    </optgroup>
-
-                    <optgroup label="{% trans 'Races with doubles' %}">
-                        {% with rank_group='DOUBLES' record_url='dr27-competition-team-record-doubles' record_codes=doubles_record_codes %}
-                            {% include 'driver27/team/team-record-optgroup.html' %}
-                        {% endwith %}
-                    </optgroup>
-                {% else %}
-                    <optgroup label="{% trans 'Total' %}">
-                        {% with rank_group='STATS' record_url='dr27-global-team-record' %}
-                            {% include 'driver27/team/team-record-optgroup.html' %}
-                        {% endwith %}
-                    </optgroup>
-
-                    <optgroup label="{% trans 'Races with at least one' %}">
-                        {% with rank_group='RACES' record_url='dr27-global-team-record-races' %}
-                            {% include 'driver27/team/team-record-optgroup.html' %}
-                        {% endwith %}
-                    </optgroup>
-
-                    <optgroup label="{% trans 'Races with doubles' %}">
-                        {% with rank_group='DOUBLES' record_url='dr27-global-team-record-doubles' record_codes=doubles_record_codes %}
-                            {% include 'driver27/team/team-record-optgroup.html' %}
-                        {% endwith %}
-                    </optgroup>
-                {% endif %}
+                {% include 'driver27/team/team-record-optgroup.html' %}
             </select>
         </div>
         <div class="col-md-4 form-group">
-            <label for="rank_opt" class="control-label">{% trans 'Streak' %}</label>
-            <select id="rank_opt" name="rank_opt" class="form-control input-sm" onchange="change_rank_opt(this)">
+            <label for="rank_opt" class="control-label">{% trans 'Filter' %}</label>
+            <select id="rank_opt" name="rank_opt" class="form-control input-sm">
 
-                {% if season %}
-                    {% with streak_url='dr27-season-team-streak' streak_top_url='dr27-season-team-top-streak' %}
-                        {% include 'driver27/team/team-streak-opt.html' %}
-                    {% endwith %}
-                {% elif competition %}
-                    {% with streak_url='dr27-competition-team-streak' streak_top_url='dr27-competition-team-top-streak' %}
-                        {% include 'driver27/team/team-streak-opt.html' %}
-                    {% endwith %}
-                {% else %}
-                    {% with streak_url='dr27-global-team-streak' streak_top_url='dr27-global-team-top-streak' %}
-                        {% include 'driver27/team/team-streak-opt.html' %}
-                    {% endwith %}
-                {% endif %}
+                {% include 'driver27/team/team-streak-opt.html' %}
             </select>
         </div>
     </form>
@@ -100,15 +39,6 @@
 
     </form>
     {% if rank %}
-        {#        <span class="help-block">#}
-        {#        {% if races %}#}
-        {#            <a href="{% url 'season-team-record' season.competition.slug season.year record %}">#}
-        {#            {% trans 'Current record' %}</a>#}
-        {#        {% else %}#}
-        {#            <a href="{% url 'season-team-record-races' season.competition.slug season.year record %}">#}
-        {#            {% trans 'Current record by race' %}</a>#}
-        {#        {% endif %}#}
-        {#        </span>#}
         <table class="table table-condensed table-striped table-hover">
             <tr>
                 <th>{% trans 'Count' %}</th>
@@ -128,15 +58,15 @@
 {% block bootstrap3_extra_script %}
     {{ block.super }}
     <script type="text/javascript">
-        function change_record() {
-            var record = $('#record').val();
-            location.href = record.trim();
-        }
-
-        function change_rank_opt(selector){
-            selected = $(selector).find(':selected');
-            if(selected)
-                location.href = selected.data('streakUrl');
-        }
+{#        function change_record() {#}
+{#            var record = $('#record').val();#}
+{#            location.href = record.trim();#}
+{#        }#}
+{##}
+{#        function change_rank_opt(selector){#}
+{#            selected = $(selector).find(':selected');#}
+{#            if(selected)#}
+{#                location.href = selected.data('streakUrl');#}
+{#        }#}
     </script>
 {% endblock %}

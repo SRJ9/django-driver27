@@ -314,7 +314,7 @@ def team_record_view(request, competition_slug, year, rank_type, record=None):
     if record:
         rank = season_or_competition.get_team_rank(rank_type, **context.get('record_filter')) if 'record_filter' in context else None
     context['rank'] = rank
-    context['rank_type'] = rank_type
+    context['rank_opt'] = rank_type
     context['doubles_record_codes'] = get_record_label_dict(doubles=True)
     # context['races'] = (rank_type in ('RACES', 'RACES-DOUBLES'))
     tpl = 'driver27/team/team-record.html'
@@ -349,4 +349,44 @@ def team_profile_view(request, team_id):
     }
     tpl = 'driver27/team/team-profile.html'
     return render(request, tpl, context)
+
+
+from django.views.decorators.http import require_http_methods
+from django.shortcuts import redirect
+try:
+    from django.urls import reverse
+except ImportError:
+    from django.core.urlresolvers import reverse
+
+
+@require_http_methods(["POST"])
+def team_record_redirect_view(request):
+    competition_slug = request.POST.get('competition', None)
+    year = request.POST.get('year', None)
+    record = request.POST.get('record', '')
+    rank_opt = request.POST.get('rank_opt')
+
+    if competition_slug and year:
+        base_reverse_url = 'dr27-season'
+        reverse_args = [competition_slug, year, record]
+    elif competition_slug:
+        base_reverse_url = 'dr27-competition'
+        reverse_args = [competition_slug, record]
+    else:
+        base_reverse_url = 'dr27-global'
+        reverse_args = [record]
+
+    if not rank_opt:
+        rank_opt = 'stats'
+
+    reverse_url = \
+        {
+            'streak': reverse(base_reverse_url+'-team-streak', args=reverse_args),
+            'streak_top': reverse(base_reverse_url+'-team-top-streak', args=reverse_args),
+            'doubles': reverse(base_reverse_url+'-team-record-doubles', args=reverse_args),
+            'races': reverse(base_reverse_url+'-team-record-races', args=reverse_args),
+            'stats': reverse(base_reverse_url+'-team-record', args=reverse_args)
+        }.get(rank_opt, None)
+
+    return redirect(reverse_url)
 
