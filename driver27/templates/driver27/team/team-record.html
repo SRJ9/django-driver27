@@ -54,19 +54,3 @@
         </table>
     {% endif %}
 {% endblock %}
-
-{% block bootstrap3_extra_script %}
-    {{ block.super }}
-    <script type="text/javascript">
-{#        function change_record() {#}
-{#            var record = $('#record').val();#}
-{#            location.href = record.trim();#}
-{#        }#}
-{##}
-{#        function change_rank_opt(selector){#}
-{#            selected = $(selector).find(':selected');#}
-{#            if(selected)#}
-{#                location.href = selected.data('streakUrl');#}
-{#        }#}
-    </script>
-{% endblock %}

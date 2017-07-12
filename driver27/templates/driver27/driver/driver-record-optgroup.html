@@ -1,0 +1,3 @@
+{% for record_code, record_label in record_codes %}
+<option value="{{ record_code }}" {% if record_code == record %}selected{% endif %}>{{ record_label }}</option>
+{% endfor %}

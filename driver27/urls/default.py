@@ -17,7 +17,7 @@ def dr27_driver_urls(base_path):
         url(r'^record/(?P<record>[-\w\d]+)/streak/top/$', views.driver_top_streak_view,
             name=base_path+'-driver-top-streak'),
         url(r'^record/(?P<record>[-\w\d]+)/streak/top-actives/', views.driver_top_streak_active_view,
-            name=base_path+'-driver-streak-inactive'),
+            name=base_path+'-driver-active-top-streak'),
     ]
 
 

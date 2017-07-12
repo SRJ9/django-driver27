@@ -89,6 +89,9 @@ class ViewTest(FixturesTest):
         kwargs['record'] = 'POLE'
         self._GET_request('dr27-season-driver-record', kwargs=kwargs)
         self._GET_request('dr27-season-driver-streak', kwargs=kwargs)
+        self._GET_request('dr27-season-driver-top-streak', kwargs=kwargs)
+        self._GET_request('dr27-season-driver-active-streak', kwargs=kwargs)
+        self._GET_request('dr27-season-driver-active-top-streak', kwargs=kwargs)
         kwargs['record'] = 'FFF'
         self._GET_request('dr27-season-driver-record', kwargs=kwargs, code=404)
 
@@ -100,6 +103,10 @@ class ViewTest(FixturesTest):
         kwargs['record'] = 'POLE'
         self._GET_request('dr27-competition-driver-record', kwargs=kwargs)
         self._GET_request('dr27-competition-driver-streak', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-top-streak', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-active-streak', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-active-top-streak', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-seasons', kwargs=kwargs)
         kwargs['record'] = 'FFF'
         self._GET_request('dr27-competition-driver-record', kwargs=kwargs, code=404)
 
@@ -112,6 +119,10 @@ class ViewTest(FixturesTest):
         kwargs['record'] = 'POLE'
         self._GET_request('dr27-global-driver-record', kwargs=kwargs)
         self._GET_request('dr27-global-driver-streak', kwargs=kwargs)
+        self._GET_request('dr27-global-driver-top-streak', kwargs=kwargs)
+        self._GET_request('dr27-global-driver-active-streak', kwargs=kwargs)
+        self._GET_request('dr27-global-driver-active-top-streak', kwargs=kwargs)
+        self._GET_request('dr27-global-driver-seasons', kwargs=kwargs)
         kwargs['record'] = 'FFF'
         self._GET_request('dr27-global-driver-record', kwargs=kwargs, code=404)
 

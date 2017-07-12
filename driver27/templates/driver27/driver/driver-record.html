@@ -8,52 +8,28 @@
 {% block dr27_content %}
     {{ block.super }}
     {% load champion_filter i18n %}
-    <form method="POST" class="form-inline">
+    <form method="POST" class="form-inline" action="{% url 'dr27-driver-record-redir' %}" onchange="this.submit()">
         {% csrf_token %}
-        <div class="col-md-4 form-group">
+            <div class="form-group col-md-4">
+        {% if competition %}
+            <input type="hidden" name="competition" value="{{ competition.slug }}"/>
+        {% endif %}
+        {% if season %}
+            <input type="hidden" name="year" value="{{ season.year }}"/>
+        {% endif %}
             <label for="record" class="control-label">Record:</label>
-            <select id="record" name="record" onchange="change_record()" class="form-control input-sm">
+            <select id="record" name="record" class="form-control input-sm">
                 {% if not record %}
                     <option value="">---</option>
                 {% endif %}
-                {% for record_code, record_label in record_codes %}
-                    <option value="
-                {% if season %}
-                    {% url 'dr27-season-driver-record' season.competition.slug season.year record_code %}
-                {% elif competition %}
-                    {% url 'dr27-competition-driver-record' competition.slug record_code %}
-                {% else %}
-                    {% url 'dr27-global-driver-record' record_code %}
-                {% endif %}"
-                            {% if record_code == record %}selected{% endif %}
-                    >{{ record_label }}</option>
-                {% endfor %}
+                {% include 'driver27/driver/driver-record-optgroup.html' %}
             </select>
         </div>
         <div class="col-md-4 form-group">
-            <label for="streak" class="control-label">{% trans 'Streak' %}</label>
-            <select id="rank_opt" name="rank_opt" onchange="change_record()" class="form-control input-sm">
-                <option value="">---</option>
-                <option value="streak" {% if rank_opt == 'streak' %}selected{% endif %}>
-                    {% trans 'Current streak. Inactive drivers are included' %}
-                </option>
-                {% if not season %}
-                    <option value="streak_actives" {% if rank_opt == 'streak_actives' %}selected{% endif %}>
-                        {% trans 'Current streak. Inactive drivers are excluded' %}
-                    </option>
-                {% endif %}
-                <option value="streak_top" {% if rank_opt == 'streak_top' %}selected{% endif %}>
-                    {% trans 'Best streak. Inactive drivers are included' %}
-                </option>
-                {% if not season %}
-                    <option value="streak_top_actives" {% if rank_opt == 'streak_top_actives' %}selected{% endif %}>
-                        {% trans 'Best streak. Inactive drivers are excluded' %}
-                    </option>
+            <label for="rank_opt" class="control-label">{% trans 'Filter' %}</label>
+            <select id="rank_opt" name="rank_opt" class="form-control input-sm">
 
-                    <option value="seasons" {% if rank_opt == 'seasons' %}selected{% endif %}>
-                        {% trans 'Record by season' %}
-                    </option>
-                {% endif %}
+                {% include 'driver27/driver/driver-streak-opt.html' %}
             </select>
         </div>
     </form>
@@ -80,36 +56,4 @@
 
         </table>
     {% endif %}
-{% endblock %}
-
-{% block bootstrap3_extra_script %}
-    {{ block.super }}
-    <script type="text/javascript">
-        function change_record() {
-            var record = $('#record').val();
-            var rank_opt = $('#rank_opt').val();
-            var rank_str = '';
-            if (record && rank_opt) {
-                switch (rank_opt) {
-                    case 'streak':
-                        rank_str = "streak/";
-                        break;
-                    case 'streak_actives':
-                        rank_str = "streak/actives/";
-                        break;
-                    case 'streak_top':
-                        rank_str = "streak/top/";
-                        break;
-                    case 'streak_top_actives':
-                        rank_str = "streak/top-actives/";
-                        break;
-                    case 'seasons':
-                        rank_str = "seasons/";
-                        break;
-                }
-
-            }
-            location.href = record.trim() + rank_str;
-        }
-    </script>
 {% endblock %}

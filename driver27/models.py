@@ -22,7 +22,7 @@ from .rank import AbstractRankModel
 from django.db.models import Q
 from collections import namedtuple
 
-ResultTuple = namedtuple('ResultTuple', 'qualifying finish fastest_lap wildcard race_id alter_punctuation')
+ResultTuple = namedtuple('ResultTuple', 'qualifying finish fastest_lap wildcard retired race_id alter_punctuation')
 
 
 def get_tuples_from_results(results):
@@ -31,7 +31,7 @@ def get_tuples_from_results(results):
 
 def get_tuple_from_result(result):
     return ResultTuple(result.qualifying, result.finish, result.fastest_lap,
-                       result.wildcard, result.race_id, result.race.alter_punctuation)
+                       result.wildcard, result.retired, result.race_id, result.race.alter_punctuation)
 
 
 def get_results_tuples(seat=None, team=None, race=None, season=None, competition=None,
@@ -44,7 +44,8 @@ def get_results_tuples(seat=None, team=None, race=None, season=None, competition
         results = Result.wizard(seat=seat, team=team, race=race,
                                 season=season, competition=competition, **extra_filters)
 
-    results = results.values_list('qualifying', 'finish', 'fastest_lap', 'wildcard', 'race_id', 'race__alter_punctuation')
+    results = results.values_list('qualifying', 'finish', 'fastest_lap', 'wildcard', 'retired',
+                                  'race_id', 'race__alter_punctuation')
 
     return results
 

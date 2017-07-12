@@ -1,0 +1,20 @@
+{% load i18n %}
+<option value="">---</option>
+<option value="streak" {% if rank_opt|lower == 'streak' %}selected{% endif %}>
+    {% trans 'Current streak. Inactive drivers are included' %}
+</option>
+<option value="streak_top" {% if rank_opt|lower == 'streak_top' %}selected{% endif %}>
+    {% trans 'Best streak. Inactive drivers are included' %}
+</option>
+{% if not season %}
+    <option value="streak_actives" {% if rank_opt|lower == 'streak_actives' %}selected{% endif %}>
+        {% trans 'Current streak. Inactive drivers are excluded' %}
+    </option>
+    <option value="streak_top_actives" {% if rank_opt|lower == 'streak_top_actives' %}selected{% endif %}>
+        {% trans 'Best streak. Inactive drivers are excluded' %}
+    </option>
+
+    <option value="seasons" {% if rank_opt|lower == 'seasons' %}selected{% endif %}>
+        {% trans 'Record by season' %}
+    </option>
+{% endif %}

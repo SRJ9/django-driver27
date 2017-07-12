@@ -4,6 +4,13 @@ from django.http import Http404
 from django.shortcuts import render
 from django.utils.translation import ugettext as _
 
+from django.views.decorators.http import require_http_methods
+from django.shortcuts import redirect
+try:
+    from django.urls import reverse
+except ImportError:
+    from django.core.urlresolvers import reverse
+
 from .models import Competition, Season, Race, RankModel, Driver, Team
 from .records import get_record_config, get_record_label_dict
 from .punctuation import get_punctuation_config, get_punctuation_label_dict
@@ -350,20 +357,10 @@ def team_profile_view(request, team_id):
     return render(request, tpl, context)
 
 
-from django.views.decorators.http import require_http_methods
-from django.shortcuts import redirect
-try:
-    from django.urls import reverse
-except ImportError:
-    from django.core.urlresolvers import reverse
-
-
-@require_http_methods(["POST"])
-def team_record_redirect_view(request):
+def _get_reverse_record_url(request):
     competition_slug = request.POST.get('competition', None)
     year = request.POST.get('year', None)
     record = request.POST.get('record', '')
-    rank_opt = request.POST.get('rank_opt')
 
     request_args = [competition_slug, year, record]
     reverse_args = [arg for arg in request_args if arg]
@@ -375,6 +372,13 @@ def team_record_redirect_view(request):
     else:
         base_reverse_url = 'dr27-global'
 
+    return base_reverse_url, reverse_args
+
+
+@require_http_methods(["POST"])
+def team_record_redirect_view(request):
+    base_reverse_url, reverse_args = _get_reverse_record_url(request)
+    rank_opt = request.POST.get('rank_opt')
     if not rank_opt:
         rank_opt = 'stats'
 
@@ -387,5 +391,29 @@ def team_record_redirect_view(request):
             'stats': 'team-record'
         }.get(rank_opt, None)
 
-    return redirect(reverse(base_reverse_url+'-'+reverse_url, args=reverse_args))
+    return redirect(reverse('-'.join([base_reverse_url,reverse_url]), args=reverse_args))
+
+
+@require_http_methods(["POST"])
+@require_http_methods(["POST"])
+def driver_record_redirect_view(request):
+    base_reverse_url, reverse_args = _get_reverse_record_url(request)
+    rank_opt = request.POST.get('rank_opt')
+    if not rank_opt:
+        rank_opt = 'stats'
+
+    reverse_url_dict = \
+        {
+            'streak': 'streak',
+            'streak_top': 'top-streak',
+            'streak_actives': 'active-streak',
+            'streak_top_actives': 'active-top-streak',
+        }
+
+    if not (request.POST.get('competition') and request.POST.get('year')):
+        reverse_url_dict['seasons'] = 'seasons'
+
+    reverse_url = reverse_url_dict.get(rank_opt, 'record')
+
+    return redirect(reverse('-'.join([base_reverse_url, 'driver', reverse_url]), args=reverse_args))
 
