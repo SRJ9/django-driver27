@@ -8,12 +8,19 @@ from ..models import Seat, SeatPeriod
 from ..models import Team, TeamSeason
 
 
+class RaceInlineForm(AlwaysChangedModelForm):
+    class Meta:
+        widgets = {
+            'grand_prix': GrandPrixWidget,
+        }
+
+
 class RaceInline(CompetitionFilterInline):
     model = Race
     extra = 1
     # readonly_fields = ('print_results_link', )
     formset = RaceFormSet
-    form = AlwaysChangedModelForm
+    form = RaceInlineForm
 
 
 class SeatInline(CompetitionFilterInline):

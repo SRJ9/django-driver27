@@ -15,3 +15,10 @@ class SeasonAdminForm(AlwaysChangedModelForm):
     class Meta:
         model = Season
         fields = ('year', 'competition', 'rounds', 'punctuation')
+
+
+class RaceAdminForm(forms.ModelForm):
+    class Meta:
+        widgets = {
+            'grand_prix': GrandPrixWidget,
+        }

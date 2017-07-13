@@ -5,8 +5,6 @@ from .common import CommonTabbedModelAdmin
 from django.shortcuts import redirect
 from .forms import *
 from .inlines import *
-from ..models import SeatsSeason
-from ..models import ContenderSeason
 from ..models import Driver, Competition, Circuit, Season, Result, CompetitionTeam, SeatPeriod
 from .. import lr_diff, lr_intr
 
@@ -220,6 +218,7 @@ class RaceAdmin(CommonTabbedModelAdmin):
     list_display = ('__str__', 'season', 'print_pole', 'print_winner', 'print_fastest',)
     list_filter = ('season', 'season__competition',)
 
+    form = RaceAdminForm
     tab_overview = (
         (None, {
             'fields': ('season', 'round', 'grand_prix', 'circuit', 'date', 'alter_punctuation')
@@ -268,6 +267,7 @@ class RaceAdmin(CommonTabbedModelAdmin):
         except (ValueError, TypeError):
             position = None
         return position
+
 
 
 class SeatPeriodFilter(SimpleListFilter):

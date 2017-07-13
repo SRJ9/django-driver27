@@ -3,6 +3,40 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
 from tabbed_admin import TabbedModelAdmin
 
+from django.utils.safestring import mark_safe
+from django.utils.html import format_html
+from django.utils.encoding import force_text
+
+
+class GrandPrixWidget(forms.widgets.Select):
+    def render_option(self, selected_choices, option_value, option_label):
+        if option_value is None:
+            option_value = ''
+        option_value = force_text(option_value)
+        if option_value in selected_choices:
+            selected_html = mark_safe(' selected="selected"')
+            if not self.allow_multiple_selected:
+                # Only allow for a single selection.
+                selected_choices.remove(option_value)
+        else:
+            selected_html = ''
+        data_circuit_attr = ''
+        if option_value:
+            from driver27.models import GrandPrix
+            grand_prix = GrandPrix.objects.filter(pk=option_value)
+            if grand_prix.count() and grand_prix.first().default_circuit:
+                data_circuit_attr = grand_prix.first().default_circuit.pk
+
+        return format_html('<option value="{}"{} data-circuit="{}">{}</option>',
+                           option_value, selected_html,
+                           data_circuit_attr, force_text(option_label))
+
+    class Media:
+        js = ['driver27/js/select_default_circuit.js']
+
+
+
+
 
 # http://stackoverflow.com/a/34567383
 class AlwaysChangedModelForm(forms.ModelForm):
