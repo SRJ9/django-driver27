@@ -1,0 +1,16 @@
+{% if by_competition|length > 1 %}
+    <select name="competition_selector">
+        <option value="">---</option>
+        {% for competition in by_competition %}
+            <option value="{{ competition.competition.slug }}"
+                    data-races="{{ competition.stats.RACE }}"
+                    data-poles="{{ competition.stats.POLE }}"
+                    data-wins="{{ competition.stats.WIN }}"
+                    data-podiums="{{ competition.stats.PODIUM }}"
+                    data-fastest="{{ competition.stats.FASTEST }}"
+                    data-points="{{ competition.stats.POINTS }}"
+
+            >{{ competition.competition }}</option>
+        {% endfor %}
+    </select>
+{% endif %}

@@ -17,22 +17,7 @@
                         <thead>
                         <tr>
                             <th>
-                                {% if by_competition|length > 1 %}
-                                    <select name="competition_selector" onchange="select_competition(this)">
-                                        <option value="">---</option>
-                                        {% for competition in by_competition %}
-                                            <option value="{{ competition.competition.slug }}"
-                                                    data-races="{{ competition.stats.RACE }}"
-                                                    data-poles="{{ competition.stats.POLE }}"
-                                                    data-wins="{{ competition.stats.WIN }}"
-                                                    data-podiums="{{ competition.stats.PODIUM }}"
-                                                    data-fastest="{{ competition.stats.FASTEST }}"
-                                                    data-points="{{ competition.stats.POINTS }}"
-
-                                            >{{ competition.competition }}</option>
-                                        {% endfor %}
-                                    </select>
-                                {% endif %}
+                                {% include 'driver27/_selector_competition.html' %}
                             </th>
                             <th>Year</th>
                             <th>Races</th>
@@ -48,9 +33,6 @@
                             <tr
                                     class="season-stat"
                                     data-competition="{{ season.competition.slug }}" data-year="{{ season.year }}"
-                                    data-races="{{ season.stats.RACE }}" data-poles="{{ season.stats.POLE }}"
-                                    data-wins="{{ season.stats.WIN }}" data-podiums="{{ season.stats.PODIUM }}"
-                                    data-fastest="{{ season.stats.FASTEST }}" data-points="{{ season.stats.POINTS }}"
                             >
                                 <td>
                                     <a href="{% url 'dr27-competition-view' season.competition.slug %}">{{ season.competition }}</a>
@@ -75,28 +57,7 @@
 
         </div>
         <div class="col-md-3 driver_summary">
-            <div class="col-xs-4 col-md-12"><span id="summary_race" class="summary_count" data-stat="races"
-                                                  data-original="{{ stats.RACE }}">{{ stats.RACE }}</span> races
-            </div>
-            <div class="col-xs-4 col-md-12"><span id="summary_pole" class="summary_count" data-stat="poles"
-                                                  data-original="{{ stats.POLE }}">{{ stats.POLE }}</span> poles
-            </div>
-            <div class="col-xs-4 col-md-12"><span id="summary_win" class="summary_count" data-stat="wins"
-                                                  data-original="{{ stats.WIN }}">{{ stats.WIN }}</span> wins
-            </div>
-            <div class="clearfix"></div>
-            <div class="col-xs-4 col-md-12"><span id="summary_podium" class="summary_count" data-stat="podiums"
-                                                  data-original="{{ stats.PODIUM }}">{{ stats.PODIUM }}</span>
-                podiums
-            </div>
-            <div class="col-xs-4 col-md-12"><span id="summary_fastest" class="summary_count" data-stat="fastest"
-                                                  data-original="{{ stats.FASTEST }}">{{ stats.FASTEST }}</span>
-                fastest laps
-            </div>
-            <div class="col-xs-4 col-md-12"><span id="summary_points" class="summary_count" data-stat="points"
-                                                  data-original="{{ stats.POINTS }}">{{ stats.POINTS }}</span>
-                points
-            </div>
+            {% include 'driver27/_summary_profile.html' %}
 
         </div>
         <div class="clearfix"></div>
@@ -116,31 +77,5 @@
 
 {% block bootstrap3_extra_script %}
     {{ block.super }}
-        <script type="text/javascript">
-        function select_competition(selector) {
-            var selected = $(selector).find(':selected');
-            if (selected) {
-                var competition = selected.val();
-                if (competition) {
-                    $('.season-stat').each(function (index, element) {
-                        if ($(element).data('competition') !== competition) {
-                            $(element).addClass("hide");
-                        } else {
-                            $(element).removeClass("hide");
-                        }
-                    });
-                    $('.summary_count').each(function (index, element) {
-                        var stat = $(element).data('stat');
-                        $(element).text($(selected).data(stat));
-                    });
-                } else {
-                    $('.season-stat').removeClass('hide');
-                    $('.summary_count').each(function (index, element) {
-                        $(element).text($(element).data('original'));
-                    })
-                }
-            }
-        }
-
-    </script>
+    <script src="{% static 'driver27/js/filter_season_by_competition.js' %}"></script>
 {% endblock %}

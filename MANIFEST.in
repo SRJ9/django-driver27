@@ -10,6 +10,7 @@ recursive-include driver27/locale *
 recursive-include driver27/management *.py
 recursive-include driver27/migrations *.py
 recursive-include driver27/static *.css
+recursive-include driver27/static *.js
 recursive-include driver27/templates *.html
 recursive-include driver27/templatetags *.py
 recursive-include driver27/tests *.py

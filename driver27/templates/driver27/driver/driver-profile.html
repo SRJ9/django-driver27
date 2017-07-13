@@ -18,7 +18,7 @@
                     <table class="table table-striped text-right table-responsive">
                         <thead>
                         <tr>
-                            <th>Competition</th>
+                            <th>{% include 'driver27/_selector_competition.html' %}</th>
                             <th>Year</th>
                             <th>Teams</th>
                             <th>Races</th>
@@ -31,11 +31,15 @@
                         </thead>
 
                         {% for season in by_season %}
-                            <tr>
+                            <tr
+                                    class="season-stat"
+                                    data-competition="{{ season.competition.slug }}" data-year="{{ season.year }}">
                                 <td>
                                     <a href="{% url 'dr27-competition-view' season.competition.slug %}">{{ season.competition }}</a>
                                 </td>
-                                <td><a href="{% url 'dr27-season-view' season.competition.slug season.year %}">{{ season.year }}</a></td>
+                                <td>
+                                    <a href="{% url 'dr27-season-view' season.competition.slug season.year %}">{{ season.year }}</a>
+                                </td>
                                 <td>{{ season.teams }}</td>
                                 <td>{{ season.stats.RACE }}</td>
                                 <td>{{ season.stats.POLE }}</td>
@@ -54,14 +58,7 @@
 
         </div>
         <div class="col-md-3 driver_summary">
-            <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.RACE }}</span> races</div>
-            <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.POLE }}</span> poles</div>
-            <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.WIN }}</span> wins</div>
-            <div class="clearfix"></div>
-            <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.PODIUM }}</span> podiums</div>
-            <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.FASTEST }}</span> fastest laps</div>
-            <div class="col-xs-4 col-md-12"><span class="summary_count">{{ stats.POINTS }}</span> points</div>
-
+            {% include 'driver27/_summary_profile.html' %}
         </div>
         <div class="clearfix"></div>
 
@@ -76,4 +73,9 @@
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
 
+{% endblock %}
+
+{% block bootstrap3_extra_script %}
+    {{ block.super }}
+    <script src="{% static 'driver27/js/filter_season_by_competition.js' %}"></script>
 {% endblock %}
