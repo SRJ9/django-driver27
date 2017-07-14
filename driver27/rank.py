@@ -128,8 +128,6 @@ class AbstractRankModel(models.Model):
         teams = getattr(self, 'teams').all()
         rank = []
 
-        print(filters)
-
         for team in teams:
             stat_cls = self.get_stats_cls(team)
             if only_actives and not stat_cls.is_active:

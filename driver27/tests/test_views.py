@@ -64,6 +64,8 @@ class ViewTest(FixturesTest):
 
     def test_competition_view(self):
         self._GET_request('dr27-competition-view', kwargs={'competition_slug': 'f1'})
+        self._GET_request('dr27-competition-driver-olympic', kwargs={'competition_slug': 'f1'})
+        self._GET_request('dr27-competition-team-olympic', kwargs={'competition_slug': 'f1'})
         self._GET_request('dr27-competition-view', kwargs={'competition_slug': 'f19'}, code=404)
 
     def test_season_view(self):
@@ -72,6 +74,7 @@ class ViewTest(FixturesTest):
         self._GET_request('dr27-season-driver', kwargs=kwargs)
         self._GET_request('dr27-season-driver-olympic', kwargs=kwargs)
         self._GET_request('dr27-season-team', kwargs=kwargs)
+        self._GET_request('dr27-season-team-olympic', kwargs=kwargs)
         self._GET_request('dr27-season-race-list', kwargs=kwargs)
 
         kwargs = {'competition_slug': 'f19', 'year': 2006}
@@ -80,83 +83,92 @@ class ViewTest(FixturesTest):
     def test_race_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016, 'race_id': 1}
         self._GET_request('dr27-season-race-view', kwargs=kwargs)
-        kwargs = {'competition_slug': 'f1', 'year': 2016, 'race_id': 200}
+        kwargs['race_id'] = 200
         self._GET_request('dr27-season-race-view', kwargs=kwargs, code=404)
+
+    def _test_driver_record_view(self, base_path, kwargs):
+        self._GET_request(base_path+'-driver-record-index', kwargs=kwargs)
+        kwargs['record'] = 'POLE'
+        self._GET_request(base_path+'-driver-record', kwargs=kwargs)
+        self._GET_request(base_path+'-driver-streak', kwargs=kwargs)
+        self._GET_request(base_path+'-driver-top-streak', kwargs=kwargs)
+        self._GET_request(base_path+'-driver-active-streak', kwargs=kwargs)
+        self._GET_request(base_path+'-driver-active-top-streak', kwargs=kwargs)
+
+        if base_path == 'dr27-competition' or base_path == 'dr27-global':
+            self._GET_request(base_path+'-driver-seasons', kwargs=kwargs)
+
+        kwargs['record'] = 'FFF'
+        self._GET_request(base_path+'-driver-record', kwargs=kwargs, code=404)
 
     def test_driver_records_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016}
-        self._GET_request('dr27-season-driver-record-index', kwargs=kwargs)
-        kwargs['record'] = 'POLE'
-        self._GET_request('dr27-season-driver-record', kwargs=kwargs)
-        self._GET_request('dr27-season-driver-streak', kwargs=kwargs)
-        self._GET_request('dr27-season-driver-top-streak', kwargs=kwargs)
-        self._GET_request('dr27-season-driver-active-streak', kwargs=kwargs)
-        self._GET_request('dr27-season-driver-active-top-streak', kwargs=kwargs)
-        kwargs['record'] = 'FFF'
-        self._GET_request('dr27-season-driver-record', kwargs=kwargs, code=404)
+        self._test_driver_record_view('dr27-season', kwargs)
 
     def test_driver_records_competition_view(self):
         kwargs = {'competition_slug': 'f1'}
-        self._GET_request('dr27-competition-driver', kwargs=kwargs)
-        self._GET_request('dr27-competition-driver-olympic', kwargs=kwargs)
-        self._GET_request('dr27-competition-driver-record-index', kwargs=kwargs)
-        kwargs['record'] = 'POLE'
-        self._GET_request('dr27-competition-driver-record', kwargs=kwargs)
-        self._GET_request('dr27-competition-driver-streak', kwargs=kwargs)
-        self._GET_request('dr27-competition-driver-top-streak', kwargs=kwargs)
-        self._GET_request('dr27-competition-driver-active-streak', kwargs=kwargs)
-        self._GET_request('dr27-competition-driver-active-top-streak', kwargs=kwargs)
-        self._GET_request('dr27-competition-driver-seasons', kwargs=kwargs)
-        kwargs['record'] = 'FFF'
-        self._GET_request('dr27-competition-driver-record', kwargs=kwargs, code=404)
+        self._test_driver_record_view('dr27-competition', kwargs)
 
     def test_driver_records_global_view(self):
         kwargs = {}
         self._GET_request('dr27-global-index')
         self._GET_request('dr27-global-driver')
         self._GET_request('dr27-global-driver-olympic')
-        self._GET_request('dr27-global-driver-record-index')
+        self._test_driver_record_view('dr27-global', kwargs)
+
+    def test_driver_records_redir(self):
+        kwargs = {'record': 'POLE'}
+        response = self.client.post(reverse('dr27-driver-record-redir'), data=kwargs)
+        self.assertEqual(response.status_code, 302)
+        kwargs['competition'] = 'f1'
+        response = self.client.post(reverse('dr27-driver-record-redir'), data=kwargs)
+        self.assertEqual(response.status_code, 302)
+        kwargs['year'] = '2016'
+        response = self.client.post(reverse('dr27-driver-record-redir'), data=kwargs)
+        self.assertEqual(response.status_code, 302)
+
+    def test_profiles_view(self):
+
+        self._GET_request('dr27-profile-view', kwargs={'driver_id': 1})
+        self._GET_request('dr27-profile-team-view', kwargs={'team_id': 1})
+
+    def _test_team_records_view(self, base_path, kwargs):
+        self._GET_request(base_path+'-team-record-index', kwargs=kwargs)
         kwargs['record'] = 'POLE'
-        self._GET_request('dr27-global-driver-record', kwargs=kwargs)
-        self._GET_request('dr27-global-driver-streak', kwargs=kwargs)
-        self._GET_request('dr27-global-driver-top-streak', kwargs=kwargs)
-        self._GET_request('dr27-global-driver-active-streak', kwargs=kwargs)
-        self._GET_request('dr27-global-driver-active-top-streak', kwargs=kwargs)
-        self._GET_request('dr27-global-driver-seasons', kwargs=kwargs)
+        self._GET_request(base_path+'-team-record', kwargs=kwargs)
+        self._GET_request(base_path+'-team-record-races', kwargs=kwargs)
+        self._GET_request(base_path+'-team-record-doubles', kwargs=kwargs)
+        self._GET_request(base_path+'-team-streak', kwargs=kwargs)
+        self._GET_request(base_path+'-team-top-streak', kwargs=kwargs)
         kwargs['record'] = 'FFF'
-        self._GET_request('dr27-global-driver-record', kwargs=kwargs, code=404)
+        self._GET_request(base_path+'-team-record', kwargs=kwargs, code=404)
+
+    def test_team_records_redir(self):
+        kwargs = {'record': 'POLE'}
+        response = self.client.post(reverse('dr27-team-record-redir'), data=kwargs)
+        self.assertEqual(response.status_code, 302)
+        kwargs['competition'] = 'f1'
+        response = self.client.post(reverse('dr27-team-record-redir'), data=kwargs)
+        self.assertEqual(response.status_code, 302)
+        kwargs['year'] = '2016'
+        response = self.client.post(reverse('dr27-team-record-redir'), data=kwargs)
+        self.assertEqual(response.status_code, 302)
+
+
 
     def test_team_records_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016}
-        self._GET_request('dr27-season-team-record-index', kwargs=kwargs)
-        kwargs['record'] = 'POLE'
-        self._GET_request('dr27-season-team-record', kwargs=kwargs)
-        self._GET_request('dr27-season-team-record-races', kwargs=kwargs)
-        self._GET_request('dr27-season-team-record-doubles', kwargs=kwargs)
-        kwargs['record'] = 'FFF'
-        self._GET_request('dr27-season-team-record', kwargs=kwargs, code=404)
+        self._test_team_records_view('dr27-season', kwargs)
 
     def test_team_records_competition_view(self):
         kwargs = {'competition_slug': 'f1'}
-        self._GET_request('dr27-competition-team', kwargs=kwargs)
-        self._GET_request('dr27-competition-team-record-index', kwargs=kwargs)
-        kwargs['record'] = 'POLE'
-        self._GET_request('dr27-competition-team-record', kwargs=kwargs)
-        self._GET_request('dr27-competition-team-record-races', kwargs=kwargs)
-        self._GET_request('dr27-competition-team-record-doubles', kwargs=kwargs)
-        kwargs['record'] = 'FFF'
-        self._GET_request('dr27-competition-team-record', kwargs=kwargs, code=404)
+        self._test_team_records_view('dr27-competition', kwargs)
         
     def test_team_records_global_view(self):
         kwargs = {}
         self._GET_request('dr27-global-team')
-        self._GET_request('dr27-global-team-record-index')
-        kwargs['record'] = 'POLE'
-        self._GET_request('dr27-global-team-record', kwargs=kwargs)
-        self._GET_request('dr27-global-team-record-races', kwargs=kwargs)
-        self._GET_request('dr27-global-team-record-doubles', kwargs=kwargs)
-        kwargs['record'] = 'FFF'
-        self._GET_request('dr27-global-team-record', kwargs=kwargs, code=404)
+        self._GET_request('dr27-global-driver-olympic')
+        self._test_team_records_view('dr27-global', kwargs)
 
     def test_contender_season_points(self):
         driver = Driver.objects.get(pk=1)

@@ -391,7 +391,7 @@ def team_record_redirect_view(request):
             'stats': 'team-record'
         }.get(rank_opt, None)
 
-    return redirect(reverse('-'.join([base_reverse_url,reverse_url]), args=reverse_args))
+    return redirect(reverse('-'.join([base_reverse_url, reverse_url]), args=reverse_args))
 
 
 @require_http_methods(["POST"])
