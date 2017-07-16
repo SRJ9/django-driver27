@@ -240,6 +240,19 @@ def driver_record_seasons_view(request, competition_slug=None, year=None, record
     return render(request, tpl, context)
 
 
+def team_record_seasons_view(request, competition_slug=None, year=None, record=None):
+    context = get_record_common_context(request, competition_slug, year, record)
+    rank = None
+    season_or_competition = context.get('season_or_competition')
+    if record:
+        rank = season_or_competition.seasons_team_rank(**context.get('record_filter')) if 'record_filter' in context else None
+    context.pop('record_filter', None)
+    context['rank'] = rank
+    context['rank_opt'] = 'seasons'
+    tpl = 'driver27/team/team-record.html'
+    return render(request, tpl, context)
+
+
 def driver_active_streak_view(request, competition_slug=None, year=None, record=None):
     return driver_streak_view(request, competition_slug=competition_slug, year=year, record=record, only_actives=True)
 
@@ -296,7 +309,6 @@ def team_streak_view(request, competition_slug=None, year=None, record=None, onl
     context.pop('record_filter', None)
     context['rank'] = rank
     context['rank_opt'] = get_streak_value_for_selector(only_actives=only_actives, max_streak=max_streak)
-
     tpl = 'driver27/team/team-record.html'
     return render(request, tpl, context)
 
@@ -382,16 +394,21 @@ def team_record_redirect_view(request):
     if not rank_opt:
         rank_opt = 'stats'
 
-    reverse_url = \
+    reverse_url_dict = \
         {
-            'streak': 'team-streak',
-            'streak_top': 'team-top-streak',
-            'doubles': 'team-record-doubles',
-            'races': 'team-record-races',
-            'stats': 'team-record'
-        }.get(rank_opt, None)
+            'streak': 'streak',
+            'streak_top': 'top-streak',
+            'doubles': 'record-doubles',
+            'races': 'record-races',
+            'stats': 'record'
+        }
 
-    return redirect(reverse('-'.join([base_reverse_url, reverse_url]), args=reverse_args))
+    if not (request.POST.get('competition') and request.POST.get('year')):
+        reverse_url_dict['seasons'] = 'seasons'
+
+    reverse_url = reverse_url_dict.get(rank_opt, 'stats')
+
+    return redirect(reverse('-'.join([base_reverse_url, 'team', reverse_url]), args=reverse_args))
 
 
 @require_http_methods(["POST"])

@@ -35,6 +35,8 @@ def dr27_team_urls(base_path):
         url(r'^olympic/$', views.team_olympic_view, name=base_path+'-team-olympic'),
         url(r'^record$', views.team_record_stats_view, name=base_path+'-team-record-index'),
         url(r'^record/(?P<record>[-\w\d]+)/$', views.team_record_stats_view, name=base_path+'-team-record'),
+        url(r'^record/(?P<record>[-\w\d]+)/seasons/$', views.team_record_seasons_view,
+            name=base_path+'-team-seasons'),
         url(r'^record/(?P<record>[-\w\d]+)/races/$', views.team_record_races_view, name=base_path+'-team-record-races'),
         url(r'^record/(?P<record>[-\w\d]+)/doubles-in-race/$', views.team_record_doubles_view,
             name=base_path+'-team-record-doubles'),

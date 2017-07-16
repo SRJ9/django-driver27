@@ -17,3 +17,8 @@
 <option value="doubles" {% if rank_opt|lower == 'doubles' %}selected{% endif %}>
     {% trans 'Records by race with at least two drivers.' %}
 </option>
+{% if not season %}
+<option value="seasons" {% if rank_opt|lower == 'seasons' %}selected{% endif %}>
+    {% trans 'Record by season' %}
+</option>
+{% endif %}

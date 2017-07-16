@@ -9,15 +9,15 @@
 {% block dr27_content %}
     {{ block.super }}
     {% load champion_filter i18n %}
-    <form method="POST" class="form-inline"  action="{% url 'dr27-team-record-redir' %}" onchange="this.submit()">
+    <form method="POST" class="form-inline" action="{% url 'dr27-team-record-redir' %}" onchange="this.submit()">
         {% csrf_token %}
         <div class="form-group col-md-4">
-        {% if competition %}
-            <input type="hidden" name="competition" value="{{ competition.slug }}"/>
-        {% endif %}
-        {% if season %}
-            <input type="hidden" name="year" value="{{ season.year }}"/>
-        {% endif %}
+            {% if competition %}
+                <input type="hidden" name="competition" value="{{ competition.slug }}"/>
+            {% endif %}
+            {% if season %}
+                <input type="hidden" name="year" value="{{ season.year }}"/>
+            {% endif %}
             <label for="record" class="control-label">Record:</label>
             <select id="record" name="record" class="form-control input-sm">
                 {% if not record %}
@@ -43,11 +43,18 @@
             <tr>
                 <th>{% trans 'Count' %}</th>
                 <th>{% trans 'Team' %}</th>
+
+                {% if rank_opt == 'seasons' %}
+                    <th>{% trans 'Season' %}</th>
+                {% endif %}
             </tr>
             {% for entry in rank %}
                 <tr>
                     <td>{{ entry.stat }}</td>
                     <td><a href="{% url 'dr27-profile-team-view' entry.team.pk %}">{{ entry.team }}</a></td>
+                    {% if rank_opt == 'seasons' %}
+                        <td>{{ entry.season }}</td>
+                    {% endif %}
                 </tr>
             {% endfor %}
 
