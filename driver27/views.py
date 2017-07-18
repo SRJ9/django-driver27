@@ -284,33 +284,32 @@ def get_streak_value_for_selector(only_actives=False, max_streak=False):
     return streak_value
 
 
-def driver_streak_view(request, competition_slug=None, year=None, record=None, only_actives=False, max_streak=False):
+def common_streak_view(request, streak_method, tpl, competition_slug=None, year=None, record=None, only_actives=False,
+                       max_streak=False,
+                       ):
     context = get_record_common_context(request, competition_slug, year, record)
     rank = None
     season_or_competition = context.get('season_or_competition')
     if record:
-        rank = season_or_competition.streak_rank(only_actives=only_actives, max_streak=max_streak,
-                                                 **context.get('record_filter')) if 'record_filter' in context else None
-    context.pop('record_filter', None)
-    context['rank'] = rank
-    context['rank_opt'] = get_streak_value_for_selector(only_actives=only_actives, max_streak=max_streak)
-    tpl = 'driver27/driver/driver-record.html'
-    return render(request, tpl, context)
-
-
-def team_streak_view(request, competition_slug=None, year=None, record=None, only_actives=False, max_streak=False):
-    context = get_record_common_context(request, competition_slug, year, record)
-    rank = None
-    season_or_competition = context.get('season_or_competition')
-    if record:
-        rank = season_or_competition.streak_team_rank(only_actives=only_actives, max_streak=max_streak,
-                                                      **context.get('record_filter')) \
+        rank = getattr(season_or_competition, streak_method)(only_actives=only_actives, max_streak=max_streak,
+                                                             **context.get('record_filter')) \
             if 'record_filter' in context else None
     context.pop('record_filter', None)
     context['rank'] = rank
     context['rank_opt'] = get_streak_value_for_selector(only_actives=only_actives, max_streak=max_streak)
-    tpl = 'driver27/team/team-record.html'
     return render(request, tpl, context)
+
+
+def driver_streak_view(request, competition_slug=None, year=None, record=None, only_actives=False, max_streak=False):
+    return common_streak_view(request, 'streak_rank', 'driver27/driver/driver-record.html',
+                              competition_slug=competition_slug, year=year, record=record, only_actives=only_actives,
+                              max_streak=max_streak)
+
+
+def team_streak_view(request, competition_slug=None, year=None, record=None, only_actives=False, max_streak=False):
+    return common_streak_view(request, 'streak_team_rank', 'driver27/team/team-record.html',
+                              competition_slug=competition_slug, year=year, record=record, only_actives=only_actives,
+                              max_streak=max_streak)
 
 
 def team_record_doubles_view(request, competition_slug=None, year=None, record=None):
