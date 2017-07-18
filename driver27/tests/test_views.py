@@ -140,6 +140,10 @@ class ViewTest(FixturesTest):
         self._GET_request(base_path+'-team-record-doubles', kwargs=kwargs)
         self._GET_request(base_path+'-team-streak', kwargs=kwargs)
         self._GET_request(base_path+'-team-top-streak', kwargs=kwargs)
+
+        if base_path == 'dr27-competition' or base_path == 'dr27-global':
+            self._GET_request(base_path+'-team-seasons', kwargs=kwargs)
+
         kwargs['record'] = 'FFF'
         self._GET_request(base_path+'-team-record', kwargs=kwargs, code=404)
 
