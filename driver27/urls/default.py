@@ -3,22 +3,31 @@ from django.conf.urls import url
 from driver27 import views
 
 
-def dr27_driver_urls(base_path):
+def _dr27_stats_urls(base_path, stat_type):
+    record_view = getattr(views, stat_type+'_record_view')
     return [
-        url(r'^$', views.driver_rank_view, name=base_path+'-driver'),
-        url(r'^olympic/$', views.driver_olympic_view, name=base_path+'-driver-olympic'),
-        url(r'^record/$', views.driver_record_view, name=base_path+'-driver-record-index'),
-        url(r'^record/(?P<record>[-\w\d]+)/$', views.driver_record_view, name=base_path+'-driver-record'),
-        url(r'^record/(?P<record>[-\w\d]+)/seasons/$', views.driver_record_seasons_view,
-            name=base_path+'-driver-seasons'),
-        url(r'^record/(?P<record>[-\w\d]+)/streak/$', views.driver_streak_view, name=base_path+'-driver-streak'),
+        url(r'^$', getattr(views, stat_type+'_rank_view'), name=base_path+'-'+stat_type),
+        url(r'^olympic/$', getattr(views, stat_type+'_olympic_view'), name=base_path+'-'+stat_type+'-olympic'),
+        url(r'^record/$', getattr(views, stat_type+'_record_view'), name=base_path+'-'+stat_type+'-record-index'),
+        url(r'^record/(?P<record>[-\w\d]+)/$', record_view, name=base_path+'-'+stat_type+'-record'),
+        url(r'^record/(?P<record>[-\w\d]+)/seasons/$', getattr(views, stat_type+'_record_seasons_view'),
+            name=base_path+'-'+stat_type+'-seasons'),
+        url(r'^record/(?P<record>[-\w\d]+)/streak/$', getattr(views, stat_type+'_streak_view'),
+            name=base_path+'-'+stat_type+'-streak'),
+        url(r'^record/(?P<record>[-\w\d]+)/streak/top/$', getattr(views, stat_type+'_top_streak_view'),
+            name=base_path+'-'+stat_type+'-top-streak'),
+    ]
+
+
+def dr27_driver_urls(base_path):
+    url_pattern = _dr27_stats_urls(base_path, 'driver')
+    url_pattern += [
         url(r'^record/(?P<record>[-\w\d]+)/streak/actives/$', views.driver_active_streak_view,
             name=base_path+'-driver-active-streak'),
-        url(r'^record/(?P<record>[-\w\d]+)/streak/top/$', views.driver_top_streak_view,
-            name=base_path+'-driver-top-streak'),
         url(r'^record/(?P<record>[-\w\d]+)/streak/top-actives/', views.driver_top_streak_active_view,
             name=base_path+'-driver-active-top-streak'),
     ]
+    return url_pattern
 
 
 def dr27_race_urls(base_path):
@@ -30,17 +39,11 @@ def dr27_race_urls(base_path):
 
 
 def dr27_team_urls(base_path):
-    return [
-        url(r'^$', views.team_rank_view, name=base_path+'-team'),
-        url(r'^olympic/$', views.team_olympic_view, name=base_path+'-team-olympic'),
-        url(r'^record$', views.team_record_stats_view, name=base_path+'-team-record-index'),
-        url(r'^record/(?P<record>[-\w\d]+)/$', views.team_record_stats_view, name=base_path+'-team-record'),
-        url(r'^record/(?P<record>[-\w\d]+)/seasons/$', views.team_record_seasons_view,
-            name=base_path+'-team-seasons'),
-        url(r'^record/(?P<record>[-\w\d]+)/races/$', views.team_record_races_view, name=base_path+'-team-record-races'),
+    url_pattern = _dr27_stats_urls(base_path, 'team')
+    url_pattern += [
+        url(r'^record/(?P<record>[-\w\d]+)/races/$', views.team_record_races_view,
+            name=base_path + '-team-record-races'),
         url(r'^record/(?P<record>[-\w\d]+)/doubles-in-race/$', views.team_record_doubles_view,
-            name=base_path+'-team-record-doubles'),
-        url(r'^record/(?P<record>[-\w\d]+)/streak/$', views.team_streak_view, name=base_path + '-team-streak'),
-        url(r'^record/(?P<record>[-\w\d]+)/streak/top/$', views.team_top_streak_view,
-            name=base_path + '-team-top-streak'),
+            name=base_path + '-team-record-doubles'),
     ]
+    return url_pattern

@@ -314,18 +314,18 @@ def team_streak_view(request, competition_slug=None, year=None, record=None, onl
 
 
 def team_record_doubles_view(request, competition_slug=None, year=None, record=None):
-    return team_record_view(request, competition_slug, year, record=record, rank_type='DOUBLES')
+    return _team_record_view(request, competition_slug, year, record=record, rank_type='DOUBLES')
 
 
 def team_record_races_view(request, competition_slug=None, year=None, record=None):
-    return team_record_view(request, competition_slug, year, record=record, rank_type='RACES')
+    return _team_record_view(request, competition_slug, year, record=record, rank_type='RACES')
 
 
-def team_record_stats_view(request, competition_slug=None, year=None, record=None):
-    return team_record_view(request, competition_slug, year, record=record, rank_type='STATS')
+def team_record_view(request, competition_slug=None, year=None, record=None):
+    return _team_record_view(request, competition_slug, year, record=record, rank_type='STATS')
 
 
-def team_record_view(request, competition_slug, year, rank_type, record=None):
+def _team_record_view(request, competition_slug, year, rank_type, record=None):
     context = get_record_common_context(request, competition_slug, year, record)
 
     rank = None
