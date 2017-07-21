@@ -133,8 +133,22 @@ class TeamStatsModel(AbstractStatsModel):
         abstract = True
 
 
+class StatsByCompetitionModel(AbstractStatsModel):
+    def get_multiple_records_by_competition(self, records_list=None, append_points=False, **kwargs):
+        stats_by_competition = []
+        for competition in getattr(self, 'competitions').all():
+            stats_by_competition.append(
+                {
+                    'competition': competition,
+                    'stats': self.get_multiple_records(records_list=records_list,
+                                                       append_points=append_points,
+                                                       competition=competition, **kwargs)
+                }
+            )
+        return stats_by_competition
 
-
+    class Meta:
+        abstract = True
 
 
 

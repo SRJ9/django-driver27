@@ -1,22 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, IntegrityError
-from django.dispatch import receiver
-from django.db.models.signals import m2m_changed, pre_save, pre_delete
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.db import models
+from django.core.exceptions import ValidationError
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
 from .points_calculator import PointsCalculator
 from .punctuation import get_punctuation_config
-from .streak import Streak
 from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField
 from swapfield.fields import SwapIntegerField
 from . import lr_intr, lr_diff
-from django.db.models.sql import constants
-from .stats import AbstractStreakModel, AbstractStatsModel, TeamStatsModel
+from .stats import AbstractStreakModel, AbstractStatsModel, TeamStatsModel, StatsByCompetitionModel
 from .rank import AbstractRankModel
 
 from django.db.models import Q
@@ -51,7 +47,7 @@ def get_results_tuples(seat=None, team=None, race=None, season=None, competition
 
 
 @python_2_unicode_compatible
-class Driver(AbstractStatsModel):
+class Driver(StatsByCompetitionModel):
     """ Main Driver Model. To combine with competitions (Contender) and competition/team (Seat) """
     last_name = models.CharField(max_length=50, verbose_name=_('last name'))
     first_name = models.CharField(max_length=25, verbose_name=_('first name'))
@@ -128,19 +124,6 @@ class Driver(AbstractStatsModel):
             )
         return stats_by_season
 
-    def get_multiple_records_by_competition(self, records_list=None, append_points=False, **kwargs):
-        stats_by_competition = []
-        for competition in self.competitions.all():
-            stats_by_competition.append(
-                {
-                    'competition': competition,
-                    'stats': self.get_multiple_records(records_list=records_list,
-                                                       append_points=append_points,
-                                                       competition=competition, **kwargs)
-                }
-            )
-        return stats_by_competition
-
     def __str__(self):
         return u', '.join((self.last_name, self.first_name))
 
@@ -200,7 +183,7 @@ class CompetitionTeam(models.Model):
 
 
 @python_2_unicode_compatible
-class Team(TeamStatsModel):
+class Team(TeamStatsModel, StatsByCompetitionModel):
     """ Team model, unique if is the same in different competition """
     name = models.CharField(max_length=75, verbose_name=_('team'), unique=True)
     full_name = models.CharField(max_length=200, unique=True, verbose_name=_('full name'))
@@ -255,18 +238,7 @@ class Team(TeamStatsModel):
             )
         return stats_by_season
 
-    def get_multiple_records_by_competition(self, records_list=None, append_points=False, **kwargs):
-        stats_by_competition = []
-        for competition in self.competitions.all():
-            stats_by_competition.append(
-                {
-                    'competition': competition,
-                    'stats': self.get_multiple_records(records_list=records_list,
-                                                       append_points=append_points,
-                                                       competition=competition, **kwargs)
-                }
-            )
-        return stats_by_competition
+
 
     def __str__(self):
         return self.name
