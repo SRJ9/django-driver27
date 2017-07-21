@@ -20,7 +20,7 @@
         <th>&nbsp;</th>
     </tr>
     {% for result in results %}
-        <tr class="finish_{{ result.finish }} {% if result.points %}points{% endif %}">
+        <tr class="race_result finish_{{ result.finish }} {% if result.points %}points{% endif %}">
         <td>
             {% if result.retired or  not result.finish %}
                 <span class="result retired">Retired</span>

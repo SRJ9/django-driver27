@@ -12,16 +12,16 @@
 .wildcard {
   background-color: orange; }
 
-.finish_1 {
-  background-color: gold !important;
+.race_result.finish_1 {
+  background-color: gold;
   font-size: 1.8em; }
 
-.finish_2 {
-  background-color: silver !important;
+.race_result.finish_2 {
+  background-color: silver;
   font-size: 1.6em; }
 
-.finish_3 {
-  background-color: #CD7F32 !important;
+.race_result.finish_3 {
+  background-color: #CD7F32;
   font-size: 1.3em; }
 
 .points {
