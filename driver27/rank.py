@@ -11,6 +11,10 @@ except ImportError:
     pass
 
 
+def order_points(rank):
+    return sorted(rank, key=lambda x: (x['points'], x['pos_str']), reverse=True)
+
+
 class AbstractRankModel(models.Model):
 
     def get_stats_cls(self, contender):
@@ -38,7 +42,7 @@ class AbstractRankModel(models.Model):
                          'teams': stat_cls.teams_verbose,
                          'pos_str': stat_cls.get_positions_str()
                          })
-        rank = sorted(rank, key=lambda x: (x['points'], x['pos_str']), reverse=True)
+        rank = order_points(rank)
         return rank
 
     def olympic_rank(self):
@@ -76,7 +80,7 @@ class AbstractRankModel(models.Model):
                          'team': team,
                          'pos_str': team_stats_cls.get_positions_str()
                          })
-        rank = sorted(rank, key=lambda x: (x['points'], x['pos_str']), reverse=True)
+        rank = order_points(rank)
         return rank
 
     def stats_rank(self, **filters):
