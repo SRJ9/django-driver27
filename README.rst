@@ -23,7 +23,7 @@ Modify your settings.py
     ]
 
 
-    TABBED_ADMIN_USE_JQUERY_UI = True
+    TABBED_ADMIN_USE_JQUERY_UI = False # Incompatible with 1.11.
 
 DR27_CONFIG
 ===========
@@ -55,6 +55,11 @@ Versions
 -  0.19 (Ayrton Senna's Toleman's car number '84 - Debut)
 -  0.22 (HAM McLaren 2008/BUT Brawn 2009)
 -  0.27-VIL (Gilles Villeneuve 27)
+
+0.24.1
+======
+-   Driver/Team profile
+-   Improve record/streak views
 
 0.24
 ====
@@ -130,8 +135,7 @@ models
 -  Season
 -  Race
 -  Result
--  Contender (Driver/Competition relation)
--  Seat (Contender/Team relation)
+-  Seat (Driver/Team relation)
 -  fixtures folder contains fixture of each model to demo project.
 
 Demo (virtualenv recommended)
