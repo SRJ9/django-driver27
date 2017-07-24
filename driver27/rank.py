@@ -27,21 +27,29 @@ class AbstractRankModel(models.Model):
     def stats_filter_kwargs(self):
         raise NotImplementedError('Not implemented property')
 
-    def points_rank(self, punctuation_code=None):
+    def points_rank(self, punctuation_code=None, by_season=False):
         """ Points driver rank. Scoring can be override by scoring_code param """
         punctuation_config = None
         if punctuation_code:
             punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
         drivers = getattr(self, 'drivers').all()
         rank = []
-        for driver in drivers:
-            stat_cls = self.get_stats_cls(driver)
-            rank.append({'points': stat_cls.get_points(punctuation_config=punctuation_config,
-                                                       **self.stats_filter_kwargs),
-                         'driver': driver,
-                         'teams': stat_cls.teams_verbose,
-                         'pos_str': stat_cls.get_positions_str()
-                         })
+        if by_season:
+            for driver in drivers:
+                seasons_by_drivers = driver.get_points_by_seasons(append_driver=True,
+                                                                  punctuation_config=punctuation_config,
+                                                                  **self.stats_filter_kwargs)
+                for season_by_driver in seasons_by_drivers:
+                    rank.append(season_by_driver)
+        else:
+            for driver in drivers:
+                stat_cls = self.get_stats_cls(driver)
+                rank.append({'points': stat_cls.get_points(punctuation_config=punctuation_config,
+                                                           **self.stats_filter_kwargs),
+                             'driver': driver,
+                             'teams': stat_cls.teams_verbose,
+                             'pos_str': stat_cls.get_positions_str()
+                             })
         rank = order_points(rank)
         return rank
 

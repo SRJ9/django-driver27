@@ -110,6 +110,24 @@ class Driver(StatsByCompetitionModel):
     def season_stats_cls(self, season):
         return ContenderSeason(driver=self, season=season)
 
+    def get_points_by_season(self, season, append_driver=False, **kwargs):
+        contender_season = ContenderSeason(driver=self, season=season)
+        season_points = {
+            'points': contender_season.get_points(**kwargs),
+            'teams': contender_season.get_teams_verbose(),
+            'pos_list': contender_season.get_positions_list(),
+            'pos_str': contender_season.get_positions_str(),
+            'season': season
+        }
+
+        if append_driver:
+            season_points['driver'] = self
+        return season_points
+
+    def get_points_by_seasons(self, append_driver=False, **kwargs):
+        return [self.get_points_by_season(season=season, append_driver=append_driver, **kwargs)
+                for season in self.seasons.all()]
+
     def get_multiple_records_by_season(self, records_list=None, append_points=False, **kwargs):
         stats_by_season = []
         for season in self.seasons.all():

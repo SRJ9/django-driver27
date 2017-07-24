@@ -82,7 +82,8 @@ def split_season_and_competition(season_or_competition):
     return season, competition
 
 
-def _rank_view(request, competition_slug, year, rank_model='driver'):
+def _rank_view(request, competition_slug, year, rank_model='driver', by_season=False):
+    by_season = request.POST.get('by_season', by_season)
     season_or_competition = get_season_or_competition(competition_slug, year)
     season, competition = split_season_and_competition(season_or_competition)
     default_punctuation = getattr(season_or_competition, 'punctuation', None)
@@ -91,7 +92,7 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
     has_champion = False
     punctuation_selector = get_punctuation_label_dict()
     if rank_model == 'driver':
-        rank = season_or_competition.points_rank(punctuation_code=scoring_code)
+        rank = season_or_competition.points_rank(punctuation_code=scoring_code, by_season=by_season)
         if hasattr(season_or_competition, 'has_champion'):
             has_champion = season_or_competition.has_champion(punctuation_code=scoring_code)
         rank_title = _('DRIVERS')
@@ -104,7 +105,7 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
         raise Http404(_('Impossible rank'))
 
     title = u'{season_or_competition} [{title}]'.format(season_or_competition=season_or_competition,
-                                                            title=rank_title)
+                                                        title=rank_title)
 
     context = {'rank': rank,
                'season': season,
@@ -112,13 +113,18 @@ def _rank_view(request, competition_slug, year, rank_model='driver'):
                'title': title,
                'has_champion': has_champion,
                'scoring_list': punctuation_selector,
-               'scoring_code': scoring_code}
+               'scoring_code': scoring_code,
+               'by_season': by_season}
 
     return render(request, tpl, context)
 
 
 def driver_rank_view(request, competition_slug=None, year=None):
     return _rank_view(request, competition_slug, year, rank_model='driver')
+
+
+def driver_rank_seasons_view(request, competition_slug=None, year=None):
+    return _rank_view(request, competition_slug, year, rank_model='driver', by_season=True)
 
 
 def common_olympic_view(request, tpl, olympic_method, rank_title, competition_slug=None, year=None):
@@ -150,6 +156,10 @@ def team_olympic_view(request, competition_slug=None, year=None):
 
 def team_rank_view(request, competition_slug=None, year=None):
     return _rank_view(request, competition_slug, year, rank_model='team')
+
+
+def team_rank_seasons_view(request, competition_slug=None, year=None):
+    return _rank_view(request, competition_slug, year, rank_model='team', by_season=True)
 
 
 def race_list(request, competition_slug, year):

@@ -3,9 +3,17 @@
     <table class="table table-condensed table-striped table-hover">
         <thead>
         <tr>
-            <th class="col-md-4">{% trans 'Points' %}</th>
-            <th class="col-md-3">{% trans 'Driver' %}</th>
-            <th class="col-md-5">{% trans 'Team' %}</th>
+            {% if by_season %}
+                <th class="col-md-2">{% trans 'Points' %}</th>
+                <th class="col-md-3">{% trans 'Driver' %}</th>
+                <th class="col-md-5">{% trans 'Team' %}</th>
+                <th class="col-md-2">{% trans 'Season' %}</th>
+            {% else %}
+
+                <th class="col-md-4">{% trans 'Points' %}</th>
+                <th class="col-md-3">{% trans 'Driver' %}</th>
+                <th class="col-md-5">{% trans 'Team' %}</th>
+            {% endif %}
 
         </tr>
         </thead>
@@ -19,6 +27,10 @@
                     {% endif %}
                 </td>
                 <td>{{ entry.teams }}</td>
+                {% if by_season %}
+                    <td>{{ entry.season }}</td>
+
+                {% endif %}
 
             </tr>
         {% endfor %}
