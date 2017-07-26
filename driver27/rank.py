@@ -36,10 +36,10 @@ class AbstractRankModel(models.Model):
         rank = []
         if by_season:
             for driver in drivers:
-                seasons_by_drivers = driver.get_points_by_seasons(append_driver=True,
+                seasons_by_driver = driver.get_points_by_seasons(append_driver=True,
                                                                   punctuation_config=punctuation_config,
                                                                   **self.stats_filter_kwargs)
-                for season_by_driver in seasons_by_drivers:
+                for season_by_driver in seasons_by_driver:
                     rank.append(season_by_driver)
         else:
             for driver in drivers:
@@ -73,21 +73,29 @@ class AbstractRankModel(models.Model):
         rank = sorted(rank, key=lambda x: x['pos_str'], reverse=True)
         return rank
 
-    def team_points_rank(self, punctuation_code=None):
+    def team_points_rank(self, punctuation_code=None, by_season=False):
         """ Same that points_rank by count both team drivers """
         punctuation_config = None
         if punctuation_code:
             punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
         teams = getattr(self, 'teams').all()
         rank = []
-        for team in teams:
-            team_stats_cls = self.get_team_stats_cls(team)
-            team_stats_kw = self.stats_filter_kwargs
-            rank.append({'points': team_stats_cls.get_points(punctuation_config=punctuation_config,
-                                                             **team_stats_kw),
-                         'team': team,
-                         'pos_str': team_stats_cls.get_positions_str()
-                         })
+        if by_season:
+            for team in teams:
+                seasons_by_team = team.get_points_by_seasons(append_team=True,
+                                                             punctuation_config=punctuation_config,
+                                                             **self.stats_filter_kwargs)
+                for season_by_team in seasons_by_team:
+                    rank.append(season_by_team)
+        else:
+            for team in teams:
+                team_stats_cls = self.get_team_stats_cls(team)
+                team_stats_kw = self.stats_filter_kwargs
+                rank.append({'points': team_stats_cls.get_points(punctuation_config=punctuation_config,
+                                                                 **team_stats_kw),
+                             'team': team,
+                             'pos_str': team_stats_cls.get_positions_str()
+                             })
         rank = order_points(rank)
         return rank
 

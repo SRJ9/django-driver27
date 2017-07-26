@@ -1,18 +1,31 @@
 {% load i18n %}
 {% if rank %}
     <table class="table table-condensed table-striped table-hover">
-    <thead>
-    <tr>
-        <th class="col-md-4">{%  trans 'Points' %}</th>
-        <th class="col-md-8">{%  trans 'Team' %}</th>
-    </tr>
-    </thead>
-    {% for entry in rank %}
+        <thead>
         <tr>
-        <td>{{ entry.points }}</td>
-        <td><a href="{% url 'dr27-profile-team-view' entry.team.pk %}">{{ entry.team }}</a></td>
+
+
+            {% if by_season %}
+                <th class="col-md-3">{% trans 'Points' %}</th>
+                <th class="col-md-7">{% trans 'Team' %}</th>
+                <th class="col-md-2">{% trans 'Season' %}</th>
+            {% else %}
+
+                <th class="col-md-4">{% trans 'Points' %}</th>
+                <th class="col-md-8">{% trans 'Team' %}</th>
+            {% endif %}
         </tr>
-    {% endfor %}
+        </thead>
+        {% for entry in rank %}
+            <tr>
+                <td>{{ entry.points }}</td>
+                <td><a href="{% url 'dr27-profile-team-view' entry.team.pk %}">{{ entry.team }}</a></td>
+                {% if by_season %}
+                    <td>{{ entry.season }}</td>
+
+                {% endif %}
+            </tr>
+        {% endfor %}
 
     </table>
 {% else %}

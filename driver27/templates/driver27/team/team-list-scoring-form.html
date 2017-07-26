@@ -1,4 +1,5 @@
-    {% if scoring_list %}
+{% load i18n %}
+{% if scoring_list %}
         <div class="change_punctuation">
             {% if season %}
                 <form method="POST" action="{% url 'dr27-season-team' season.competition.slug season.year %}">
@@ -17,6 +18,8 @@
                     <option value="{{ sc_code }}" {% if sc_code == scoring_code %}selected{% endif %}>{{ sc_label }}</option>
                     {% endfor %}
                     </select>
+                    <input type="checkbox" name="by_season" value="1" {% if by_season %}checked{% endif %}><label for="by_season">{% trans 'Top By season' %}</label>
+
                     <input type="submit" value="Change punctuation" class="btn btn-xs btn-primary">
                 </div>
 

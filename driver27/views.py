@@ -98,7 +98,7 @@ def _rank_view(request, competition_slug, year, rank_model='driver', by_season=F
         rank_title = _('DRIVERS')
         tpl = 'driver27/driver/driver-list.html'
     elif rank_model == 'team':
-        rank = season_or_competition.team_points_rank(punctuation_code=scoring_code)
+        rank = season_or_competition.team_points_rank(punctuation_code=scoring_code, by_season=by_season)
         rank_title = _('TEAMS')
         tpl = 'driver27/team/team-list.html'
     else:

@@ -111,7 +111,7 @@ class Driver(StatsByCompetitionModel):
         return ContenderSeason(driver=self, season=season)
 
     def get_points_by_season(self, season, append_driver=False, **kwargs):
-        contender_season = ContenderSeason(driver=self, season=season)
+        contender_season = self.season_stats_cls(season=season)
         season_points = {
             'points': contender_season.get_points(**kwargs),
             'teams': contender_season.get_teams_verbose(),
@@ -240,6 +240,23 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
             season_points = self.get_season(season).get_points(punctuation_config=punctuation_config)
             points += season_points if season_points else 0
         return points
+
+    def get_points_by_season(self, season, append_team=False, **kwargs):
+        team_season = self.season_stats_cls(season=season)
+        season_points = {
+            'points': team_season.get_points(**kwargs),
+            'pos_list': team_season.get_positions_list(),
+            'pos_str': team_season.get_positions_str(),
+            'season': season
+        }
+
+        if append_team:
+            season_points['team'] = self
+        return season_points
+
+    def get_points_by_seasons(self, append_team=False, **kwargs):
+        return [self.get_points_by_season(season=season, append_team=append_team, **kwargs)
+                for season in self.seasons.all()]
 
     def get_multiple_records_by_season(self, records_list=None, append_points=False, **kwargs):
         stats_by_season = []
