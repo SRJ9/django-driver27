@@ -558,6 +558,14 @@ class Race(models.Model):
         return self._abstract_seats()
 
     @property
+    def drivers(self):
+        return Driver.objects.filter(seats__in=self.seats)
+
+    @property
+    def teams(self):
+        return Team.objects.filter(seats__in=self.seats).distinct()
+
+    @property
     def no_seats(self):
         return self._abstract_seats(exclude=True)
 
