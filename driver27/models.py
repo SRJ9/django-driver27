@@ -60,8 +60,12 @@ class Driver(StatsByCompetitionModel):
         return {}
 
     @property
+    def races(self):
+        return Race.objects.filter(results__seat__driver=self).distinct()
+
+    @property
     def seasons(self):
-        return Season.objects.filter(races__results__seat__driver=self).distinct()
+        return Season.objects.filter(races__in=self.races.all()).distinct()
 
     @property
     def competitions(self):
@@ -209,8 +213,12 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
     country = CountryField(verbose_name=_('country'), blank=True, null=True)
 
     @property
+    def races(self):
+        return Race.objects.filter(results__seat__team=self).distinct()
+
+    @property
     def seasons(self):
-        return Season.objects.filter(races__results__seat__team=self).distinct()
+        return Season.objects.filter(races__in=self.races.all()).distinct()
 
     def get_results(self, competition=None, **extra_filter):
         """ Return all results of team in season """
