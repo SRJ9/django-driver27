@@ -212,9 +212,15 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
     competitions = models.ManyToManyField('Competition', through='CompetitionTeam', related_name='teams', verbose_name=_('competitions'))
     country = CountryField(verbose_name=_('country'), blank=True, null=True)
 
+    def _races(self, competition=None, **kwargs):
+        kwargs.update(**{'results__seat__team': self})
+        if competition is not None:
+            kwargs.update(**{'season__competition': competition})
+        return Race.objects.filter(**kwargs).distinct()
+
     @property
     def races(self):
-        return Race.objects.filter(results__seat__team=self).distinct()
+        return self._races().distinct()
 
     @property
     def seasons(self):
@@ -223,6 +229,16 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
     def get_results(self, competition=None, **extra_filter):
         """ Return all results of team in season """
         return Result.wizard(team=self, competition=competition, **extra_filter)
+
+    def get_results_by_race(self, race):
+        return self.get_results(race=race)
+
+    def get_drivers_by_race(self, race):
+        results = self.get_results_by_race(race=race)
+        return list(set([result.seat.driver for result in results]))
+
+    def get_drivers_by_race_str(self, race):
+        return ' + '.join(sorted(['{driver}'.format(driver=driver) for driver in self.get_drivers_by_race(race)]))
 
     def season_stats_cls(self, season):
         return TeamSeason.objects.get(season=season, team=self)
