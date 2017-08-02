@@ -25,7 +25,7 @@ class GrandPrixWidget(forms.widgets.Select):
             from driver27.models import GrandPrix
             grand_prix = GrandPrix.objects.filter(pk=option_value)
             if grand_prix.count() and grand_prix.first().default_circuit:
-                data_circuit_attr = grand_prix.first().default_circuit.pk
+                data_circuit_attr = getattr(grand_prix.first().default_circuit, 'pk', '')
 
         return format_html('<option value="{}"{} data-circuit="{}">{}</option>',
                            option_value, selected_html,
