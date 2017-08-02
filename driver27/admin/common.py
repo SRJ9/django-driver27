@@ -27,7 +27,7 @@ class GrandPrixWidget(forms.widgets.Select):
             if grand_prix.count() and grand_prix.first().default_circuit:
                 data_circuit_attr = getattr(grand_prix.first().default_circuit, 'pk', '')
 
-        return format_html('<option value="{}"{} data-circuit="{}">{}</option>',
+        return format_html(u'<option value="{}"{} data-circuit="{}">{}</option>',
                            option_value, selected_html,
                            data_circuit_attr, force_text(option_label))
 
