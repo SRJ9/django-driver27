@@ -1,5 +1,5 @@
 {% extends 'driver27/base.html' %}
-{% load static %}
+{% load static i18n %}
 {% block dr27_content %}
     {{ block.super }}
     <div class="container-fluid">
@@ -61,6 +61,45 @@
             {% include 'driver27/_summary_profile.html' %}
         </div>
         <div class="clearfix"></div>
+        <div class="col-md-9">
+            {% if results %}
+            <table class="table table-bordered table-striped profile-results-list">
+                    <thead>
+                    <tr>
+                        <th>{% trans 'Race' %}</th>
+                        <th>{% trans 'Grand Prix' %}</th>
+                        <th>{% trans 'Country' %}</th>
+                        <th>{% trans 'Qualifying' %}</th>
+                        <th>{% trans 'Finish' %}</th>
+                        <th>{% trans 'Retired' %}</th>
+                        <th>{% trans 'Fastest lap' %}</th>
+                        <th>{% trans 'Points' %}</th>
+                    </tr>
+
+                    </thead>
+                    {% for result in results %}
+                        <tr class="profile-results"
+                            data-race="{{ result.race_id }}"
+                            data-qualifying="{{ result.qualifying }}"
+                            data-finish="{{ result.finish }}"
+                            data-retired="{{ result.retired }}"
+                            data-fastest="{{ result.fastest_lap }}"
+                            data-points="{{ result.points }}"
+
+                        >
+                        <td>{{ result.race_id }}</td>
+                            <td>{{ result.grand_prix }}</td>
+                        <td><i class="{{ result.country.flag_css }}"></i></td>
+                        <td>{{ result.qualifying }}</td>
+                        <td>{{ result.finish|default_if_none:"-" }}</td>
+                        <td>{{ result.retired }}</td>
+                        <td>{{ result.fastest_lap }}</td>
+                        <td>{{ result.points|default_if_none:"0" }}</td>
+                        </tr>
+                    {% endfor %}
+            </table>
+            {% endif %}
+        </div>
 
 
     </div>

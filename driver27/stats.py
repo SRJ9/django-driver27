@@ -105,6 +105,23 @@ class AbstractStatsModel(AbstractStreakModel, models.Model):
 
 
 class TeamStatsModel(AbstractStatsModel):
+    def season_stats_cls(self, *args, **kwargs):
+        raise NotImplementedError('Not implemented property')
+
+    def get_points(self, *args, **kwargs):
+        raise NotImplementedError('Not implemented property')
+
+    @property
+    def result_filter_kwargs(self):
+        raise NotImplementedError('Not implemented property')
+
+    @property
+    def is_active(self):
+        raise NotImplementedError('Not implemented property')
+
+    def get_results(self, *args, **kwargs):
+        raise NotImplementedError('Not implemented property')
+
     def get_total_races(self, **filters):
         """ Only count 1 by race with any driver in filter """
         return self.get_races(**filters).count()

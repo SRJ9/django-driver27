@@ -1,5 +1,6 @@
-from operator import le, ge, eq
+from operator import le, ge, eq, lt, gt
 import re
+from django.db.models import F
 
 
 def build_dict(seq, key):
@@ -16,12 +17,18 @@ class Streak(object):
         self.unique_by_race = unique_by_race
 
     @staticmethod
-    def get_builtin_function(builtin_key):
+    def builtin_function_dict():
         return {'lte': le,
                 'gte': ge,
                 'eq': eq,
-                'exact': eq
-                }.get(builtin_key, None)
+                'exact': eq,
+                'lt': lt,
+                'gt': gt
+                }
+
+    @staticmethod
+    def get_builtin_function(builtin_key):
+        return Streak.builtin_function_dict().get(builtin_key, None)
 
     @staticmethod
     def validate_syntax_filter(current_filter):
@@ -45,7 +52,7 @@ class Streak(object):
     @classmethod
     def exists_comparison(cls, filter_list):
         comparison_position = cls.get_comparison_position(filter_list)
-        return filter_list[comparison_position] in ['lte', 'gte', 'eq', 'exact']
+        return filter_list[comparison_position] in Streak.builtin_function_dict()
 
     @classmethod
     def exec_comparison(cls, result, filter_list, filter_value):
@@ -55,6 +62,8 @@ class Streak(object):
             filter_list.pop(cls.get_comparison_position(filter_list))
         filter_key = '.'.join(filter_list)
         result_attr = getattr(result, filter_key)
+        if isinstance(filter_value, F):
+            filter_value = getattr(result, filter_value.name)
         builtin_function = cls.get_builtin_function(comparison_key)
         return builtin_function(result_attr, filter_value) if builtin_function else False
 
@@ -76,8 +85,8 @@ class Streak(object):
         for result in self.results:
             race_str = 'race_{id}'.format(id=result.race_id)
 
-            info_by_name = build_dict(results_by_race, key="race_id")
-            if race_str not in info_by_name:
+            race_indexes = build_dict(results_by_race, key="race_id")
+            if race_str not in race_indexes:
                 results_by_race.append(
                     {
                         'race_id': race_str,
@@ -89,7 +98,7 @@ class Streak(object):
                 race_order += 1
                 results_by_race[-1]['results'].append(result)
             else:
-                race_index = info_by_name[race_str]['index']
+                race_index = race_indexes[race_str]['index']
                 results_by_race[race_index]['results'].append(result)
         return sorted(results_by_race, key=lambda x: x['order'])
 
@@ -117,6 +126,7 @@ class Streak(object):
         max_count = 0
         for result in self.results:
             is_ok = self.checked_filters(result, filters)
+
             if not is_ok:
                 if self.max_streak:
                     count = 0
@@ -124,6 +134,7 @@ class Streak(object):
                 else:
                     break
             count += 1
+
             if self.max_streak and count > max_count:
                 max_count = count
         return max_count if self.max_streak else count

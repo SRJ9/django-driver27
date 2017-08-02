@@ -18,7 +18,9 @@ from .rank import AbstractRankModel
 from django.db.models import Q
 from collections import namedtuple
 
-ResultTuple = namedtuple('ResultTuple', 'qualifying finish fastest_lap wildcard retired race_id alter_punctuation')
+ResultTuple = namedtuple('ResultTuple',
+                         'qualifying finish fastest_lap wildcard retired race_id circuit grand_prix country competition year '\
+                         'round alter_punctuation points')
 
 
 def get_tuples_from_results(results):
@@ -27,7 +29,12 @@ def get_tuples_from_results(results):
 
 def get_tuple_from_result(result):
     return ResultTuple(result.qualifying, result.finish, result.fastest_lap,
-                       result.wildcard, result.retired, result.race_id, result.race.alter_punctuation)
+                       result.wildcard, result.retired, result.race_id, result.race.circuit,
+                       result.race.grand_prix,
+                       result.race.grand_prix.country,
+                       result.race.season.competition, result.race.season.year,
+                       result.race.round,
+                       result.race.alter_punctuation, result.points)
 
 
 def get_results_tuples(seat=None, team=None, race=None, season=None, competition=None,
@@ -41,7 +48,9 @@ def get_results_tuples(seat=None, team=None, race=None, season=None, competition
                                 season=season, competition=competition, **extra_filters)
 
     results = results.values_list('qualifying', 'finish', 'fastest_lap', 'wildcard', 'retired',
-                                  'race_id', 'race__alter_punctuation')
+                                  'race_id', 'race__circuit', 'race__grand_prix', 'race__grand_prix__country',
+                                  'race__season__competition', 'race__season__year', 'race__season__round',
+                                  'race__alter_punctuation', 'points')
 
     return results
 

@@ -11,7 +11,7 @@ try:
 except ImportError:
     from django.core.urlresolvers import reverse
 
-from .models import Competition, Season, Race, RankModel, Driver, Team
+from .models import Competition, Season, Race, RankModel, Driver, Team, get_tuples_from_results
 from .records import get_record_config, get_record_label_dict
 from .punctuation import get_punctuation_config, get_punctuation_label_dict
 
@@ -342,6 +342,7 @@ def driver_profile_view(request, driver_id):
         'driver': driver,
         'by_season': by_season,
         'by_competition': by_competition,
+        'results': get_tuples_from_results(driver.get_results()),
         'stats': driver.get_multiple_records(append_points=True),
         'title': 'Profile of {driver}'.format(driver=driver)
     }

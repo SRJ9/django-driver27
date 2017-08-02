@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db.models import F
 from django.utils.translation import ugettext as _
 
 
@@ -15,6 +16,10 @@ def get_init_config():
                                                                                 'finish__gte': 1,
                                                                                 'finish__lte': 10},
                                 'doubles': True},
+            'COMEBACK-TO-WIN': {'label': _('Comeback to win'), 'filter': {'qualifying__gt': 1,
+                                                                          'finish': 1}},
+            'COMEBACK': {'label': _('Comeback'), 'filter': {'finish__lt': F('qualifying'), 'retired': False,
+                                                            'finish__gt': 0}},
             'PODIUM-AFTER-11': {'label': _('Podium after qualifying 11th or more'),
                                 'filter': {'qualifying__gte': 11, 'finish__gte': 1, 'finish__lte': 3},
                                 'doubles': True},
