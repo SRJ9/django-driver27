@@ -16,16 +16,16 @@ class Teammates(object):
         results_by_race = self.group_results_by_race(results)
 
     def wizard(self, race=None, team=None, driver=None):
-        results = Result.objects
+        results = Result.wizard
         if race is not None:
             race_filter = {'race': race}
-            results = results.filter(**race_filter)
+            results = results(**race_filter)
         if team is not None:
             team_filter = {'race': team.races.all()}
-            results = results.filter(**team_filter)
+            results = results(**team_filter)
         if driver is not None:
             driver_filter = {'race': driver.races.all()}
-            results = results.filter(**driver_filter)
+            results = results(**driver_filter)
         self.group_results(results)
 
     class Meta:

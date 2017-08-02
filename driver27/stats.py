@@ -23,14 +23,14 @@ class AbstractStreakModel(object):
         results_tuples = get_tuples_from_results(results=results)
         return Streak(results=results_tuples, max_streak=max_streak, unique_by_race=unique_by_race).run(filters)
 
-    def get_positions_list(self, limit_races=None, competition=None):
+    def get_positions_list(self, limit_races=None, competition=None, **kwargs):
         """ Return a list with the count of each 20 first positions """
-        results = self.get_results(limit_races=limit_races, competition=competition)
+        results = self.get_results(limit_races=limit_races, competition=competition, **kwargs)
         finished = results.values_list('finish', flat=True)
         last_position = 20
         positions = []
         for x in range(1, last_position+1):
-            position_count = len([finish for finish in finished if finish==x])
+            position_count = len([finish for finish in finished if finish == x])
             positions.append(position_count)
         return positions
 

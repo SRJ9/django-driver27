@@ -1,0 +1,41 @@
+{% extends 'driver27/base.html' %}
+{% load i18n %}
+{% block dr27_menu %}
+
+    {% include 'driver27/_selector_menu.html' %}
+    {% include 'driver27/driver/driver-menu.html' %}
+{% endblock %}
+
+{% block dr27_content %}
+    {{ block.super }}
+    {% if rank %}
+        <table class="table table-condensed table-striped table-hover">
+            <thead>
+            <tr>
+                    <th>{% trans 'Comeback' %}</th>
+                    <th>{% trans 'Driver' %}</th>
+                    <th>{% trans 'Team' %}</th>
+                    <th>{% trans 'Race' %}</th>
+                    <th>{% trans 'Qualifying' %}</th>
+                    <th>{% trans 'Finish' %}</th>
+
+            </tr>
+            </thead>
+
+            {% for entry in rank %}
+                <tr>
+                    <td>{{ entry.comeback }}</td>
+                    <td><a href="{% url 'dr27-profile-view' entry.driver.pk %}">{{ entry.driver }}</a></td>
+                    <td><a href="{% url 'dr27-profile-team-view' entry.team.pk %}">{{ entry.team }}</a></td>
+                    <td>{{ entry.race }}</td>
+                    <td>{{ entry.qualifying }}</td>
+                    <td>{{ entry.finish }}</td>
+                </tr>
+            {% endfor %}
+
+        </table>
+
+    {% else %}
+        <p>No drivers</p>
+    {% endif %}
+{% endblock %}

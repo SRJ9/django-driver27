@@ -10,9 +10,14 @@ try:
 except ImportError:
     pass
 
+from django.db.models import F, Sum
+from .records import get_record_config
+
 
 def order_points(rank):
     return sorted(rank, key=lambda x: (x['points'], x['pos_str']), reverse=True)
+
+
 
 
 class AbstractRankModel(models.Model):
@@ -37,8 +42,8 @@ class AbstractRankModel(models.Model):
         if by_season:
             for driver in drivers:
                 seasons_by_driver = driver.get_points_by_seasons(append_driver=True,
-                                                                  punctuation_config=punctuation_config,
-                                                                  **self.stats_filter_kwargs)
+                                                                 punctuation_config=punctuation_config,
+                                                                 **self.stats_filter_kwargs)
                 for season_by_driver in seasons_by_driver:
                     rank.append(season_by_driver)
         else:
@@ -110,6 +115,14 @@ class AbstractRankModel(models.Model):
                          'driver': driver,
                          'teams': stat_cls.teams_verbose})
         rank = sorted(rank, key=lambda x: x['stat'], reverse=True)
+        return rank
+
+    def comeback_rank(self):
+        from .models import Result
+        comeback_filter = get_record_config('COMEBACK').get('filter')
+        comeback_filter.update(self.stats_filter_kwargs)
+        rank = Result.wizard(**comeback_filter)\
+            .annotate(comeback=Sum(F('qualifying')-F('finish'))).order_by('-comeback')
         return rank
 
     def seasons_rank(self, **filters):

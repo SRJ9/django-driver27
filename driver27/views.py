@@ -119,6 +119,27 @@ def _rank_view(request, competition_slug, year, rank_model='driver', by_season=F
     return render(request, tpl, context)
 
 
+def driver_comeback_view(request, competition_slug=None, year=None):
+    season_or_competition = get_season_or_competition(competition_slug, year)
+    season, competition = split_season_and_competition(season_or_competition)
+
+    rank = season_or_competition.comeback_rank()
+    rank_title = _('DRIVERS Comeback')
+
+    title = u'{season_or_competition} [{title}]'.format(season_or_competition=season_or_competition,
+                                                        title=rank_title)
+
+    context = {'rank': rank,
+               'season': season,
+               'competition': competition,
+               'title': title
+               }
+
+    tpl = 'driver27/driver/driver-comeback.html'
+
+    return render(request, tpl, context)
+
+
 def driver_rank_view(request, competition_slug=None, year=None):
     return _rank_view(request, competition_slug, year, rank_model='driver')
 

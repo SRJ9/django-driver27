@@ -85,7 +85,7 @@ class Driver(StatsByCompetitionModel):
         seasons_ordered_by_desc_year = Season.objects.order_by('-year')
         if seasons_ordered_by_desc_year.count():
             last_year = seasons_ordered_by_desc_year[0].year
-            return Result.objects.filter(seat__driver=self, race__season__year=last_year).count()
+            return Result.wizard(driver=self, race__season__year=last_year).count()
         else:
             return True
 
@@ -401,7 +401,7 @@ class Season(AbstractRankModel):
 
     @property
     def stats_filter_kwargs(self):
-        return {}
+        return {'season': self}
 
     @property
     def drivers(self):
@@ -783,11 +783,11 @@ class Result(models.Model):
         errors = {'seat': []}
         if not self.race.season.competition.teams.filter(pk=self.seat.team.pk).exists():
             errors['seat'].append('Team not in Competition')
-        if Result.objects.filter(seat__driver=self.seat.driver, race=self.race).exclude(pk=self.pk).exists():
+        if Result.wizard(driver=self.seat.driver, race=self.race).exclude(pk=self.pk).exists():
             errors['seat'].append('Exists a result with the same driver in this race (different Seat)')
         if not self.race.season.seats.filter(pk=self.seat.pk).exists():
             errors['seat'].append('{seat} is not valid in {season_year}'.format(seat=self.seat,
-                                                                            season_year=self.race.season.year))
+                                                                                season_year=self.race.season.year))
         if errors['seat']:
             raise ValidationError(errors)
 
@@ -863,7 +863,8 @@ class ContenderSeason(AbstractStreakModel):
 
     def get_results(self, limit_races=None, **extra_filter):
         """ Return results. Can be limited."""
-        return Result.wizard(driver=self.driver, season=self.season, limit_races=limit_races, **extra_filter)
+        extra_filter.update(**{'season': self.season})
+        return Result.wizard(driver=self.driver, limit_races=limit_races, **extra_filter)
 
     def get_reverse_results(self, limit_races=None, **extra_filter):
         return self.get_results(limit_races=limit_races, reverse_order=True, **extra_filter)
@@ -881,14 +882,14 @@ class ContenderSeason(AbstractStreakModel):
     def is_active(self):
         return True
 
-    def get_points(self, limit_races=None, punctuation_config=None):
+    def get_points(self, limit_races=None, punctuation_config=None, **kwargs):
         """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
 
         if punctuation_config is None:
             points_list = self.get_saved_points(limit_races=limit_races)
         else:
             points_list = []
-            results = self.get_results(limit_races=limit_races)
+            results = self.get_results(limit_races=limit_races, **kwargs)
             # Result can be the only param passed to get_results_tuple.
             # If results=false, get_results will be calculate without params, return all results of all competitions.
             # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.

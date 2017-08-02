@@ -23,6 +23,7 @@ def _dr27_stats_urls(base_path, stat_type):
 def dr27_driver_urls(base_path):
     url_pattern = _dr27_stats_urls(base_path, 'driver')
     url_pattern += [
+        url(r'^comeback/$', views.driver_comeback_view, name=base_path+'-driver-comeback'),
         url(r'^record/(?P<record>[-\w\d]+)/streak/actives/$', views.driver_active_streak_view,
             name=base_path+'-driver-active-streak'),
         url(r'^record/(?P<record>[-\w\d]+)/streak/top-actives/', views.driver_top_streak_active_view,
