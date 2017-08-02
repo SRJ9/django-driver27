@@ -31,7 +31,7 @@ def get_tuple_from_result(result):
     return ResultTuple(result.qualifying, result.finish, result.fastest_lap,
                        result.wildcard, result.retired, result.race_id, result.race.circuit,
                        result.race.grand_prix,
-                       result.race.grand_prix.country,
+                       getattr(result.race.grand_prix, 'country', None),
                        result.race.season.competition, result.race.season.year,
                        result.race.round,
                        result.race.alter_punctuation, result.points)
@@ -49,7 +49,7 @@ def get_results_tuples(seat=None, team=None, race=None, season=None, competition
 
     results = results.values_list('qualifying', 'finish', 'fastest_lap', 'wildcard', 'retired',
                                   'race_id', 'race__circuit', 'race__grand_prix', 'race__grand_prix__country',
-                                  'race__season__competition', 'race__season__year', 'race__season__round',
+                                  'race__season__competition', 'race__season__year', 'race__round',
                                   'race__alter_punctuation', 'points')
 
     return results
