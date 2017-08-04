@@ -4,7 +4,7 @@ from django.utils.translation import ugettext as _
 
 
 def get_init_config():
-    return {
+    init_config = {
         'RECORDS': {
             'RACE': {'label': _('Race'), 'filter': {}},
             'POLE': {'label': _('Pole'), 'filter': {'qualifying__exact': 1}},
@@ -57,6 +57,8 @@ def get_init_config():
                              'label': 'Moto GP (1977-87)'},
         }
     }
+
+    return init_config
 
 
 def get_settings_config():

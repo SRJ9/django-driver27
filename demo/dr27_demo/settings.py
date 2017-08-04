@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
@@ -26,7 +25,6 @@ SECRET_KEY = 'test_key'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -77,7 +75,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'dr27_demo.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
@@ -87,7 +84,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'demo.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -107,7 +103,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -121,7 +116,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
@@ -130,14 +124,33 @@ TABBED_ADMIN_USE_JQUERY_UI = False
 # TABBED_ADMIN_USE_JQUERY_UI incompatible with 1.11
 
 # Append punctuation to tests
-DRIVER27_PUNCTUATION = [
-    {
-        'code': 'EURO',
-        'type': 'full',
-        'finish': [12, 10, 8, 7, 6, 5, 4, 3, 2, 1],
-        'fastest_lap': 0,
-        'label': 'EUROVISION'
-    },
-]
+DR27_CONFIG = {
+    'PUNCTUATION': {
+        'EURO':
+            {
+                'type': 'full',
+                'finish': [12, 10, 8, 7, 6, 5, 4, 3, 2, 1],
+                'fastest_lap': 0,
+                'label': 'EUROVISION'
+            },
+        '20-TO-1':
 
+            {
+                'type': 'full',
+                'finish': [20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+                'fastest_lap': 0,
+                'label': '20 to 1'
+            },
+        'QUALI-F1-25':
+            {
+                'type': 'full',
+                'qualifying': [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
+                'fastest_lap': 0,
+                'label': 'F1 (25 1st) - Qualifying'
+            }
+    }
+}
 
+COUNTRIES_OVERRIDE = {
+    'EU': 'Europe'
+}
