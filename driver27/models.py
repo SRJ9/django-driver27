@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models
+from collections import namedtuple
+
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.db import models
+from django.db.models import Q
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
-from .points_calculator import PointsCalculator
-from .punctuation import get_punctuation_config
-from slugify import slugify
 from django_countries.fields import CountryField
 from exclusivebooleanfield.fields import ExclusiveBooleanField
+from slugify import slugify
 from swapfield.fields import SwapIntegerField
-from . import lr_intr, lr_diff
-from .stats import AbstractStreakModel, AbstractStatsModel, TeamStatsModel, StatsByCompetitionModel
-from .rank import AbstractRankModel
 
-from django.db.models import Q
-from collections import namedtuple
+from . import lr_intr, lr_diff
+from .points_calculator import PointsCalculator
+from .punctuation import get_punctuation_config
+from .rank import AbstractRankModel
+from .stats import AbstractStreakModel, AbstractStatsModel, TeamStatsModel, StatsByCompetitionModel
 
 ResultTuple = namedtuple('ResultTuple',
                          'qualifying finish fastest_lap wildcard retired race_id circuit grand_prix country competition year '\
@@ -138,8 +140,15 @@ class Driver(StatsByCompetitionModel):
         return season_points
 
     def get_points_by_seasons(self, append_driver=False, **kwargs):
-        return [self.get_points_by_season(season=season, append_driver=append_driver, **kwargs)
-                for season in self.seasons.all()]
+        points_by_season = []
+        for season in self.seasons.all():
+            season_kw = kwargs
+            season_kw.update(**{'season': season})
+            points_by_season.append(
+                self.get_points_by_season(append_driver=append_driver, **season_kw)
+            )
+
+        return points_by_season
 
     def get_multiple_records_by_season(self, records_list=None, append_points=False, **kwargs):
         stats_by_season = []
@@ -799,6 +808,7 @@ class Result(models.Model):
         self._validate_seat()
         self.points = self.get_points()
         super(Result, self).save(*args, **kwargs)
+        cache.clear()
 
     @property
     def driver(self):
