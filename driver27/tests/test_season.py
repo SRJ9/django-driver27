@@ -26,7 +26,7 @@ class SeasonTestCase(TestCase, CommonResultTestCase):
 
     def test_season_pending_races(self):
         season = self.get_test_season()
-        self.assertIsInstance(season.pending_races(), int)
+        self.assertIsInstance(season.num_pending_races, int)
 
     def test_season_pending_points(self):
         season = self.get_test_season()

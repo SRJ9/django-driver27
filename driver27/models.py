@@ -475,16 +475,33 @@ class Season(AbstractRankModel):
             punctuation_code = self.punctuation
         return get_punctuation_config(punctuation_code)
 
+    def past_or_pending_races(self, past=True):
+        filter_no_results = {'results__pk__isnull': True}
+        races = self.races
+        if past:
+            races = races.exclude(**filter_no_results)
+        else:
+            races = races.filter(**filter_no_results)
+        return races.distinct()
+
+    @property
     def pending_races(self):
-        """ Based on rounds field, return races count when race doesn't have any result """
-        """ If rounds is None, rounds will setted to races in season"""
-        races = Race.objects.filter(season=self)
-        past_races = races.filter(results__pk__isnull=False).distinct().count()
-        rounds = self.rounds
-        if rounds is None:
-            rounds = Race.objects.filter(season=self).count()
-        pending_races = (rounds - past_races)
-        return pending_races
+        return self.past_or_pending_races(past=False)
+
+    @property
+    def past_races(self):
+        return self.past_or_pending_races(past=True)
+
+    @property
+    def num_pending_races(self):  # noqa
+        # @todo check behavior when races exceeded season:rounds
+        expected_pending_races = races_no_results = self.pending_races.count()
+        season_rounds = self.rounds
+        if season_rounds:
+            expected_pending_races = self.rounds - races_no_results
+        if races_no_results > expected_pending_races:
+            races_no_results = expected_pending_races
+        return races_no_results
 
     def pending_points(self, punctuation_code=None):
         """ Return the maximum of available points taking into account the number of pending races"""
@@ -492,34 +509,44 @@ class Season(AbstractRankModel):
         if not punctuation_code:
             punctuation_code = self.punctuation
         punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
-        max_score_by_race = sorted(punctuation_config.get('finish'), reverse=True)[0]
-        pending_races = self.pending_races()
-        return pending_races * max_score_by_race
+        max_points = 0
+
+        for race in self.pending_races.all():
+            max_result = Result(finish=1, qualifying=1, fastest_lap=True, race=race)
+            max_points += PointsCalculator(punctuation_config=punctuation_config).calculator(
+                get_tuple_from_result(max_result)
+            )
+        return max_points
 
     def leader_window(self, rank=None, punctuation_code=None):
         """ Minimum of current points a contestant must have to have any chance to be a champion.
         This is the subtraction of the points of the leader and the maximum of points that
         can be obtained in the remaining races."""
-        pending_points = self.pending_points(punctuation_code=punctuation_code)
-        leader = self.get_leader(rank=rank, punctuation_code=punctuation_code)
+        punctuation_code_dict = {'punctuation_code': punctuation_code}
+        pending_points = self.pending_points(**punctuation_code_dict)
+        leader = self.get_leader(rank=rank, **punctuation_code_dict)
         return leader['points'] - pending_points if leader else None
 
     def only_title_contenders(self, punctuation_code=None):
         """ They are only candidates for the title if they can reach the leader by adding all the pending points."""
-        rank = self.points_rank(punctuation_code=punctuation_code)
-        leader_window = self.leader_window(rank=rank, punctuation_code=punctuation_code)
+        punctuation_code_dict = {'punctuation_code': punctuation_code}
+        rank = self.points_rank(**punctuation_code_dict)
+        leader_window = self.leader_window(rank=rank, **punctuation_code_dict)
 
         title_rank = []
-        if leader_window:
+        if leader_window is not None:  # Can be zero
             title_rank = [entry for entry in rank if entry['points'] >= leader_window]
         return title_rank
 
+    def the_champion(self, punctuation_code=None):
+        title_contenders = self.only_title_contenders(punctuation_code=punctuation_code)
+        if len(title_contenders) == 1:
+            return title_contenders[0]
+        return None
+
     def has_champion(self, punctuation_code=None):
         """ If only exists one title contender, it has champion """
-        leader_is_champions = False
-        if len(self.only_title_contenders(punctuation_code=punctuation_code)) == 1:
-            leader_is_champions = True
-        return leader_is_champions
+        return self.the_champion(punctuation_code=punctuation_code) is not None
 
     def get_leader(self, rank=None, team=False, punctuation_code=None):
         """ Get driver leader or team leader """

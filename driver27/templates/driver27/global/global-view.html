@@ -31,11 +31,19 @@
                     {{ season.year }}
                 </td>
                 <td>
+                    {% if season.leader %}
                     {{ season.pk | champion_filter | safe }}
                     {{ season.leader.points }} <a href="{% url 'dr27-profile-view' season.leader.driver.pk %}">{{ season.leader.driver }}</a> ({{ season.leader.teams }})
+                    {% else %}
+                    -
+                    {% endif %}
                 </td>
                 <td>
+                    {% if season.team_leader %}
                     {{ season.team_leader.points }} <a href="{% url 'dr27-profile-team-view' season.team_leader.team.pk %}">{{ season.team_leader.team }}</a>
+                    {% else %}
+                    -
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}

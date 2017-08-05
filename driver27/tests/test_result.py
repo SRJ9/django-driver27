@@ -341,4 +341,71 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEqual(race.results.count(), 2)
         self.assertEqual(race.pole, seat_b)
 
+    def test_has_champions_half_punctuation(self):
+        # create two players
+        seat_a = self.get_test_seat()
+        seat_b = self.get_test_seat_teammate(seat_a)
+
+        # create the season with 3 rounds, the last with half punctuation
+        competition = self.get_test_competition()
+        season = self.get_test_season(competition=competition, rounds=3)
+        self.get_test_competition_team(competition=competition, team=seat_a.team)
+
+        # create 3 races
+        race_1 = self.get_test_race(season=season, round=1)
+        race_2 = self.get_test_race(season=season, round=2)
+        race_3 = self.get_test_race(season=season, round=3, alter_punctuation='half')
+
+        # race 1
+        # seat_a: 25, seat_b: 18
+        self.get_test_result(seat=seat_a, race=race_1, qualifying=2, finish=1)
+        self.get_test_result(seat=seat_b, race=race_1, qualifying=1, finish=2)
+        self.assertFalse(season.has_champion())
+
+        # race 2
+        # seat_a: 50, seat_b: 36
+        # with regular punctuation, race 3 will determine the champion
+        # but with half punctuation, distance of 14 points with 12.5 on the line,
+        # seat_a is the champion with a pending race
+        self.get_test_result(seat=seat_a, race=race_2, qualifying=1, finish=1)
+        self.get_test_result(seat=seat_b, race=race_2, qualifying=4, finish=2)
+        self.assertEqual(season.pending_points(), 12.5)
+        self.assertTrue(season.has_champion())
+
+    def test_has_champions_double_punctuation(self):
+        # create two players
+        seat_a = self.get_test_seat()
+        seat_b = self.get_test_seat_teammate(seat_a)
+
+        # create the season with 3 rounds, the last with double punctuation
+        competition = self.get_test_competition()
+        season = self.get_test_season(competition=competition, rounds=3)
+        self.get_test_competition_team(competition=competition, team=seat_a.team)
+
+        # create 3 races
+        race_1 = self.get_test_race(season=season, round=1)
+        race_2 = self.get_test_race(season=season, round=2)
+        race_3 = self.get_test_race(season=season, round=3, alter_punctuation='double')
+
+        # race 1
+        # seat_a: 25, seat_b: 0
+        self.get_test_result(seat=seat_a, race=race_1, qualifying=2, finish=1)
+        self.get_test_result(seat=seat_b, race=race_1, qualifying=1, finish=None, retired=True)
+        self.assertFalse(season.has_champion())
+
+        # race 2
+        # seat_a: 43, seat_b: 15
+        # with regular punctuation, seat_a would already be the champion
+        # but with double punctuation, seat_b a disadvantage of 28 points with 50 pending.
+        self.get_test_result(seat=seat_a, race=race_2, qualifying=1, finish=2)
+        self.get_test_result(seat=seat_b, race=race_2, qualifying=4, finish=3)
+        self.assertEqual(season.pending_points(), 50)
+        self.assertFalse(season.has_champion())
+
+        # race 3
+        # seat_a: 63, seat_b: 65 (with double punctuation, seat_b is the champion)
+        # seat_a: 53, seat_b: 40 (with regular punctuation, seat_a is the champion)
+        self.get_test_result(seat=seat_a, race=race_3, qualifying=8, finish=5)
+        self.get_test_result(seat=seat_b, race=race_3, qualifying=3, finish=1)
+        self.assertTrue(season.the_champion()['driver'], seat_b.driver)
 

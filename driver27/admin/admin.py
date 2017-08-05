@@ -15,6 +15,7 @@ from django.db.models import Q
 
 class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     list_display = ('__str__', 'country',)
+    list_filter = ('country', 'year_of_birth', 'teams',)
     tab_overview = (
         (None, {
             'fields': ('last_name', 'first_name', 'year_of_birth', 'country')
