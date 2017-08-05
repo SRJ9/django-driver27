@@ -120,8 +120,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-TABBED_ADMIN_USE_JQUERY_UI = False
-# TABBED_ADMIN_USE_JQUERY_UI incompatible with 1.11
+TABBED_ADMIN_USE_JQUERY_UI = True
 
 # Append punctuation to tests
 DR27_CONFIG = {
