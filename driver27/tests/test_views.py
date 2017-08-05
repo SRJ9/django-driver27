@@ -68,6 +68,8 @@ class ViewTest(FixturesTest):
         self._GET_request('dr27-competition-driver-olympic', kwargs=kwargs)
         self._GET_request('dr27-competition-driver-comeback', kwargs=kwargs)
         self._GET_request('dr27-competition-team-olympic', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-seasons-rank', kwargs=kwargs)
+        self._GET_request('dr27-competition-team-seasons-rank', kwargs=kwargs)
         self._GET_request('dr27-competition-view', kwargs={'competition_slug': 'f19'}, code=404)
 
     def test_season_view(self):
@@ -176,6 +178,8 @@ class ViewTest(FixturesTest):
         kwargs = {}
         self._GET_request('dr27-global-team')
         self._GET_request('dr27-global-driver-olympic')
+        self._GET_request('dr27-global-driver-seasons-rank')
+        self._GET_request('dr27-global-team-seasons-rank')
         self._test_team_records_view('dr27-global', kwargs)
 
     def test_contender_season_points(self):

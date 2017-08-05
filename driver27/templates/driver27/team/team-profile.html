@@ -6,7 +6,7 @@
         <div class="col-md-9">
             <div class="driver_image demo col-xs-12 col-md-3"><span class="placeholder-img-text">Photo</span></div>
             <div class="col-xs-12 col-md-9">
-                <h1>{{ team.full_name }} <i class="{{ team.country.flag_css }}"></i></h1>
+                <h1>{{ team.full_name }} <i class="flag2x {{ team.country.flag_css }}"></i></h1>
 
             </div>
             <div class="clearfix"></div>
@@ -73,7 +73,7 @@
 
 {% block bootstrap3_extra_head %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
+    <link rel="stylesheet" href="{% static 'flags/sprite-hq.css' %}">
 
 {% endblock %}
 
