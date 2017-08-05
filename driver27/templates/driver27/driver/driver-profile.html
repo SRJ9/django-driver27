@@ -89,7 +89,7 @@
                             data-points="{{ result.points }}"
 
                         >
-                        <td>{{ result.race_id }}</td>
+                        <td>{{ result.competition }}/{{ result.year }} {{ result.round|stringformat:"02d" }}</td>
                             <td><a href="{% url 'dr27-season-race-view' result.competition.slug result.year result.round %}">{{ result.grand_prix }}</a></td>
                         <td class="text-center"><i class="{{ result.country.flag_css }}"></i></td>
                         <td>{{ result.qualifying }}</td>

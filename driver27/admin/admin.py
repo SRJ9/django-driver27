@@ -216,7 +216,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
 
 class RaceAdmin(CommonTabbedModelAdmin):
     list_display = ('__str__', 'season', 'print_pole', 'print_winner', 'print_fastest',)
-    list_filter = ('season', 'season__competition',)
+    list_filter = ('season', 'season__competition', 'circuit', 'grand_prix',)
 
     form = RaceAdminForm
     tab_overview = (
@@ -268,6 +268,9 @@ class RaceAdmin(CommonTabbedModelAdmin):
             position = None
         return position
 
+    class Media:
+        js = ['driver27/js/list_filter_collapse.js']
+
 
 
 class SeatPeriodFilter(SimpleListFilter):
@@ -290,7 +293,7 @@ class SeatPeriodFilter(SimpleListFilter):
 
 class SeatAdmin(CommonTabbedModelAdmin):
     list_display = ('driver', 'team', 'print_periods')
-    list_filter = (SeatPeriodFilter, 'driver', 'team', )
+    list_filter = (SeatPeriodFilter, 'driver', 'team', 'team__competitions')
     tab_overview = (
         (None, {
             'fields': ('team', 'driver')
