@@ -8,8 +8,29 @@ from django.utils.html import format_html
 from django.utils.encoding import force_text
 
 
+def get_circuit_id_from_gp(grand_prix_id):
+    data_circuit_attr = ''
+    if grand_prix_id:
+        from driver27.models import GrandPrix
+        grand_prix = GrandPrix.objects.filter(pk=grand_prix_id)
+        if grand_prix.count() and grand_prix.first().default_circuit:
+            data_circuit_attr = getattr(grand_prix.first().default_circuit, 'pk', '')
+    return data_circuit_attr
+
+
 class GrandPrixWidget(forms.widgets.Select):
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        # Add default_circuit as data to automatize circuit selection (>2.7)
+        option = None
+        if hasattr(super(GrandPrixWidget, self), 'create_option'):
+            option = getattr(super(GrandPrixWidget, self), 'create_option')(name, value, label, selected, index, subindex, attrs)
+            option['attrs']['data-circuit'] = get_circuit_id_from_gp(value)
+        return option
+
     def render_option(self, selected_choices, option_value, option_label):
+        # Add default_circuit as data to automatize circuit selection (==2.7)
+        # Override method
         if option_value is None:
             option_value = ''
         option_value = force_text(option_value)
@@ -20,12 +41,7 @@ class GrandPrixWidget(forms.widgets.Select):
                 selected_choices.remove(option_value)
         else:
             selected_html = ''
-        data_circuit_attr = ''
-        if option_value:
-            from driver27.models import GrandPrix
-            grand_prix = GrandPrix.objects.filter(pk=option_value)
-            if grand_prix.count() and grand_prix.first().default_circuit:
-                data_circuit_attr = getattr(grand_prix.first().default_circuit, 'pk', '')
+        data_circuit_attr = get_circuit_id_from_gp(option_value)
 
         return format_html(u'<option value="{}"{} data-circuit="{}">{}</option>',
                            option_value, selected_html,
