@@ -63,9 +63,11 @@ class ViewTest(FixturesTest):
     #     self._GET_request('dr27-competition-list')
 
     def test_competition_view(self):
-        self._GET_request('dr27-competition-view', kwargs={'competition_slug': 'f1'})
-        self._GET_request('dr27-competition-driver-olympic', kwargs={'competition_slug': 'f1'})
-        self._GET_request('dr27-competition-team-olympic', kwargs={'competition_slug': 'f1'})
+        kwargs = {'competition_slug': 'f1'}
+        self._GET_request('dr27-competition-view', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-olympic', kwargs=kwargs)
+        self._GET_request('dr27-competition-driver-comeback', kwargs=kwargs)
+        self._GET_request('dr27-competition-team-olympic', kwargs=kwargs)
         self._GET_request('dr27-competition-view', kwargs={'competition_slug': 'f19'}, code=404)
 
     def test_season_view(self):
@@ -73,6 +75,7 @@ class ViewTest(FixturesTest):
         self._GET_request('dr27-season-view', kwargs=kwargs)
         self._GET_request('dr27-season-driver', kwargs=kwargs)
         self._GET_request('dr27-season-driver-olympic', kwargs=kwargs)
+        self._GET_request('dr27-season-driver-comeback', kwargs=kwargs)
         self._GET_request('dr27-season-team', kwargs=kwargs)
         self._GET_request('dr27-season-team-olympic', kwargs=kwargs)
         self._GET_request('dr27-season-race-list', kwargs=kwargs)
@@ -114,6 +117,7 @@ class ViewTest(FixturesTest):
         self._GET_request('dr27-global-index')
         self._GET_request('dr27-global-driver')
         self._GET_request('dr27-global-driver-olympic')
+        self._GET_request('dr27-global-driver-comeback')
         self._test_driver_record_view('dr27-global', kwargs)
 
     def test_driver_records_redir(self):

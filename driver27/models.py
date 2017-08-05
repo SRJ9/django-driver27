@@ -132,12 +132,22 @@ class Driver(StatsByCompetitionModel):
             'teams': contender_season.get_teams_verbose(),
             'pos_list': contender_season.get_positions_list(),
             'pos_str': contender_season.get_positions_str(),
-            'season': season
+            'season': season,
+            'pos': self.get_pos_by_season(season=season)
         }
 
         if append_driver:
             season_points['driver'] = self
         return season_points
+
+    def get_pos_by_season(self, season):
+        rank = season.points_rank()
+        index = 1
+        for entry in rank:
+            if self == entry['driver']:
+                break
+            index += 1
+        return index
 
     def get_points_by_seasons(self, append_driver=False, **kwargs):
         points_by_season = []
@@ -159,7 +169,8 @@ class Driver(StatsByCompetitionModel):
                     'year': season.year,
                     'teams': self.get_season(season=season).teams_verbose,
                     'stats': self.get_multiple_records(records_list=records_list,
-                                                       append_points=append_points, season=season, **kwargs)
+                                                       append_points=append_points, season=season, **kwargs),
+                    'pos': self.get_pos_by_season(season=season)
                 }
             )
         return stats_by_season
@@ -283,13 +294,23 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
             points += season_points if season_points else 0
         return points
 
+    def get_pos_by_season(self, season):
+        rank = season.team_points_rank()
+        index = 1
+        for entry in rank:
+            if self == entry['team']:
+                break
+            index += 1
+        return index
+
     def get_points_by_season(self, season, append_team=False, **kwargs):
         team_season = self.season_stats_cls(season=season)
         season_points = {
             'points': team_season.get_points(**kwargs),
             'pos_list': team_season.get_positions_list(),
             'pos_str': team_season.get_positions_str(),
-            'season': season
+            'season': season,
+            'pos': self.get_pos_by_season(season=season),
         }
 
         if append_team:
@@ -306,6 +327,7 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
             num_of_seats = season.seats.filter(team=self)
             stats_by_season.append(
                 {
+                    'pos': self.get_pos_by_season(season=season),
                     'competition': season.competition,
                     'year': season.year,
                     'num_of_seats': num_of_seats,
