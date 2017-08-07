@@ -108,6 +108,7 @@ class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
             'id': season.pk,
             'competition_id': season.competition_id,
             'competition_name': season.competition.full_name,
+            'year': season.year,
             'pending_points': season.pending_points(),
             'has_champion': season.has_champion(),
             'leader': get_dict_from_rank_entry(season.leader),
