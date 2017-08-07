@@ -5,9 +5,10 @@ from .common import DR27ViewSet
 from .serializers import RaceSerializer, ResultSerializer, SeatSerializer, SeasonSerializer
 from .serializers import CircuitSerializer, GrandPrixSerializer, CompetitionSerializer
 from .serializers import TeamSerializer, DriverSerializer, SeatPeriodSerializer
-from .common import get_dict_from_rank_entry, get_dict_from_team_rank_entry
+from .common import get_dict_from_rank_entry, get_dict_from_team_rank_entry, get_dict_from_races
 from ..models import Competition, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit, SeatPeriod
 from django.db.models import Q
+from ..punctuation import get_punctuation_config
 
 
 class CommonDetailViewSet(object):
@@ -71,6 +72,14 @@ class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
         return self.get_common_detail_route(request, 'races', RaceSerializer)
 
     @detail_route(methods=['get'])
+    def pending_races(self, request, pk=None):
+        return self.get_common_detail_route(request, 'pending_races', RaceSerializer)
+
+    @detail_route(methods=['get'])
+    def past_races(self, request, pk=None):
+        return self.get_common_detail_route(request, 'past_races', RaceSerializer)
+
+    @detail_route(methods=['get'])
     def seats(self, request, pk=None):
         return self.get_common_detail_route(request, 'seats', SeatSerializer)
 
@@ -90,6 +99,24 @@ class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
         serializer_rank = [
             get_dict_from_rank_entry(standing) for standing in rank
         ]
+        return Response(serializer_rank)
+
+    @detail_route(methods=['get'])
+    def summary(self, request, pk=None):
+        season = self.get_object()
+        serializer_rank = {
+            'id': season.pk,
+            'competition_id': season.competition_id,
+            'competition_name': season.competition.full_name,
+            'pending_points': season.pending_points(),
+            'has_champion': season.has_champion(),
+            'leader': get_dict_from_rank_entry(season.leader),
+            'punctuation': season.punctuation,
+            'punctuation_config': get_punctuation_config(season.punctuation),
+            'num_pending_races': season.num_pending_races,
+            'past_races_summary': get_dict_from_races(season.past_races.all()),
+            'pending_races_summary': get_dict_from_races(season.pending_races.all())
+        }
         return Response(serializer_rank)
 
     @detail_route(methods=['get'], url_path='standings-team')

@@ -553,7 +553,9 @@ class Season(AbstractRankModel):
         if not rank:
             if not punctuation_code:
                 punctuation_code = self.punctuation
-            rank = self.team_points_rank() if team else self.points_rank(punctuation_code=punctuation_code)
+            punctuation_code_dict = {'punctuation_code': punctuation_code}
+            rank_method = 'team_points_rank' if team else 'points_rank'
+            rank = getattr(self, rank_method)(**punctuation_code_dict)
         return rank[0] if len(rank) else None
 
     @property

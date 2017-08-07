@@ -15,11 +15,23 @@ def get_dict_from_team_rank_entry(rank_entry):
      }
 
 
+def get_dict_from_races(races):
+    return [
+        {
+            'id': race.pk,
+            'name': str(race),
+            'alter_punctuation': race.alter_punctuation
+        }
+        for race in races
+    ]
+
+
 def get_dict_from_rank_entry(rank_entry):
 
     return {
         'points': rank_entry['points'],
         'driver': {
+            'id': rank_entry['driver'].id,
             'last_name': rank_entry['driver'].last_name,
             'first_name': rank_entry['driver'].first_name,
             'country': rank_entry['driver'].country.code
