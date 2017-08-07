@@ -19,7 +19,7 @@ def get_dict_from_races(races):
     return [
         {
             'id': race.pk,
-            'name': str(race),
+            'name': u'{race}'.format(race=race),
             'alter_punctuation': race.alter_punctuation
         }
         for race in races
