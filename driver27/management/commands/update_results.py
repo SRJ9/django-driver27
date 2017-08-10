@@ -8,6 +8,7 @@ class Command(BaseCommand):
 
     @staticmethod
     def _create_result(row):
+        invalid_keywords = []
         for x in row:
             if x in ['qualifying', 'finish', 'points', 'race_id', 'seat_id']:
                 if row[x] == '':
@@ -16,6 +17,11 @@ class Command(BaseCommand):
                     row[x] = int(row[x])
             elif x in ['wildcard', 'fastest_lap', 'retired']:
                 row[x] = bool(row[x])
+            elif x not in Result._meta.get_fields():
+                invalid_keywords.append(x)
+
+        for invalid_keyword in invalid_keywords:
+            del row[invalid_keyword]
         return Result.objects.create(**row)
 
     def add_arguments(self, parser):
