@@ -12,7 +12,7 @@ def import_driver27():
 
 if __name__ == "__main__":
     import_driver27()
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dr27_demo.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dr27app.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError:

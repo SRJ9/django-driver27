@@ -1,5 +1,5 @@
 """
-WSGI config for dr27_demo project.
+WSGI config for dr27app project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -23,6 +23,6 @@ def import_driver27():
 
 import_driver27()
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dr27_demo.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dr27app.settings")
 
 application = get_wsgi_application()

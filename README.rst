@@ -146,7 +146,7 @@ Demo (virtualenv recommended)
     $ git clone https://github.com/SRJ9/django-driver27
     $ cd django-driver27 # or name of destiny folder
     $ pip install -r requirements.txt
-    $ python demo/manage.py runserver
+    $ python dr27demo/manage.py runserver
     $ # login /admin: admin:pass
 
 Todo
