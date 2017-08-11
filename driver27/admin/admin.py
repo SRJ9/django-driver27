@@ -33,6 +33,7 @@ class CompetitionTeamInline(CompetitionFilterInline):
 class TeamAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     model = Team
     list_display = ('__str__', 'country', 'print_competitions')
+    list_filter = ('competitions',)
     tab_overview = (
         (None, {
             'fields': ('name', 'full_name', 'country')
@@ -323,7 +324,10 @@ class SeatAdmin(CommonTabbedModelAdmin):
 
 
 class SeatPeriodAdmin(admin.ModelAdmin):
-    pass
+    list_filter = ('seat__driver', 'seat__team', 'seat__team__competitions',)
+
+    class Media:
+        js = ['driver27/js/list_filter_collapse.js']
 
 
 admin.site.register(Driver, DriverAdmin)
