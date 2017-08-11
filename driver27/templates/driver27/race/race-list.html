@@ -23,8 +23,8 @@
             <td>{{ race.date }}</td>
             <td>{{ race.grand_prix }}</td>
             <td>{{ race.circuit }}</td>
-            <td>{{ race.winner.driver }}</td>
-            <td>{{ race.winner.team }}</td>
+            <td><a href="{% url 'dr27-profile-view' race.winner.driver.pk %}">{{ race.winner.driver }}</a></td>
+            <td><a href="{% url 'dr27-profile-team-view' race.winner.team.pk %}">{{ race.winner.team }}</a></td>
         </tr>
     {% endfor %}
 
