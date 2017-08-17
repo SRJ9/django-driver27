@@ -17,6 +17,8 @@ class Command(BaseCommand):
 
         for invalid_keyword in invalid_keywords:
             del row[invalid_keyword]
+        if not row:
+            return False
         return Driver.objects.create(**row)
 
     def add_arguments(self, parser):
