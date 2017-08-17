@@ -1,7 +1,15 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
 from driver27.models import Driver, Team, Seat
-import unicodecsv as csv
+
+import sys
+if sys.version_info < (3, 0):
+    try:
+        import unicodecsv as csv
+    except ImportError:
+        import csv
+else:
+    import csv
 
 
 class Command(BaseCommand):

@@ -4,7 +4,7 @@ import csv
 
 
 class Command(BaseCommand):
-    help = 'Create CSV for result'
+    help = 'Create CSV for import result from last season'
 
     def add_arguments(self, parser):
         parser.add_argument('csv',)
