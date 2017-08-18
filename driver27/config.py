@@ -46,6 +46,7 @@ def get_init_config():
                         'label': 'F1 (10p 1st, 8p 2nd)'},
             'F1-10+6': {'type': 'full', 'finish': [10, 6, 4, 3, 2, 1], 'fastest_lap': 0,
                         'label': 'F1 (10p 1st, 6p 2nd)'},
+            'F1-62-90': {'type': 'full', 'finish': [9,6,4,3,2,1], 'fastest_lap': 0, 'label': 'F1 (9p 1st - from 62 to 90)'},
             'MotoGP': {'type': 'full', 'finish': [25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1], 'fastest_lap': 0,
                        'label': 'Moto GP'},
             'MotoGP-92': {'type': 'full', 'finish': [20, 15, 12, 10, 8, 6, 4, 3, 2, 1], 'fastest_lap': 0,
