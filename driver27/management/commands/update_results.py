@@ -9,7 +9,7 @@ class Command(BaseCommand):
     @staticmethod
     def _create_result(row):
         invalid_keywords = []
-        result_fields = [f.name for f in Result._meta.get_fields()]
+        result_fields = [f.column for f in Result._meta.get_fields() if hasattr(f, 'column')]
         for x in row:
             if x in ['qualifying', 'finish', 'points', 'race_id', 'seat_id']:
                 if row[x] == '':

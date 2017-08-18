@@ -22,7 +22,8 @@ class Command(BaseCommand):
         if model_cls is None:
             raise ImportOptionException('Import param is invalid')
 
-        model_fields = [f.name for f in model_cls._meta.get_fields()]
+        model_fields = [f.column for f in model_cls._meta.get_fields() if hasattr(f, 'column')]
+
         for x in row:
             if x not in model_fields:
                 invalid_keywords.append(x)
