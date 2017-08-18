@@ -959,6 +959,11 @@ class ContenderSeason(AbstractStreakModel):
                 points = PointsCalculator(punctuation_config).calculator(result_tuple)
                 if points:
                     points_list.append(points)
+
+        points_list = sorted(points_list, reverse=True)
+        season_rounds = self.season.rounds
+        if season_rounds:
+            points_list = points_list[:season_rounds]
         return sum(points_list)
 
 
