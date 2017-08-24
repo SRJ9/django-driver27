@@ -117,11 +117,6 @@ class SeasonAdmin(CommonTabbedModelAdmin):
             }
         return copy_dict
 
-    def get_changeform_initial_data(self, request, *args, **kwargs):
-        copy_id = request.GET.get('copy')
-        if copy_id:
-            return self.get_season_copy(copy_id)
-
     def get_copy_item(self, request, pk, item_cls, items_plural, *args, **kwargs):
         season = Season.objects.get(pk=pk)
         if request.POST.get('_confirm'):
@@ -181,13 +176,39 @@ class SeasonAdmin(CommonTabbedModelAdmin):
     def get_copy_races(self, request, pk, *args, **kwargs):
         return self.get_copy_item(request, pk, Race, 'races', *args, **kwargs)
 
+    def get_duplicate_season(self, request, pk, *args, **kwargs):
+        season = Season.objects.get(pk=pk)
+
+        context = {
+            'season': season,
+            'opts': self.model._meta,
+            'app_label': self.model._meta.app_label,
+            'change': True,
+            'title': 'Duplicating season {season}'.format(season=season)
+
+        }
+        if request.POST.get('_selector'):
+            season_year = request.POST.get('year')
+            if Season.objects.filter(year=season_year).exists():
+                error_message = _("Season with {competition: %(competition)s, year: %(year)s} already exists") % \
+                                {'competition': season.competition, 'year': season_year}
+                context['error_message'] = error_message
+            else:
+                new_season, created = Season.objects.get_or_create(competition=season.competition,
+                                                          year=season_year,
+                                                          rounds=season.rounds,
+                                                          punctuation=season.punctuation)
+
+                return redirect('admin:driver27_season_change', new_season.pk)
+
+
+        return render(request, 'driver27/admin/copy/copy_season.html', context)
+
     def print_copy_season(self, obj):
         if obj.pk:
-            copy_link = reverse("admin:driver27_season_add")
-            get_copy_id = '?copy={obj_pk}'.format(obj_pk=obj.pk)
-            return "<a href='{link}{query}'>{copy_text}</a>".format(link=copy_link,
-                                                                    query=get_copy_id,
-                                                                    copy_text=_('Copy'))
+            copy_link = reverse("admin:dr27-copy-season", kwargs={'pk': obj.pk})
+            return "<a href='{link}'>{copy_text}</a>".format(link=copy_link,
+                                                                    copy_text=_('Duplicate season'))
         else:
             return ''
 
@@ -212,6 +233,8 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         new_urls = [
                        url(r'^(?P<pk>[\d]+)/get_copy_races/$', self.admin_site.admin_view(self.get_copy_races),
                            name='dr27-copy-races'),
+                       url(r'^(?P<pk>[\d]+)/duplicate/$', self.admin_site.admin_view(self.get_duplicate_season),
+                           name='dr27-copy-season'),
                    ] + urls
         return new_urls
 
@@ -272,7 +295,6 @@ class RaceAdmin(CommonTabbedModelAdmin):
 
     class Media:
         js = ['driver27/js/list_filter_collapse.js']
-
 
 
 class SeatPeriodFilter(SimpleListFilter):

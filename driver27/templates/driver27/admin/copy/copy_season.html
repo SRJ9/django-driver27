@@ -1,0 +1,42 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_static admin_modify admin_urls %}
+
+
+{% include 'driver27/admin/copy/includes/_breadcrumbs.html' %}
+
+{% load i18n admin_urls %}
+{% block content %}
+    <h3>{{ season }}</h3>
+    <form method="POST" id="copy_form">
+        {% csrf_token %}
+{% if error_message %}
+        <p class="errornote tabbed-errornote">
+            <strong>{{ error_message }}</strong>
+        </p>
+{% endif %}
+
+        {% if season %}
+
+            <dl>
+                <dt>{% trans 'Competition' %}</dt>
+                <dd>{{ season.competition }}</dd>
+                <dt>{% trans 'Year' %}</dt>
+                <dd><input type="number" name="year" required/></dd>
+                <dt>{% trans 'Rounds' %}</dt>
+                <dd>{{ season.rounds }}</dd>
+                <dt>{% trans 'Punctuation' %}</dt>
+                <dd>{{ season.punctuation }}</dd>
+            </dl>
+            <input type="submit" name="_selector" value="Next step"/>
+        {% else %}
+            No items or no available seasons
+            <div class="submit-row">
+                <p class="deletelink-box">
+                    <a href="{% url 'admin:driver27_season_change' season.pk %}" class="deletelink">Back to
+                        Season {{ season }}</a>
+                </p>
+            </div>
+        {% endif %}
+
+    </form>
+{% endblock %}

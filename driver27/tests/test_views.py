@@ -258,6 +258,24 @@ class ViewTest(FixturesTest):
         ma = SeasonAdmin(Season, self.site)
         self.assertIn(COPY_RACES_URL, ma.print_copy_races(season))
 
+    def test_season_duplicate(self):
+        season = Season.objects.last()
+        COPY_SEASON_URL = reverse('admin:dr27-copy-season', kwargs={'pk': season.pk})
+        request = self.factory.get(COPY_SEASON_URL)
+        ma = SeasonAdmin(Season, self.site)
+        getattr(ma, 'get_duplicate_season')(request, season.pk)
+
+        request = self.factory.post(COPY_SEASON_URL, data={'year': season.year, '_selector': True})
+        ma = SeasonAdmin(Season, self.site)
+        getattr(ma, 'get_duplicate_season')(request, season.pk)
+
+        NEW_SEASON_YEAR = 9999
+        request = self.factory.post(COPY_SEASON_URL, data={'year': NEW_SEASON_YEAR, '_selector': True})
+        ma = SeasonAdmin(Season, self.site)
+        getattr(ma, 'get_duplicate_season')(request, season.pk)
+
+        self.assertTrue(Season.objects.get(competition=season.competition, year=NEW_SEASON_YEAR))
+
     def test_driver_admin(self):
         ma = DriverAdmin(Driver, self.site)
         self._check_get_changelist(ma)
