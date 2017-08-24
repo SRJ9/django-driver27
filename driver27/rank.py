@@ -69,7 +69,7 @@ class AbstractRankModel(models.Model):
                                                                **self.stats_filter_kwargs),
                                  'driver': driver,
                                  'teams': stat_cls.teams_verbose,
-                                 'pos_str': stat_cls.get_positions_str()
+                                 'pos_str': stat_cls.get_positions_count_str()
                                  })
             rank = order_points(rank)
             cache.set(cache_str, rank)
@@ -91,12 +91,12 @@ class AbstractRankModel(models.Model):
             rank = []
             for driver in drivers:
                 stat_cls = self.get_stats_cls(driver)
-                position_list = stat_cls.get_positions_list(**self.stats_filter_kwargs)
-                position_str = stat_cls.get_positions_str(position_list=position_list)
-                rank.append({'pos_str': position_str,
+                position_count_list = stat_cls.get_positions_count_list(**self.stats_filter_kwargs)
+                position_count_str = stat_cls.get_positions_count_str(position_list=position_count_list)
+                rank.append({'pos_str': position_count_str,
                              'driver': driver,
                              'teams': stat_cls.teams_verbose,
-                             'pos_list': position_list
+                             'pos_list': position_count_list
                              })
             rank = sorted(rank, key=lambda x: x['pos_str'], reverse=True)
             cache.get(cache_str, rank)
@@ -129,7 +129,7 @@ class AbstractRankModel(models.Model):
                     rank.append({'points': team_stats_cls.get_points(punctuation_config=punctuation_config,
                                                                      **team_stats_kw),
                                  'team': team,
-                                 'pos_str': team_stats_cls.get_positions_str()
+                                 'pos_str': team_stats_cls.get_positions_count_str()
                                  })
             rank = order_points(rank)
             cache.set(cache_str, rank)
@@ -323,11 +323,11 @@ class AbstractRankModel(models.Model):
             rank = []
             for team in teams:
                 stat_cls = self.get_stats_cls(team)
-                position_list = stat_cls.get_positions_list(**self.stats_filter_kwargs)
-                position_str = stat_cls.get_positions_str(position_list=position_list)
-                rank.append({'pos_str': position_str,
+                position_count_list = stat_cls.get_positions_count_list(**self.stats_filter_kwargs)
+                position_count_str = stat_cls.get_positions_count_str(position_list=position_count_list)
+                rank.append({'pos_str': position_count_str,
                              'team': team,
-                             'pos_list': position_list
+                             'pos_list': position_count_list
                              })
             rank = sorted(rank, key=lambda x: x['pos_str'], reverse=True)
             cache.set(cache_str, rank)

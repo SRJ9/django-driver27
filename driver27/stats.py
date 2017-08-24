@@ -23,22 +23,22 @@ class AbstractStreakModel(object):
         results_tuples = get_tuples_from_results(results=results)
         return Streak(results=results_tuples, max_streak=max_streak, unique_by_race=unique_by_race).run(filters)
 
-    def get_positions_list(self, limit_races=None, competition=None, **kwargs):
+    def get_positions_count_list(self, limit_races=None, competition=None, **kwargs):
         """ Return a list with the count of each 20 first positions """
         results = self.get_results(limit_races=limit_races, competition=competition, **kwargs)
         finished = results.values_list('finish', flat=True)
         last_position = 20
-        positions = []
+        positions_count = []
         for x in range(1, last_position+1):
             position_count = len([finish for finish in finished if finish == x])
-            positions.append(position_count)
-        return positions
+            positions_count.append(position_count)
+        return positions_count
 
-    def get_positions_str(self, position_list=None, limit_races=None):
-        """ Return a str with position_list to order """
+    def get_positions_count_str(self, position_list=None, limit_races=None):
+        """ Return a str with position_count_list to order """
         " Each list item will be filled to zeros until get three digits e.g. 1 => 001, 12 => 012 "
         if not position_list:
-            position_list = self.get_positions_list(limit_races=limit_races)
+            position_list = self.get_positions_count_list(limit_races=limit_races)
         positions_str = ''.join([str(x).zfill(3) for x in position_list])
         return positions_str
 

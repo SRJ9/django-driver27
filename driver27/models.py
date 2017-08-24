@@ -130,8 +130,8 @@ class Driver(StatsByCompetitionModel):
         season_points = {
             'points': contender_season.get_points(**kwargs),
             'teams': contender_season.get_teams_verbose(),
-            'pos_list': contender_season.get_positions_list(),
-            'pos_str': contender_season.get_positions_str(),
+            'pos_list': contender_season.get_positions_count_list(),
+            'pos_str': contender_season.get_positions_count_str(),
             'season': season,
             'pos': self.get_pos_by_season(season=season)
         }
@@ -307,8 +307,8 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
         team_season = self.season_stats_cls(season=season)
         season_points = {
             'points': team_season.get_points(**kwargs),
-            'pos_list': team_season.get_positions_list(),
-            'pos_str': team_season.get_positions_str(),
+            'pos_list': team_season.get_positions_count_list(),
+            'pos_str': team_season.get_positions_count_str(),
             'season': season,
             'pos': self.get_pos_by_season(season=season),
         }
