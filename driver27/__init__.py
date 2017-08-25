@@ -1,3 +1,5 @@
+LIMIT_POSITION_LIST = 20
+
 def lr_diff(l, r):
     return list(set(l).difference(r))
 

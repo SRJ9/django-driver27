@@ -14,6 +14,7 @@ except ImportError:
 from .models import Competition, Season, Race, RankModel, Driver, Team, get_tuples_from_results
 from .records import get_record_config, get_record_label_dict
 from .punctuation import get_punctuation_config, get_punctuation_label_dict
+from . import LIMIT_POSITION_LIST
 
 
 def get_or_404(cls, conditions, raise_text):
@@ -160,7 +161,7 @@ def common_olympic_view(request, tpl, olympic_method, rank_title, competition_sl
                'season': season,
                'competition': competition,
                'title': title,
-               'positions': range(1, 21),
+               'positions': range(1, LIMIT_POSITION_LIST + 1),
                'olympic': True}
     return render(request, tpl, context)
 

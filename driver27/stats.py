@@ -2,6 +2,7 @@ from .streak import Streak
 from django.core.exceptions import ValidationError
 from django.db import models
 from .records import get_record_config
+from . import LIMIT_POSITION_LIST
 
 
 class AbstractStreakModel(object):
@@ -33,9 +34,8 @@ class AbstractStreakModel(object):
     def get_positions_count_list(self, limit_races=None, competition=None, **kwargs):
         """ Return a list with the count of each 20 first positions """
         finish_pos = self.get_positions(limit_races=limit_races, competition=competition, **kwargs)
-        last_position = 20
         positions_count = []
-        for x in range(last_position):
+        for x in range(LIMIT_POSITION_LIST):
             position_count = finish_pos.count(x+1)
             positions_count.append(position_count)
         return positions_count
