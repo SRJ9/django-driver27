@@ -444,6 +444,20 @@ class Season(AbstractRankModel):
         """ As season is related with seats, this method is a shorcut to get teams """
         return Team.objects.filter(seats__results__race__season=self).distinct()
 
+    def get_positions_draw(self):
+        points_rank = self.points_rank()
+        position_draw = []
+        for entry in points_rank:
+            contender_season = ContenderSeason(driver=entry['driver'], season=self)
+            position_draw.append(
+                {'pos_list': contender_season.get_positions_in_row(),
+                 'driver': entry['driver'],
+                 'teams': contender_season.teams_verbose,
+                 'pos_str': ''
+                 }
+            )
+        return position_draw
+
     def _abstract_seats(self, exclude=False):
         seat_filter = {'team__competitions__seasons': self}
         seats = Seat.objects.filter(**seat_filter)
@@ -933,6 +947,17 @@ class ContenderSeason(AbstractStreakModel):
     def get_stats(self, **filters):
         """ Count 1 by each result """
         return self.get_results(**filters).count()
+
+    def get_positions_in_row(self, limit_races=None, **extra_filter):
+        results = self.get_results(limit_races=limit_races, **extra_filter)
+        results = get_tuples_from_results(results)
+        season_races = list(self.season.past_races.values_list('round', flat=True))
+        positions_by_round = {result.round: result.finish for result in results}
+        positions_in_row = []
+        for x in season_races:
+            positions_in_row.append(positions_by_round[x] if x in positions_by_round else None)
+        return positions_in_row
+
 
     def get_saved_points(self, limit_races=None):
         results = self.get_results(limit_races=limit_races)

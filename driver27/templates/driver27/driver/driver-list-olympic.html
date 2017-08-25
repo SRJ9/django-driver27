@@ -16,7 +16,7 @@
                 <td><a href="{% url 'dr27-profile-view' entry.driver.pk %}">{{ entry.driver }}</a></td>
                 <td>{{ entry.teams }}</td>
                 {% for position in entry.pos_list %}
-                    <td>{{ position }}</td>
+                    <td>{{ position | default_if_none:"-"}}</td>
                 {% endfor %}
             </tr>
         {% endfor %}

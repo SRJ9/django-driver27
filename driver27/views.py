@@ -165,6 +165,19 @@ def common_olympic_view(request, tpl, olympic_method, rank_title, competition_sl
                'olympic': True}
     return render(request, tpl, context)
 
+def driver_season_pos_view(request, competition_slug, year):
+    season = get_season(competition_slug, year)
+    rank = season.get_positions_draw()
+    rank_title = 'POSITION draw'
+    title = u'{season} [{title}]'.format(season=season,
+                                                        title=rank_title)
+    context = {'rank': rank,
+               'season': season,
+               'title': title,
+               'positions': list(season.past_races.values_list('round', flat=True)),
+               'olympic': True}
+    return render(request, 'driver27/driver/driver-list.html', context)
+
 
 def driver_olympic_view(request, competition_slug=None, year=None):
     return common_olympic_view(request, 'driver27/driver/driver-list.html', 'olympic_rank',

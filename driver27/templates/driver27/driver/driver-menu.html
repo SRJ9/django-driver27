@@ -20,6 +20,11 @@
            href="{% url 'dr27-season-driver-olympic' season.competition.slug season.year %}">{% trans 'Olympic' %}</a>
     </li>
 
+        <li class="nav-item">
+        <a class="nav-link"
+           href="{% url 'dr27-season-position-draw' season.competition.slug season.year %}">{% trans 'Position draw' %}</a>
+    </li>
+
     <li class="nav-item">
         <a class="nav-link"
            href="{% url 'dr27-season-driver-comeback' season.competition.slug season.year %}">{% trans 'Comebacks' %}</a>
