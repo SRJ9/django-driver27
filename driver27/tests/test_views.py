@@ -75,6 +75,10 @@ class ViewTest(FixturesTest):
     def test_season_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016}
         self._GET_request('dr27-season-view', kwargs=kwargs)
+        self._GET_request('dr27-season-race-list', kwargs=kwargs)
+        race_kw = {'race_id': 1}
+        race_kw.update(kwargs)
+        self._GET_request('dr27-season-race-view', kwargs=race_kw)
         self._GET_request('dr27-season-driver', kwargs=kwargs)
         self._GET_request('dr27-season-driver-olympic', kwargs=kwargs)
         self._GET_request('dr27-season-driver-comeback', kwargs=kwargs)

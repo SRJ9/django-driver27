@@ -3,30 +3,39 @@
 {% block dr27_menu %}
     {% include 'driver27/season/season-menu-pre.html' %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'dr27-season-race-list' season.competition.slug season.year %}">{%  trans 'Races' %}</a>
+        <a class="nav-link"
+           href="{% url 'dr27-season-race-list' season.competition.slug season.year %}">{% trans 'Races' %}</a>
     </li>
 {% endblock %}
 {% block dr27_content %}
     {{ block.super }}
     <table class="table">
-    <tr>
-        <th>{%  trans 'Round' %}</th>
-        <th>{%  trans 'Date' %}</th>
-        <th>{%  trans 'Grand Prix' %}</th>
-        <th>{%  trans 'Circuit' %}</th>
-        <th>{%  trans 'Winner' %}</th>
-        <th>{%  trans 'Winner team' %}</th>
-    </tr>
-    {% for race in races %}
         <tr>
-            <td><a href="{% url 'dr27-season-race-view' season.competition.slug season.year race.round %}">{{ race.round }}</a></td>
-            <td>{{ race.date }}</td>
-            <td>{{ race.grand_prix }}</td>
-            <td>{{ race.circuit }}</td>
-            <td><a href="{% url 'dr27-profile-view' race.winner.driver.pk %}">{{ race.winner.driver }}</a></td>
-            <td><a href="{% url 'dr27-profile-team-view' race.winner.team.pk %}">{{ race.winner.team }}</a></td>
+            <th>{% trans 'Round' %}</th>
+            <th>{% trans 'Date' %}</th>
+            <th>{% trans 'Grand Prix' %}</th>
+            <th>{% trans 'Circuit' %}</th>
+            <th>{% trans 'Winner' %}</th>
+            <th>{% trans 'Winner team' %}</th>
         </tr>
-    {% endfor %}
+        {% for race in races %}
+            <tr>
+                <td>
+                    <a href="{% url 'dr27-season-race-view' season.competition.slug season.year race.round %}">{{ race.round }}</a>
+                </td>
+                <td>{{ race.date }}</td>
+                <td>{{ race.grand_prix }}</td>
+                <td>{{ race.circuit }}</td>
+                {% if race.winner %}
+                    <td><a href="{% url 'dr27-profile-view' race.winner.driver.pk %}">{{ race.winner.driver }}</a></td>
+                    <td><a href="{% url 'dr27-profile-team-view' race.winner.team.pk %}">{{ race.winner.team }}</a></td>
+                {% else %}
+                    <td>-</td>
+                    <td>-</td>
+                {% endif %}
+
+            </tr>
+        {% endfor %}
 
     </table>
 
