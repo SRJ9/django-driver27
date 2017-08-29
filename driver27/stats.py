@@ -49,7 +49,7 @@ class AbstractStreakModel(object):
         return positions_str
 
 
-class AbstractStatsModel(AbstractStreakModel, models.Model):
+class AbstractStatsModel(models.Model):
 
     def get_results(self, *args, **kwargs):
         raise NotImplementedError('Not implemented property')
@@ -110,7 +110,7 @@ class AbstractStatsModel(AbstractStreakModel, models.Model):
         abstract = True
 
 
-class TeamStatsModel(AbstractStatsModel):
+class TeamStatsModel(AbstractStatsModel, AbstractStreakModel):
     def season_stats_cls(self, *args, **kwargs):
         raise NotImplementedError('Not implemented property')
 
@@ -144,7 +144,7 @@ class TeamStatsModel(AbstractStatsModel):
         abstract = True
 
 
-class StatsByCompetitionModel(AbstractStatsModel):
+class StatsByCompetitionModel(AbstractStatsModel, AbstractStreakModel):
     def get_multiple_records_by_competition(self, records_list=None, append_points=False, **kwargs):
         stats_by_competition = []
         for competition in getattr(self, 'competitions').all():
