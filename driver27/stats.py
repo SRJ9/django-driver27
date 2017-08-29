@@ -49,7 +49,7 @@ class AbstractStreakModel(object):
         return positions_str
 
 
-class AbstractStatsModel(AbstractStreakModel, models.Model):
+class AbstractStatsModel(models.Model):
 
     def get_results(self, *args, **kwargs):
         raise NotImplementedError('Not implemented property')
@@ -110,7 +110,7 @@ class AbstractStatsModel(AbstractStreakModel, models.Model):
         abstract = True
 
 
-class TeamStatsModel(AbstractStatsModel):
+class TeamStatsModel(AbstractStatsModel, AbstractStreakModel):
     def season_stats_cls(self, *args, **kwargs):
         raise NotImplementedError('Not implemented property')
 
@@ -132,31 +132,19 @@ class TeamStatsModel(AbstractStatsModel):
         """ Only count 1 by race with any driver in filter """
         return self.get_races(**filters).count()
 
-    def get_doubles_races(self, **filters):
-        """ Only count 1 by race with at least two drivers in filter """
-        return self.get_races(**filters).filter(count_race__gte=2).count()
-
     def get_total_stats(self, **filters):  # noqa
         """ Count 1 by each result """
         return self.get_results(**filters).count()
 
-    def get_team_total_races(self, **filters):
-        """ Only count 1 by race with any driver in filter """
-        return self.get_races(**filters).count()
-
-    def get_team_doubles_races(self, **filters):
+    def get_doubles_races(self, **filters):
         """ Only count 1 by race with at least two drivers in filter """
         return self.get_races(**filters).filter(count_race__gte=2).count()
-
-    def get_team_total_stats(self, **filters):  # noqa
-        """ Count 1 by each result """
-        return self.get_results(**filters).count()
 
     class Meta:
         abstract = True
 
 
-class StatsByCompetitionModel(AbstractStatsModel):
+class StatsByCompetitionModel(AbstractStatsModel, AbstractStreakModel):
     def get_multiple_records_by_competition(self, records_list=None, append_points=False, **kwargs):
         stats_by_competition = []
         for competition in getattr(self, 'competitions').all():

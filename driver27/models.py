@@ -38,25 +38,6 @@ def get_tuple_from_result(result):
                        result.race.round,
                        result.race.alter_punctuation, result.points)
 
-
-def get_results_tuples(seat=None, team=None, race=None, season=None, competition=None,
-                       results=None, skip_results_if_false=False, **extra_filters):
-
-    # Result can be the only param passed to get_results_tuple.
-    # If results=false, get_results will be calculate without params, return all results of all competitions.
-    # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
-    if not results and not skip_results_if_false:
-        results = Result.wizard(seat=seat, team=team, race=race,
-                                season=season, competition=competition, **extra_filters)
-
-    results = results.values_list('qualifying', 'finish', 'fastest_lap', 'wildcard', 'retired',
-                                  'race_id', 'race__circuit', 'race__grand_prix', 'race__grand_prix__country',
-                                  'race__season__competition', 'race__season__year', 'race__round',
-                                  'race__alter_punctuation', 'points')
-
-    return results
-
-
 @python_2_unicode_compatible
 class Driver(StatsByCompetitionModel):
     """ Main Driver Model. To combine with competitions (Contender) and competition/team (Seat) """
@@ -115,8 +96,7 @@ class Driver(StatsByCompetitionModel):
             # Result can be the only param passed to get_results_tuple.
             # If results=false, get_results will be calculate without params, return all results of all competitions.
             # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
-            for result in get_results_tuples(results=results, skip_results_if_false=True):
-                result_tuple = ResultTuple(*result)
+            for result_tuple in get_tuples_from_results(results=results):
                 points = PointsCalculator(punctuation_config).calculator(result_tuple, skip_wildcard=True)
                 if points:
                     points_list.append(points)
@@ -776,15 +756,13 @@ class TeamSeason(TeamStatsModel):
             points_list = self.get_saved_points(limit_races=limit_races, **kwargs)
         else:
             points_list = []
-            results = self.get_results(limit_races=limit_races)
+            results = self.get_results(limit_races=limit_races, **kwargs)
             # Result can be the only param passed to get_results_tuple.
             # If results=false, get_results will be calculate without params, return all results of all competitions.
             # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
-            for result in get_results_tuples(results=results, skip_results_if_false=True):
-                result_tuple = ResultTuple(*result)
+            for result_tuple in get_tuples_from_results(results=results):
                 points = PointsCalculator(punctuation_config).calculator(result_tuple, skip_wildcard=True)
-                if points:
-                    points_list.append(points)
+                if points: points_list.append(points)
         return sum(points_list)
 
     def get_name_in_season(self):
@@ -979,11 +957,9 @@ class ContenderSeason(AbstractStreakModel):
             # Result can be the only param passed to get_results_tuple.
             # If results=false, get_results will be calculate without params, return all results of all competitions.
             # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
-            for result in get_results_tuples(results=results, skip_results_if_false=True):
-                result_tuple = ResultTuple(*result)
+            for result_tuple in get_tuples_from_results(results=results):
                 points = PointsCalculator(punctuation_config).calculator(result_tuple)
-                if points:
-                    points_list.append(points)
+                if points: points_list.append(points)
 
         points_list = sorted(points_list, reverse=True)
         season_rounds = self.season.rounds

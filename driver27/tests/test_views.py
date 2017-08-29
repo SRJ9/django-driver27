@@ -7,7 +7,7 @@ try:
 except ImportError:
     from django.core.urlresolvers import reverse
 from django.forms.models import inlineformset_factory
-from ..models import Season, Driver, Team, Competition, Circuit, get_results_tuples
+from ..models import Season, Driver, Team, Competition, Circuit, get_tuples_from_results
 from ..models import GrandPrix, Race, Seat, TeamSeason, ContenderSeason
 from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, TeamAdmin
 from ..admin import CompetitionAdmin, CircuitAdmin, GrandPrixAdmin
@@ -199,7 +199,8 @@ class ViewTest(FixturesTest):
 
     def test_result_tuple(self):
         seat = Seat.objects.get(pk=1)
-        self.assertIsNotNone(get_results_tuples(seat=seat))
+        results = seat.results.all()
+        self.assertIsNotNone(get_tuples_from_results(results=results))
 
     def _check_get_changelist(self, ma):
         request = get_request()
