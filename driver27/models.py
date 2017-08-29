@@ -776,7 +776,7 @@ class TeamSeason(TeamStatsModel):
             points_list = self.get_saved_points(limit_races=limit_races, **kwargs)
         else:
             points_list = []
-            results = self.get_results(limit_races=limit_races)
+            results = self.get_results(limit_races=limit_races, **kwargs)
             # Result can be the only param passed to get_results_tuple.
             # If results=false, get_results will be calculate without params, return all results of all competitions.
             # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
