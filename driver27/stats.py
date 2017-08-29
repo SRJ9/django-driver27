@@ -132,25 +132,13 @@ class TeamStatsModel(AbstractStatsModel):
         """ Only count 1 by race with any driver in filter """
         return self.get_races(**filters).count()
 
-    def get_doubles_races(self, **filters):
-        """ Only count 1 by race with at least two drivers in filter """
-        return self.get_races(**filters).filter(count_race__gte=2).count()
-
     def get_total_stats(self, **filters):  # noqa
         """ Count 1 by each result """
         return self.get_results(**filters).count()
 
-    def get_team_total_races(self, **filters):
-        """ Only count 1 by race with any driver in filter """
-        return self.get_races(**filters).count()
-
-    def get_team_doubles_races(self, **filters):
+    def get_doubles_races(self, **filters):
         """ Only count 1 by race with at least two drivers in filter """
         return self.get_races(**filters).filter(count_race__gte=2).count()
-
-    def get_team_total_stats(self, **filters):  # noqa
-        """ Count 1 by each result """
-        return self.get_results(**filters).count()
 
     class Meta:
         abstract = True
