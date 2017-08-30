@@ -53,18 +53,22 @@ class Driver(StatsByCompetitionModel):
 
     @property
     def races(self):
+        """ Races with at least one result of this driver """
         return Race.objects.filter(results__seat__driver=self).distinct()
 
     @property
     def seasons(self):
+        """ Season with at least one result of this driver """
         return Season.objects.filter(races__in=self.races.all()).distinct()
 
     @property
     def competitions(self):
+        """ Competition with at least one result of this driver """
         return Competition.objects.filter(seasons__in=self.seasons.all()).distinct()
 
     @property
     def is_active(self):
+        """ A driver is active when has at least one result in last year registered in seasons """
         seasons_ordered_by_desc_year = Season.objects.order_by('-year')
         if seasons_ordered_by_desc_year.count():
             last_year = seasons_ordered_by_desc_year[0].year
@@ -77,25 +81,31 @@ class Driver(StatsByCompetitionModel):
 
     @property
     def teams_verbose(self):
+        """ A str separated with commas with teams names """
         return self._teams_verbose(self.teams.all())
 
     def get_results(self, limit_races=None, **extra_filter):
+        """ Result of driver """
         return Result.wizard(driver=self, limit_races=limit_races, **extra_filter)
 
     def get_saved_points(self, limit_races=None, **kwargs):
+        """ List of result.points from results of driver """
         results = self.get_results(limit_races=limit_races, **kwargs)
         points = results.values_list('points', flat=True)
         return [point for point in points if point]
 
     def get_points(self, limit_races=None, punctuation_config=None, **kwargs):
+        """
+        Return sum of points of a driver applying filters with kwargs param.
+        If punctuation_config is None, return points saved on database
+        if has value, calculate the points based on that config
+        """
+
         if punctuation_config is None:
             points_list = self.get_saved_points(limit_races=limit_races, **kwargs)
         else:
             points_list = []
             results = self.get_results(limit_races=limit_races, **kwargs)
-            # Result can be the only param passed to get_results_tuple.
-            # If results=false, get_results will be calculate without params, return all results of all competitions.
-            # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
             for result_tuple in get_tuples_from_results(results=results):
                 points = PointsCalculator(punctuation_config).calculator(result_tuple, skip_wildcard=True)
                 if points:
@@ -103,9 +113,15 @@ class Driver(StatsByCompetitionModel):
         return sum(points_list)
 
     def season_stats_cls(self, season):
+        """ Return the instance with driver-season pair """
         return ContenderSeason(driver=self, season=season)
 
     def get_points_by_season(self, season, append_driver=False, **kwargs):
+        """
+        Return points summary of a driver in a season
+        @todo This method should be in ContenderSeason class and in this one as shorcut.
+
+        """
         contender_season = self.season_stats_cls(season=season)
         season_points = {
             'points': contender_season.get_points(**kwargs),
@@ -121,6 +137,11 @@ class Driver(StatsByCompetitionModel):
         return season_points
 
     def get_pos_by_season(self, season):
+        """
+        Return position in season rank
+        @todo This method should be in ContenderSeason class and in this one as shorcut.
+
+        """
         rank = season.points_rank()
         index = 1
         for entry in rank:
@@ -130,6 +151,12 @@ class Driver(StatsByCompetitionModel):
         return index
 
     def get_points_by_seasons(self, append_driver=False, **kwargs):
+        """
+        Return points summary of each season of driver
+        @todo This method should be in ContenderSeason class and in this one as shorcut.
+
+        """
+
         points_by_season = []
         for season in self.seasons.all():
             season_kw = kwargs
@@ -141,6 +168,11 @@ class Driver(StatsByCompetitionModel):
         return points_by_season
 
     def get_multiple_records_by_season(self, records_list=None, append_points=False, **kwargs):
+        """
+        Return multiple records (or only one) record in season
+        @todo This method should be in ContenderSeason class and in this one as shorcut.
+
+        """
         stats_by_season = []
         for season in self.seasons.all():
             stats_by_season.append(
@@ -175,6 +207,7 @@ class Competition(AbstractRankModel):
 
     @property
     def drivers(self):
+        """ Queryset of driver with at least one result in a race of this competition """
         return Driver.objects.filter(seats__results__race__season__competition=self).distinct()
 
     def get_team_rank(self, rank_type, **filters):
@@ -222,6 +255,10 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
     country = CountryField(verbose_name=_('country'), blank=True, null=True)
 
     def _races(self, competition=None, **kwargs):
+        """
+        Return a races of a team
+        With param competition, the filter is different
+        """
         kwargs.update(**{'results__seat__team': self})
         if competition is not None:
             kwargs.update(**{'season__competition': competition})
@@ -236,17 +273,20 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
         return Season.objects.filter(races__in=self.races.all()).distinct()
 
     def get_results(self, competition=None, **extra_filter):
-        """ Return all results of team in season """
+        """ Return results of a team """
         return Result.wizard(team=self, competition=competition, **extra_filter)
 
     def get_results_by_race(self, race):
+        """ Shorcut for return results of a team in a race"""
         return self.get_results(race=race)
 
     def get_drivers_by_race(self, race):
+        """ Shorcut for return drivers of a team in a race"""
         results = self.get_results_by_race(race=race)
         return list(set([result.seat.driver for result in results]))
 
     def get_drivers_by_race_str(self, race):
+        """ Str with drivers name in a race """
         return ' + '.join(sorted(['{driver}'.format(driver=driver) for driver in self.get_drivers_by_race(race)]))
 
     def season_stats_cls(self, season):
