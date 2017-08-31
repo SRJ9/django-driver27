@@ -77,6 +77,19 @@ class Driver(StatsByCompetitionModel):
         else:
             return True
 
+    def get_summary_points(self, append_driver=False, **kwargs):
+        positions_count_list = self.get_positions_count_list(**kwargs)
+        positions_count_str = self.get_positions_count_str(position_list=positions_count_list)
+        summary_points = {
+            'teams': self.teams_verbose,
+            'points': self.get_points(**kwargs),
+            'pos_list': positions_count_list,
+            'pos_str': positions_count_str
+        }
+        if append_driver:
+            summary_points['driver'] = self
+        return summary_points
+
     def _teams_verbose(self, teams):
         return ', '.join([team.name for team in teams])
 

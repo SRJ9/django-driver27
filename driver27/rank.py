@@ -42,6 +42,30 @@ class AbstractRankModel(models.Model):
         cache_str = u'{prefix}_{repr_local}'.format(prefix=prefix, repr_local=repr_local)
         return cache_str
 
+    def points_rank_by_season(self, punctuation_config=None):
+        rank = []
+        drivers = getattr(self, 'drivers').all()
+        for driver in drivers:
+            seasons_by_driver = driver.get_points_by_seasons(append_driver=True,
+                                                             punctuation_config=punctuation_config,
+                                                             **self.stats_filter_kwargs)
+            for season_by_driver in seasons_by_driver:
+                rank.append(season_by_driver)
+        return rank
+
+    def _points_rank(self, punctuation_config=None):
+        rank = []
+        drivers = getattr(self, 'drivers').all()
+        for driver in drivers:
+            stat_cls = self.get_stats_cls(driver)
+            rank.append({'points': stat_cls.get_points(punctuation_config=punctuation_config,
+                                                       **self.stats_filter_kwargs),
+                         'driver': driver,
+                         'teams': stat_cls.teams_verbose,
+                         'pos_str': stat_cls.get_positions_count_str()
+                         })
+        return rank
+
     def points_rank(self, punctuation_code=None, by_season=False):
         """ Points driver rank. Scoring can be override by scoring_code param """
         cache_str = self.get_name_cache_rank('points', locals())
@@ -53,26 +77,12 @@ class AbstractRankModel(models.Model):
             punctuation_config = None
             if punctuation_code:
                 punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
-            drivers = getattr(self, 'drivers').all()
-            rank = []
             if by_season:
-                for driver in drivers:
-                    seasons_by_driver = driver.get_points_by_seasons(append_driver=True,
-                                                                     punctuation_config=punctuation_config,
-                                                                     **self.stats_filter_kwargs)
-                    for season_by_driver in seasons_by_driver:
-                        rank.append(season_by_driver)
+                rank = self.points_rank_by_season(punctuation_config=punctuation_config)
             else:
-                for driver in drivers:
-                    stat_cls = self.get_stats_cls(driver)
-                    rank.append({'points': stat_cls.get_points(punctuation_config=punctuation_config,
-                                                               **self.stats_filter_kwargs),
-                                 'driver': driver,
-                                 'teams': stat_cls.teams_verbose,
-                                 'pos_str': stat_cls.get_positions_count_str()
-                                 })
-            rank = order_points(rank)
-            cache.set(cache_str, rank)
+                rank = self._points_rank(punctuation_config=punctuation_config)
+        rank = order_points(rank)
+        cache.set(cache_str, rank)
         return rank
 
     def olympic_rank(self):
@@ -88,18 +98,9 @@ class AbstractRankModel(models.Model):
             rank = cache_rank
         else:
             drivers = getattr(self, 'drivers').all()
-            rank = []
-            for driver in drivers:
-                stat_cls = self.get_stats_cls(driver)
-                position_count_list = stat_cls.get_positions_count_list(**self.stats_filter_kwargs)
-                position_count_str = stat_cls.get_positions_count_str(position_list=position_count_list)
-                rank.append({'pos_str': position_count_str,
-                             'driver': driver,
-                             'teams': stat_cls.teams_verbose,
-                             'pos_list': position_count_list
-                             })
-            rank = sorted(rank, key=lambda x: x['pos_str'], reverse=True)
-            cache.get(cache_str, rank)
+            rank = [self.get_stats_cls(driver).get_summary_points(**self.stats_filter_kwargs) for driver in drivers]
+        rank = sorted(rank, key=lambda x: x['pos_str'], reverse=True)
+        cache.get(cache_str, rank)
         return rank
 
     def team_points_rank(self, punctuation_code=None, by_season=False):
@@ -110,6 +111,7 @@ class AbstractRankModel(models.Model):
         if cache_rank:
             rank = cache_rank
         else:
+
             punctuation_config = None
             if punctuation_code:
                 punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
