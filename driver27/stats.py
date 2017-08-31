@@ -112,10 +112,10 @@ class AbstractStatsModel(models.Model):
 
 class TeamStatsModel(AbstractStatsModel, AbstractStreakModel):
     def season_stats_cls(self, *args, **kwargs):
-        raise NotImplementedError('Not implemented property')
+        raise NotImplementedError('Not implemented method')
 
     def get_points(self, *args, **kwargs):
-        raise NotImplementedError('Not implemented property')
+        raise NotImplementedError('Not implemented method')
 
     @property
     def result_filter_kwargs(self):
@@ -126,7 +126,7 @@ class TeamStatsModel(AbstractStatsModel, AbstractStreakModel):
         raise NotImplementedError('Not implemented property')
 
     def get_results(self, *args, **kwargs):
-        raise NotImplementedError('Not implemented property')
+        raise NotImplementedError('Not implemented method')
 
     def get_total_races(self, **filters):
         """ Only count 1 by race with any driver in filter """
@@ -145,6 +145,10 @@ class TeamStatsModel(AbstractStatsModel, AbstractStreakModel):
 
 
 class StatsByCompetitionModel(AbstractStatsModel, AbstractStreakModel):
+
+    def get_stats_by_season(self, records_list=None, append_points=False, **kwargs):
+        raise NotImplementedError('Not implemented method')
+
     def get_multiple_records_by_competition(self, records_list=None, append_points=False, **kwargs):
         stats_by_competition = []
         for competition in getattr(self, 'competitions').all():
