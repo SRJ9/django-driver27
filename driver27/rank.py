@@ -24,8 +24,8 @@ def order_points(rank):
 
 import re
 
-class AbstractRankModel(models.Model):
 
+class AbstractRankModel(models.Model):
     def get_stats_cls(self, contender):
         raise NotImplementedError('Not implemented method')
 
@@ -71,7 +71,7 @@ class AbstractRankModel(models.Model):
             stat_cls = self.get_stats_cls(driver)
             rank.append(stat_cls.get_summary_points(punctuation_config=punctuation_config,
                                                     exclude_position=True,
-                                                     append_to_summary={'driver': driver},
+                                                    append_to_summary={'driver': driver},
                                                     **self.stats_filter_kwargs))
         return rank
 
@@ -136,12 +136,12 @@ class AbstractRankModel(models.Model):
             rank = cache_rank
         else:
             drivers = getattr(self, 'drivers').all()
-            rank = [self.get_stats_cls(driver).get_summary_points(**self.stats_filter_kwargs) for driver in drivers]
+            rank = [self.get_stats_cls(driver).get_summary_points(
+                append_to_summary={'driver': driver},
+                **self.stats_filter_kwargs) for driver in drivers]
         rank = sorted(rank, key=lambda x: x['pos_str'], reverse=True)
         cache.get(cache_str, rank)
         return rank
-
-
 
     def stats_rank(self, **filters):
         """ Get driver rank based on record filter """
@@ -173,8 +173,8 @@ class AbstractRankModel(models.Model):
         if cache_rank:
             rank = cache_rank
         else:
-            rank = Result.wizard(**comeback_filter)\
-                .annotate(comeback=Sum(F('qualifying')-F('finish'))).order_by('-comeback')
+            rank = Result.wizard(**comeback_filter) \
+                .annotate(comeback=Sum(F('qualifying') - F('finish'))).order_by('-comeback')
             cache.set(cache_str, rank)
         return rank
 
@@ -343,5 +343,3 @@ class AbstractRankModel(models.Model):
 
     class Meta:
         abstract = True
-
-
