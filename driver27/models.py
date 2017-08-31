@@ -247,6 +247,18 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
     def season_stats_cls(self, season):
         return TeamSeason.objects.get(season=season, team=self)
 
+    def get_summary_points(self, append_team=False, **kwargs):
+        positions_count_list = self.get_positions_count_list(**kwargs)
+        positions_count_str = self.get_positions_count_str(position_list=positions_count_list)
+        summary_points = {
+            'points': self.get_points(**kwargs),
+            'pos_list': positions_count_list,
+            'pos_str': positions_count_str
+        }
+        if append_team:
+            summary_points['team'] = self
+        return summary_points
+
     def get_points_by_season(self, season, append_team=False, **kwargs):
         summary_points = self.season_stats_cls(season=season).get_summary_points(**kwargs)
         if append_team:
