@@ -319,7 +319,7 @@ class AbstractRankModel(models.Model):
     def team_doubles_rank(self, **filters):
         return self.team_rank('get_doubles_races', **filters)
 
-    def olympic_team_rank(self):
+    def team_olympic_rank(self):
         """ Points team rank. Scoring can be override by scoring_code param """
         cache_str = self.get_name_cache_rank('olympic_team', locals())
         cache_rank = cache.get(cache_str)

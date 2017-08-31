@@ -185,7 +185,7 @@ def driver_olympic_view(request, competition_slug=None, year=None):
 
 
 def team_olympic_view(request, competition_slug=None, year=None):
-    return common_olympic_view(request, 'driver27/team/team-list.html', 'olympic_team_rank',
+    return common_olympic_view(request, 'driver27/team/team-list.html', 'team_olympic_rank',
                                _('TEAMS rank by olympic mode'), competition_slug=competition_slug, year=year)
 
 
