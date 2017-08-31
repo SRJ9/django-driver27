@@ -62,9 +62,6 @@ class AbstractStatsModel(models.Model):
     def result_filter_kwargs(self):
         raise NotImplementedError('Not implemented property')
 
-    def get_points(self, *args, **kwargs):
-        raise NotImplementedError('Not implemented property')
-
     def season_stats_cls(self, *args, **kwargs):
         raise NotImplementedError('Not implemented method')
 
@@ -114,8 +111,6 @@ class TeamStatsModel(AbstractStatsModel, AbstractStreakModel):
     def season_stats_cls(self, *args, **kwargs):
         raise NotImplementedError('Not implemented method')
 
-    def get_points(self, *args, **kwargs):
-        raise NotImplementedError('Not implemented method')
 
     @property
     def result_filter_kwargs(self):
@@ -146,8 +141,20 @@ class TeamStatsModel(AbstractStatsModel, AbstractStreakModel):
 
 class StatsByCompetitionModel(AbstractStatsModel, AbstractStreakModel):
 
-    def get_stats_by_season(self, records_list=None, append_points=False, **kwargs):
+    def get_points_by_season(self, season, **kwargs):
         raise NotImplementedError('Not implemented method')
+
+    def get_stats_by_season(self, records_list=None, append_points=False, **kwargs):
+        """
+        Return multiple records (or only one) record in season
+
+        """
+
+        kwargs.pop('season', None)
+        seasons = getattr(self, 'seasons').all()
+        return [self.season_stats_cls(season=season) \
+                    .get_summary_stats(records_list=records_list, append_points=append_points, **kwargs)
+                for season in seasons]
 
     def get_stats_by_competition(self, records_list=None, append_points=False, **kwargs):
         competitions = getattr(self, 'competitions').all()
@@ -161,9 +168,51 @@ class StatsByCompetitionModel(AbstractStatsModel, AbstractStreakModel):
             for competition in competitions
         ]
 
+    def seasons_by_competition(self, competition=None):
+        seasons = getattr(self, 'seasons').all()
+        if competition is not None:
+            seasons = seasons.filter(competition=competition)
+        return seasons
+
+    def get_points(self, season=None, competition=None, punctuation_config=None):
+        if season is not None:
+            return self.get_season(season).get_points(punctuation_config=punctuation_config)
+        seasons = self.seasons_by_competition(competition=competition)
+        points = 0
+        for season in seasons:
+            season_points = self.get_season(season).get_points(punctuation_config=punctuation_config)
+            points += season_points if season_points else 0
+        return points
+
     class Meta:
         abstract = True
 
+class SeasonStatsModel(object):
+
+    def get_points_list(self, limit_races=None, punctuation_config=None, **kwargs):
+        raise NotImplementedError('Not implemented method')
+
+    def get_points(self):
+        """ get_points in season must not be the same of other get_points because others is the sum of this """
+        raise NotImplementedError('Not implemented method')
+
+    def _points_position(self, rank, keyword):
+        """
+        Return position in season rank
+
+        """
+        attr = getattr(self, keyword)
+        season = getattr(self, 'season')
+        rank = getattr(season, rank)()
+        position = None
+        for index, entry in enumerate(rank):
+            if attr == entry.get(keyword):
+                position = index + 1
+                break
+        return position
+
+    class Meta:
+        abstract = True
 
 
 
