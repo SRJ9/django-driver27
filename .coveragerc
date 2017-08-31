@@ -3,3 +3,5 @@ omit =
 	driver27/migrations/* 
 	driver27/urls.py 
 	driver27/apps.py
+	driver27/managements/commands/*
+	driver27/teammates.py
