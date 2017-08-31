@@ -46,7 +46,7 @@ class AbstractRankModel(models.Model):
         rank = []
         drivers = getattr(self, 'drivers').all()
         for driver in drivers:
-            seasons_by_driver = driver.get_points_by_seasons(append_driver=True,
+            seasons_by_driver = driver.get_points_by_seasons(append_to_summary={'driver': driver},
                                                              punctuation_config=punctuation_config,
                                                              **self.stats_filter_kwargs)
             for season_by_driver in seasons_by_driver:
@@ -57,7 +57,7 @@ class AbstractRankModel(models.Model):
         rank = []
         teams = getattr(self, 'teams').all()
         for team in teams:
-            seasons_by_team = team.get_points_by_seasons(append_team=True,
+            seasons_by_team = team.get_points_by_seasons(append_to_summary={'team': team},
                                                          punctuation_config=punctuation_config,
                                                          **self.stats_filter_kwargs)
             for season_by_team in seasons_by_team:
@@ -69,13 +69,10 @@ class AbstractRankModel(models.Model):
         drivers = getattr(self, 'drivers').all()
         for driver in drivers:
             stat_cls = self.get_stats_cls(driver)
-            rank.append({'points': stat_cls.get_points(punctuation_config=punctuation_config,
-                                                       **self.stats_filter_kwargs),
-                         'driver': driver,
-                         'teams': stat_cls.teams_verbose,
-                         'pos_str': stat_cls.get_positions_count_str()
-                         })
-            # rank.append(stat_cls.get_summary_points(punctuation_config=punctuation_config, **self.stats_filter_kwargs))
+            rank.append(stat_cls.get_summary_points(punctuation_config=punctuation_config,
+                                                    exclude_position=True,
+                                                     append_to_summary={'driver': driver},
+                                                    **self.stats_filter_kwargs))
         return rank
 
     def _team_points_rank(self, punctuation_config=None):
@@ -83,12 +80,10 @@ class AbstractRankModel(models.Model):
         teams = getattr(self, 'teams').all()
         for team in teams:
             stats_cls = self.get_team_stats_cls(team)
-            rank.append({'points': stats_cls.get_points(punctuation_config=punctuation_config,
-                                                             **self.stats_filter_kwargs),
-                         'team': team,
-                         'pos_str': stats_cls.get_positions_count_str()
-                         })
-            # rank.append(stats_cls.get_summary_points(punctuation_config=punctuation_config, **self.stats_filter_kwargs))
+            rank.append(stats_cls.get_summary_points(punctuation_config=punctuation_config,
+                                                     exclude_position=True,
+                                                     append_to_summary={'team': team},
+                                                     **self.stats_filter_kwargs))
         return rank
 
     def points_rank(self, punctuation_code=None, by_season=False):
@@ -99,9 +94,8 @@ class AbstractRankModel(models.Model):
         if cache_rank:
             rank = cache_rank
         else:
-            punctuation_config = None
-            if punctuation_code:
-                punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
+            punctuation_config = get_punctuation_config(punctuation_code=punctuation_code) \
+                if punctuation_code is not None else None
             if by_season:
                 rank = self.points_rank_by_season(punctuation_config=punctuation_config)
             else:
@@ -118,12 +112,9 @@ class AbstractRankModel(models.Model):
         if cache_rank:
             rank = cache_rank
         else:
-
-            punctuation_config = None
-            if punctuation_code:
-                punctuation_config = get_punctuation_config(punctuation_code=punctuation_code)
+            punctuation_config = get_punctuation_config(punctuation_code=punctuation_code) \
+                if punctuation_code is not None else None
             teams = getattr(self, 'teams').all()
-            rank = []
             if by_season:
                 rank = self.team_points_rank_by_season(punctuation_config=punctuation_config)
             else:

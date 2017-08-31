@@ -77,17 +77,19 @@ class Driver(StatsByCompetitionModel):
         else:
             return True
 
-    def get_summary_points(self, append_driver=False, **kwargs):
+    def get_summary_points(self, append_to_summary=None, **kwargs):
+        kwargs.pop('exclude_position', False)
+        punctuation_config = kwargs.pop('punctuation_config', None)
         positions_count_list = self.get_positions_count_list(**kwargs)
         positions_count_str = self.get_positions_count_str(position_list=positions_count_list)
         summary_points = {
             'teams': self.teams_verbose,
-            'points': self.get_points(**kwargs),
+            'points': self.get_points(punctuation_config=punctuation_config, **kwargs),
             'pos_list': positions_count_list,
             'pos_str': positions_count_str
         }
-        if append_driver:
-            summary_points['driver'] = self
+        if append_to_summary is not None:
+            summary_points.update(**append_to_summary)
         return summary_points
 
     def _teams_verbose(self, teams):
@@ -113,23 +115,21 @@ class Driver(StatsByCompetitionModel):
         """ Return the instance with driver-season pair """
         return ContenderSeason(driver=self, season=season)
 
-    def get_points_by_season(self, season, append_driver=False, **kwargs):
+    def get_points_by_season(self, season, **kwargs):
         """
         Return points summary of a driver in a season
         """
         summary_points = self.season_stats_cls(season=season).get_summary_points(**kwargs)
-        if append_driver:
-            summary_points['driver'] = self
         return summary_points
 
-    def get_points_by_seasons(self, append_driver=False, **kwargs):
+    def get_points_by_seasons(self, **kwargs):
         """
         Return points summary of each season of driver
 
         """
         kwargs.pop('season', None)
         seasons = self.seasons.all()
-        return [self.get_points_by_season(append_driver=append_driver, season=season, **kwargs) for season in seasons]
+        return [self.get_points_by_season(season=season, **kwargs) for season in seasons]
 
     def __str__(self):
         return u', '.join((self.last_name, self.first_name))
@@ -247,16 +247,19 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
     def season_stats_cls(self, season):
         return TeamSeason.objects.get(season=season, team=self)
 
-    def get_summary_points(self, append_team=False, **kwargs):
+    def get_summary_points(self, append_to_summary=None, **kwargs):
+        kwargs.pop('exclude_position', False)
+        punctuation_config = kwargs.pop('punctuation_config', None)
         positions_count_list = self.get_positions_count_list(**kwargs)
         positions_count_str = self.get_positions_count_str(position_list=positions_count_list)
         summary_points = {
-            'points': self.get_points(**kwargs),
+            'points': self.get_points(punctuation_config=punctuation_config, **kwargs),
             'pos_list': positions_count_list,
             'pos_str': positions_count_str
         }
-        if append_team:
-            summary_points['team'] = self
+
+        if append_to_summary is not None:
+            summary_points.update(**append_to_summary)
         return summary_points
 
     def get_points_by_season(self, season, append_team=False, **kwargs):
@@ -724,29 +727,25 @@ class TeamSeason(TeamStatsModel, SeasonStatsModel):
             str_team = self.sponsor_name
         return str_team
 
-    def _summary_season(self):
-        return {
+    def _summary_season(self, exclude_position=False):
+
+        summary_season = {
             'season': self.season,
             'competition': self.season.competition,
-            'year': self.season.year,
-            'pos': self.get_points_position()
+            'year': self.season.year
         }
 
-    def get_summary_points(self, **kwargs):
-        summary_points = self._summary_season()
-        summary_points.update(
-            points=self.get_points(**kwargs), pos_list=self.get_positions_count_list(),
-            pos_str=self.get_positions_count_str()
-        )
-        return summary_points
+        if not exclude_position:
+            summary_season['pos'] = self.get_points_position()
+        return summary_season
 
     def get_summary_stats(self, records_list=None, append_points=False, **kwargs):
         """
         Return multiple records (or only one) record in season
 
         """
-
-        summary_stats = self._summary_season()
+        exclude_position = kwargs.pop('exclude_position', False)
+        summary_stats = self._summary_season(exclude_position)
         season = summary_stats.get('season')
         seats = season.seats.filter(team=self.team)
 
@@ -962,30 +961,28 @@ class ContenderSeason(AbstractStreakModel, SeasonStatsModel):
             points_list = points_list[:season_rounds]
         return sum(points_list)
 
-    def _summary_season(self):
-        return {
+    def _summary_season(self, exclude_position=False):
+        summary_season = {
             'season': self.season,
             'competition': self.season.competition,
             'year': self.season.year,
-            'teams': self.teams_verbose,
-            'pos': self.get_points_position()
+            'teams': self.teams_verbose
         }
 
-    def get_summary_points(self, **kwargs):
-        summary_points = self._summary_season()
-        summary_points.update(
-            points=self.get_points(**kwargs), pos_list=self.get_positions_count_list(),
-            pos_str=self.get_positions_count_str()
-        )
-        return summary_points
+        if not exclude_position:
+            summary_season['pos'] = self.get_points_position()
+
+        return summary_season
+
+
 
     def get_summary_stats(self, records_list=None, append_points=False, **kwargs):
         """
         Return multiple records (or only one) record in season
 
         """
-
-        summary_stats = self._summary_season()
+        exclude_position = kwargs.pop('exclude_position', False)
+        summary_stats = self._summary_season(exclude_position)
         summary_stats.update(
             stats=self.driver.get_stats_list(records_list=records_list, append_points=append_points,
                                                    season=self.season, **kwargs)
