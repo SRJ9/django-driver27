@@ -75,7 +75,7 @@ class AbstractStatsModel(models.Model):
         except ValidationError:
             return None
 
-    def get_multiple_records(self, records_list=None, append_points=False, **kwargs):
+    def get_stats_list(self, records_list=None, append_points=False, **kwargs):
         multiple_records = {}
         if records_list is None:
             records_list = ['RACE', 'POLE', 'WIN', 'PODIUM', 'FASTEST']
@@ -149,18 +149,17 @@ class StatsByCompetitionModel(AbstractStatsModel, AbstractStreakModel):
     def get_stats_by_season(self, records_list=None, append_points=False, **kwargs):
         raise NotImplementedError('Not implemented method')
 
-    def get_multiple_records_by_competition(self, records_list=None, append_points=False, **kwargs):
-        stats_by_competition = []
-        for competition in getattr(self, 'competitions').all():
-            stats_by_competition.append(
-                {
-                    'competition': competition,
-                    'stats': self.get_multiple_records(records_list=records_list,
-                                                       append_points=append_points,
-                                                       competition=competition, **kwargs)
-                }
-            )
-        return stats_by_competition
+    def get_stats_by_competition(self, records_list=None, append_points=False, **kwargs):
+        competitions = getattr(self, 'competitions').all()
+        return [
+            {
+                'competition': competition,
+                'stats': self.get_stats_list(records_list=records_list,
+                                             append_points=append_points,
+                                             competition=competition, **kwargs)
+            }
+            for competition in competitions
+        ]
 
     class Meta:
         abstract = True

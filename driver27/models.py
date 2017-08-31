@@ -312,7 +312,7 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
                     'competition': season.competition,
                     'year': season.year,
                     'num_of_seats': num_of_seats,
-                    'stats': self.get_multiple_records(records_list=records_list,
+                    'stats': self.get_stats_list(records_list=records_list,
                                                        append_points=append_points, season=season, **kwargs)
                 }
             )
@@ -992,7 +992,7 @@ class ContenderSeason(AbstractStreakModel):
 
         summary_stats = self._summary_season()
         summary_stats.update(
-            stats=self.driver.get_multiple_records(records_list=records_list, append_points=append_points,
+            stats=self.driver.get_stats_list(records_list=records_list, append_points=append_points,
                                                    season=self.season, **kwargs)
         )
 

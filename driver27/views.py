@@ -372,13 +372,13 @@ def _team_record_view(request, competition_slug, year, rank_type, record=None):
 def driver_profile_view(request, driver_id):
     driver = get_or_404(Driver, {'pk': driver_id}, _('Driver does not exist'))
     by_season = driver.get_stats_by_season(append_points=True)
-    by_competition = driver.get_multiple_records_by_competition(append_points=True)
+    by_competition = driver.get_stats_by_competition(append_points=True)
     context = {
         'driver': driver,
         'by_season': by_season,
         'by_competition': by_competition,
         'results': get_tuples_from_results(driver.get_results()),
-        'stats': driver.get_multiple_records(append_points=True),
+        'stats': driver.get_stats_list(append_points=True),
         'title': 'Profile of {driver}'.format(driver=driver)
     }
     tpl = 'driver27/driver/driver-profile.html'
@@ -388,12 +388,12 @@ def driver_profile_view(request, driver_id):
 def team_profile_view(request, team_id):
     team = get_or_404(Team, {'pk': team_id}, _('Team does not exist'))
     by_season = team.get_stats_by_season(append_points=True)
-    by_competition = team.get_multiple_records_by_competition(append_points=True)
+    by_competition = team.get_stats_by_competition(append_points=True)
     context = {
         'team': team,
         'by_season': by_season,
         'by_competition': by_competition,
-        'stats': team.get_multiple_records(append_points=True),
+        'stats': team.get_stats_list(append_points=True),
         'title': 'Profile of {team}'.format(team=team)
     }
     tpl = 'driver27/team/team-profile.html'
