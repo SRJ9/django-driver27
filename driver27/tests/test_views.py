@@ -395,7 +395,7 @@ class DR27Api(APITestCase):
     def test_api_race(self):
         self._GET_request('race-list')
         self._GET_request('race-detail', kwargs={'pk': 1})
-        self._GET_request('race-no-start-seats', kwargs={'pk': 1})
+        self._GET_request('race-no-seats', kwargs={'pk': 1})
         self._GET_request('race-results', kwargs={'pk': 1})
         self._GET_request('race-seats', kwargs={'pk': 1})
 

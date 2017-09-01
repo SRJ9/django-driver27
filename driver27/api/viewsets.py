@@ -12,21 +12,34 @@ from ..punctuation import get_punctuation_config
 
 
 class CommonDetailViewSet(object):
-    def get_common_detail_route(self, request, rel_model, serializer_cls, filters={}):
+    def get_common_detail_route(self, request, rel_model, serializer_cls, filters=None):
         obj = self.get_object()
+        if filters is None:
+            filters = {}
         self.queryset = getattr(obj, rel_model).filter(**filters)
         serializer = serializer_cls(instance=self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
-    def get_seat_detail_route(self, request, filter={}, exclude={}):
+    def get_seat_detail_route(self, request, filter=None, exclude=None):
         """ Seat can not be directly accessed from Race """
+        if filter is None:
+            filter = {}
+        if exclude is None:
+            exclude = {}
+
         self.queryset = Seat.objects.filter(**filter).exclude(**exclude)
         serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
+class AbstractCommonSeatViewSet(object):
+    @detail_route(methods=['get'], url_path='no-seats')
+    def no_seats(self, request, pk=None):
+        """ Seats with team in season:competition but not active in season """
+        return getattr(self, 'get_common_detail_route')(request, 'no_seats', SeatSerializer)
+
 
 # ViewSets define the view behavior.
-class RaceViewSet(DR27ViewSet, CommonDetailViewSet):
+class RaceViewSet(DR27ViewSet, CommonDetailViewSet, AbstractCommonSeatViewSet):
     queryset = Race.objects.all()
     serializer_class = RaceSerializer
 
@@ -46,6 +59,8 @@ class RaceViewSet(DR27ViewSet, CommonDetailViewSet):
         return self.get_common_detail_route(request, 'no_seats', SeatSerializer)
 
 
+
+
 class DR27CommonCompetitionViewSet(DR27ViewSet):
     @detail_route(methods=['get'], url_path='next-race')
     def next_race(self, request, pk=None):
@@ -63,7 +78,7 @@ class DR27CommonCompetitionViewSet(DR27ViewSet):
 
 
 # ViewSets define the view behavior.
-class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
+class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet, AbstractCommonSeatViewSet):
     queryset = Season.objects.all()
     serializer_class = SeasonSerializer
 
@@ -83,23 +98,12 @@ class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
     def seats(self, request, pk=None):
         return self.get_common_detail_route(request, 'seats', SeatSerializer)
 
-    @detail_route(methods=['get'], url_path='no-seats')
-    def no_seats(self, request, pk=None):
-        """ Seats with team in season:competition but not active in season """
-        return self.get_common_detail_route(request, 'no_seats', SeatSerializer)
 
     @detail_route(methods=['get'])
     def teams(self, request, pk=None):
         return self.get_common_detail_route(request, 'teams', TeamSerializer)
 
-    @detail_route(methods=['get'])
-    def standings(self, request, pk=None):
-        season = self.get_object()
-        rank = season.points_rank()
-        serializer_rank = [
-            get_dict_from_rank_entry(standing) for standing in rank
-        ]
-        return Response(serializer_rank)
+
 
     @detail_route(methods=['get'])
     def summary(self, request, pk=None):
@@ -120,23 +124,25 @@ class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
         }
         return Response(serializer_rank)
 
-    @detail_route(methods=['get'], url_path='standings-team')
-    def standings_team(self, request, pk=None):
+    def _abstract_rank(self, rank_method, dict_method):
         season = self.get_object()
-        rank = season.team_points_rank()
+        rank = getattr(season, rank_method)()
         serializer_rank = [
-            get_dict_from_team_rank_entry(standing) for standing in rank
+            dict_method(standing) for standing in rank
         ]
         return Response(serializer_rank)
 
     @detail_route(methods=['get'])
+    def standings(self, request, pk=None):
+        return self._abstract_rank('points_rank', get_dict_from_rank_entry)
+
+    @detail_route(methods=['get'], url_path='standings-team')
+    def standings_team(self, request, pk=None):
+        return self._abstract_rank('team_points_rank', get_dict_from_team_rank_entry)
+
+    @detail_route(methods=['get'])
     def title(self, request, pk=None):
-        season = self.get_object()
-        rank = season.only_title_contenders()
-        serializer_rank = [
-            get_dict_from_rank_entry(standing) for standing in rank
-        ]
-        return Response(serializer_rank)
+        return self._abstract_rank('only_title_contenders', get_dict_from_rank_entry)
 
 
 # ViewSets define the view behavior.

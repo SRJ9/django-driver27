@@ -42,49 +42,39 @@ class AbstractRankModel(models.Model):
         cache_str = u'{prefix}_{repr_local}'.format(prefix=prefix, repr_local=repr_local)
         return cache_str
 
-    def points_rank_by_season(self, punctuation_config=None):
+    def _abstract_points_rank_by_season(self, element_name, element_group, punctuation_config=None):
         rank = []
-        drivers = getattr(self, 'drivers').all()
-        for driver in drivers:
-            seasons_by_driver = driver.get_points_by_seasons(append_to_summary={'driver': driver},
+        items = getattr(self, element_group).all()
+        for item in items:
+            points_by_seasons = item.get_points_by_seasons(append_to_summary={element_name: item},
                                                              punctuation_config=punctuation_config,
                                                              **self.stats_filter_kwargs)
-            for season_by_driver in seasons_by_driver:
-                rank.append(season_by_driver)
+            for points_by_season in points_by_seasons:
+                rank.append(points_by_season)
         return rank
 
-    def team_points_rank_by_season(self, punctuation_config=None):
+    def _abstract_points_rank(self, element_name, element_group, stats_cls, punctuation_config=None):
         rank = []
-        teams = getattr(self, 'teams').all()
-        for team in teams:
-            seasons_by_team = team.get_points_by_seasons(append_to_summary={'team': team},
-                                                         punctuation_config=punctuation_config,
-                                                         **self.stats_filter_kwargs)
-            for season_by_team in seasons_by_team:
-                rank.append(season_by_team)
-        return rank
-
-    def _points_rank(self, punctuation_config=None):
-        rank = []
-        drivers = getattr(self, 'drivers').all()
-        for driver in drivers:
-            stat_cls = self.get_stats_cls(driver)
+        items= getattr(self, element_group).all()
+        for item in items:
+            stat_cls = stats_cls(item)
             rank.append(stat_cls.get_summary_points(punctuation_config=punctuation_config,
                                                     exclude_position=True,
-                                                    append_to_summary={'driver': driver},
+                                                    append_to_summary={element_name: item},
                                                     **self.stats_filter_kwargs))
         return rank
 
+    def points_rank_by_season(self, punctuation_config=None):
+        return self._abstract_points_rank_by_season('driver', 'drivers', punctuation_config)
+
+    def team_points_rank_by_season(self, punctuation_config=None):
+        return self._abstract_points_rank_by_season('team', 'teams', punctuation_config)
+
+    def _points_rank(self, punctuation_config=None):
+        return self._abstract_points_rank('driver', 'drivers', self.get_stats_cls, punctuation_config)
+
     def _team_points_rank(self, punctuation_config=None):
-        rank = []
-        teams = getattr(self, 'teams').all()
-        for team in teams:
-            stats_cls = self.get_team_stats_cls(team)
-            rank.append(stats_cls.get_summary_points(punctuation_config=punctuation_config,
-                                                     exclude_position=True,
-                                                     append_to_summary={'team': team},
-                                                     **self.stats_filter_kwargs))
-        return rank
+        return self._abstract_points_rank('team', 'teams', self.get_team_stats_cls, punctuation_config)
 
     def points_rank(self, punctuation_code=None, by_season=False):
         """ Points driver rank. Scoring can be override by scoring_code param """
