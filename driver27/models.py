@@ -18,10 +18,10 @@ from . import lr_intr, lr_diff
 from .points_calculator import PointsCalculator
 from .punctuation import get_punctuation_config
 from .rank import AbstractRankModel
-from .stats import AbstractStreakModel, AbstractStatsModel, TeamStatsModel, StatsByCompetitionModel
+from .stats import AbstractStreakModel, AbstractStatsModel, TeamStatsModel, StatsByCompetitionModel, SeasonStatsModel
 
 ResultTuple = namedtuple('ResultTuple',
-                         'qualifying finish fastest_lap wildcard retired race_id circuit grand_prix country competition year '\
+                         'qualifying finish fastest_lap wildcard retired race_id circuit grand_prix country competition year ' \
                          'round alter_punctuation points')
 
 
@@ -38,6 +38,7 @@ def get_tuple_from_result(result):
                        result.race.round,
                        result.race.alter_punctuation, result.points)
 
+
 @python_2_unicode_compatible
 class Driver(StatsByCompetitionModel):
     """ Main Driver Model. To combine with competitions (Contender) and competition/team (Seat) """
@@ -53,18 +54,22 @@ class Driver(StatsByCompetitionModel):
 
     @property
     def races(self):
+        """ Races with at least one result of this driver """
         return Race.objects.filter(results__seat__driver=self).distinct()
 
     @property
     def seasons(self):
+        """ Season with at least one result of this driver """
         return Season.objects.filter(races__in=self.races.all()).distinct()
 
     @property
     def competitions(self):
+        """ Competition with at least one result of this driver """
         return Competition.objects.filter(seasons__in=self.seasons.all()).distinct()
 
     @property
     def is_active(self):
+        """ A driver is active when has at least one result in last year registered in seasons """
         seasons_ordered_by_desc_year = Season.objects.order_by('-year')
         if seasons_ordered_by_desc_year.count():
             last_year = seasons_ordered_by_desc_year[0].year
@@ -72,88 +77,59 @@ class Driver(StatsByCompetitionModel):
         else:
             return True
 
+    def get_summary_points(self, append_to_summary=None, **kwargs):
+        kwargs.pop('exclude_position', False)
+        punctuation_config = kwargs.pop('punctuation_config', None)
+        positions_count_list = self.get_positions_count_list(**kwargs)
+        positions_count_str = self.get_positions_count_str(position_list=positions_count_list)
+        summary_points = {
+            'teams': self.teams_verbose,
+            'points': self.get_points(punctuation_config=punctuation_config, **kwargs),
+            'pos_list': positions_count_list,
+            'pos_str': positions_count_str
+        }
+        if append_to_summary is not None:
+            summary_points.update(**append_to_summary)
+        return summary_points
+
     def _teams_verbose(self, teams):
         return ', '.join([team.name for team in teams])
 
     @property
     def teams_verbose(self):
+        """ A str separated with commas with teams names """
         return self._teams_verbose(self.teams.all())
 
     def get_results(self, limit_races=None, **extra_filter):
+        """ Result of driver """
         return Result.wizard(driver=self, limit_races=limit_races, **extra_filter)
 
     def get_saved_points(self, limit_races=None, **kwargs):
+        """ List of result.points from results of driver """
         results = self.get_results(limit_races=limit_races, **kwargs)
         points = results.values_list('points', flat=True)
         return [point for point in points if point]
 
-    def get_points(self, limit_races=None, punctuation_config=None, **kwargs):
-        if punctuation_config is None:
-            points_list = self.get_saved_points(limit_races=limit_races, **kwargs)
-        else:
-            points_list = []
-            results = self.get_results(limit_races=limit_races, **kwargs)
-            # Result can be the only param passed to get_results_tuple.
-            # If results=false, get_results will be calculate without params, return all results of all competitions.
-            # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
-            for result_tuple in get_tuples_from_results(results=results):
-                points = PointsCalculator(punctuation_config).calculator(result_tuple, skip_wildcard=True)
-                if points:
-                    points_list.append(points)
-        return sum(points_list)
 
     def season_stats_cls(self, season):
+        """ Return the instance with driver-season pair """
         return ContenderSeason(driver=self, season=season)
 
-    def get_points_by_season(self, season, append_driver=False, **kwargs):
-        contender_season = self.season_stats_cls(season=season)
-        season_points = {
-            'points': contender_season.get_points(**kwargs),
-            'teams': contender_season.get_teams_verbose(),
-            'pos_list': contender_season.get_positions_count_list(),
-            'pos_str': contender_season.get_positions_count_str(),
-            'season': season,
-            'pos': self.get_pos_by_season(season=season)
-        }
+    def get_points_by_season(self, season, **kwargs):
+        """
+        Return points summary of a driver in a season
+        """
+        summary_points = self.season_stats_cls(season=season).get_summary_points(**kwargs)
+        return summary_points
 
-        if append_driver:
-            season_points['driver'] = self
-        return season_points
+    def get_points_by_seasons(self, **kwargs):
+        """
+        Return points summary of each season of driver
 
-    def get_pos_by_season(self, season):
-        rank = season.points_rank()
-        index = 1
-        for entry in rank:
-            if self == entry['driver']:
-                break
-            index += 1
-        return index
-
-    def get_points_by_seasons(self, append_driver=False, **kwargs):
-        points_by_season = []
-        for season in self.seasons.all():
-            season_kw = kwargs
-            season_kw.update(**{'season': season})
-            points_by_season.append(
-                self.get_points_by_season(append_driver=append_driver, **season_kw)
-            )
-
-        return points_by_season
-
-    def get_multiple_records_by_season(self, records_list=None, append_points=False, **kwargs):
-        stats_by_season = []
-        for season in self.seasons.all():
-            stats_by_season.append(
-                {
-                    'competition': season.competition,
-                    'year': season.year,
-                    'teams': self.get_season(season=season).teams_verbose,
-                    'stats': self.get_multiple_records(records_list=records_list,
-                                                       append_points=append_points, season=season, **kwargs),
-                    'pos': self.get_pos_by_season(season=season)
-                }
-            )
-        return stats_by_season
+        """
+        kwargs.pop('season', None)
+        seasons = self.seasons.all()
+        return [self.get_points_by_season(season=season, **kwargs) for season in seasons]
 
     def __str__(self):
         return u', '.join((self.last_name, self.first_name))
@@ -175,6 +151,7 @@ class Competition(AbstractRankModel):
 
     @property
     def drivers(self):
+        """ Queryset of driver with at least one result in a race of this competition """
         return Driver.objects.filter(seats__results__race__season__competition=self).distinct()
 
     def get_team_rank(self, rank_type, **filters):
@@ -218,10 +195,15 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
     """ Team model, unique if is the same in different competition """
     name = models.CharField(max_length=75, verbose_name=_('team'), unique=True)
     full_name = models.CharField(max_length=200, unique=True, verbose_name=_('full name'))
-    competitions = models.ManyToManyField('Competition', through='CompetitionTeam', related_name='teams', verbose_name=_('competitions'))
+    competitions = models.ManyToManyField('Competition', through='CompetitionTeam', related_name='teams',
+                                          verbose_name=_('competitions'))
     country = CountryField(verbose_name=_('country'), blank=True, null=True)
 
     def _races(self, competition=None, **kwargs):
+        """
+        Return a races of a team
+        With param competition, the filter is different
+        """
         kwargs.update(**{'results__seat__team': self})
         if competition is not None:
             kwargs.update(**{'season__competition': competition})
@@ -236,21 +218,22 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
         return Season.objects.filter(races__in=self.races.all()).distinct()
 
     def get_results(self, competition=None, **extra_filter):
-        """ Return all results of team in season """
+        """ Return results of a team """
         return Result.wizard(team=self, competition=competition, **extra_filter)
 
     def get_results_by_race(self, race):
+        """ Shorcut for return results of a team in a race"""
         return self.get_results(race=race)
 
     def get_drivers_by_race(self, race):
+        """ Shorcut for return drivers of a team in a race"""
         results = self.get_results_by_race(race=race)
         return list(set([result.seat.driver for result in results]))
 
     def get_drivers_by_race_str(self, race):
+        """ Str with drivers name in a race """
         return ' + '.join(sorted(['{driver}'.format(driver=driver) for driver in self.get_drivers_by_race(race)]))
 
-    def season_stats_cls(self, season):
-        return TeamSeason.objects.get(season=season, team=self)
 
     def get_total_races(self, competition=None, **filters):
         return super(Team, self).get_total_races(competition=competition, **filters)
@@ -261,63 +244,34 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
     def get_total_stats(self, competition=None, **filters):
         return super(Team, self).get_total_stats(competition=competition, **filters)
 
-    def get_points(self, season=None, competition=None, punctuation_config=None):
-        if season is not None:
-            return self.get_season(season).get_points(punctuation_config=punctuation_config)
-        competition_filter = {}
-        if competition is not None:
-            competition_filter = {'competition': competition}
-        seasons = Season.objects.filter(races__results__seat__team=self, **competition_filter).distinct()
-        points = 0
-        for season in seasons:
-            season_points = self.get_season(season).get_points(punctuation_config=punctuation_config)
-            points += season_points if season_points else 0
-        return points
+    def season_stats_cls(self, season):
+        return TeamSeason.objects.get(season=season, team=self)
 
-    def get_pos_by_season(self, season):
-        rank = season.team_points_rank()
-        index = 1
-        for entry in rank:
-            if self == entry['team']:
-                break
-            index += 1
-        return index
-
-    def get_points_by_season(self, season, append_team=False, **kwargs):
-        team_season = self.season_stats_cls(season=season)
-        season_points = {
-            'points': team_season.get_points(**kwargs),
-            'pos_list': team_season.get_positions_count_list(),
-            'pos_str': team_season.get_positions_count_str(),
-            'season': season,
-            'pos': self.get_pos_by_season(season=season),
+    def get_summary_points(self, append_to_summary=None, **kwargs):
+        kwargs.pop('exclude_position', False)
+        punctuation_config = kwargs.pop('punctuation_config', None)
+        positions_count_list = self.get_positions_count_list(**kwargs)
+        positions_count_str = self.get_positions_count_str(position_list=positions_count_list)
+        summary_points = {
+            'points': self.get_points(punctuation_config=punctuation_config, **kwargs),
+            'pos_list': positions_count_list,
+            'pos_str': positions_count_str
         }
 
+        if append_to_summary is not None:
+            summary_points.update(**append_to_summary)
+        return summary_points
+
+    def get_points_by_season(self, season, append_team=False, **kwargs):
+        summary_points = self.season_stats_cls(season=season).get_summary_points(**kwargs)
         if append_team:
-            season_points['team'] = self
-        return season_points
+            summary_points['team'] = self
+        return summary_points
 
     def get_points_by_seasons(self, append_team=False, **kwargs):
-        return [self.get_points_by_season(season=season, append_team=append_team, **kwargs)
-                for season in self.seasons.all()]
-
-    def get_multiple_records_by_season(self, records_list=None, append_points=False, **kwargs):
-        stats_by_season = []
-        for season in self.seasons.all():
-            num_of_seats = season.seats.filter(team=self)
-            stats_by_season.append(
-                {
-                    'pos': self.get_pos_by_season(season=season),
-                    'competition': season.competition,
-                    'year': season.year,
-                    'num_of_seats': num_of_seats,
-                    'stats': self.get_multiple_records(records_list=records_list,
-                                                       append_points=append_points, season=season, **kwargs)
-                }
-            )
-        return stats_by_season
-
-
+        kwargs.pop('season', None)
+        seasons = self.seasons.all()
+        return [self.get_points_by_season(season=season, append_team=append_team, **kwargs) for season in seasons]
 
     def __str__(self):
         return self.name
@@ -580,6 +534,7 @@ class Season(AbstractRankModel):
 
 class SeatsSeason(Season):
     """ Aux proxy model to use in Admin for Season/Seat relation from Season """
+
     class Meta:
         proxy = True
         verbose_name = _('Seats by season')
@@ -733,7 +688,7 @@ class Race(models.Model):
 
 
 @python_2_unicode_compatible
-class TeamSeason(TeamStatsModel):
+class TeamSeason(TeamStatsModel, SeasonStatsModel):
     """ TeamSeason model, only for validation although it is saved in DB"""
     season = models.ForeignKey('Season', related_name='teams_season', verbose_name=_('season'))
     team = models.ForeignKey('Team', related_name='seasons_team', verbose_name=_('team'))
@@ -749,20 +704,21 @@ class TeamSeason(TeamStatsModel):
         results_filter = self.stats_filter_kwargs
         return Result.wizard(limit_races=limit_races, **dict(results_filter, **extra_filter))
 
-    def get_points(self, limit_races=None, punctuation_config=None, **kwargs):
-        """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
-
+    def get_points_list(self, limit_races=None, punctuation_config=None, **kwargs):
         if punctuation_config is None:
             points_list = self.get_saved_points(limit_races=limit_races, **kwargs)
         else:
             points_list = []
             results = self.get_results(limit_races=limit_races, **kwargs)
-            # Result can be the only param passed to get_results_tuple.
-            # If results=false, get_results will be calculate without params, return all results of all competitions.
-            # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
             for result_tuple in get_tuples_from_results(results=results):
                 points = PointsCalculator(punctuation_config).calculator(result_tuple, skip_wildcard=True)
                 if points: points_list.append(points)
+        return points_list
+
+    def get_points(self, limit_races=None, punctuation_config=None, **kwargs):
+        """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
+        points_list = self.get_points_list(limit_races=limit_races, punctuation_config=punctuation_config, **kwargs)
+
         return sum(points_list)
 
     def get_name_in_season(self):
@@ -770,6 +726,44 @@ class TeamSeason(TeamStatsModel):
         if self.sponsor_name:
             str_team = self.sponsor_name
         return str_team
+
+    def _summary_season(self, exclude_position=False):
+
+        summary_season = {
+            'season': self.season,
+            'competition': self.season.competition,
+            'year': self.season.year
+        }
+
+        if not exclude_position:
+            summary_season['pos'] = self.get_points_position()
+        return summary_season
+
+    def get_summary_stats(self, records_list=None, append_points=False, **kwargs):
+        """
+        Return multiple records (or only one) record in season
+
+        """
+        exclude_position = kwargs.pop('exclude_position', False)
+        summary_stats = self._summary_season(exclude_position)
+        season = summary_stats.get('season')
+        seats = season.seats.filter(team=self.team)
+
+        summary_stats.update(
+            seats=seats,
+            stats=self.team.get_stats_list(records_list=records_list, append_points=append_points, **kwargs)
+        )
+
+        return summary_stats
+
+
+    def get_points_position(self):
+
+        """
+        Return position in season rank
+
+        """
+        return self._points_position('team_points_rank', 'team')
 
     def __str__(self):
         str_team = self.get_name_in_season()
@@ -786,7 +780,8 @@ class Result(models.Model):
     """ Result model """
     race = models.ForeignKey(Race, related_name='results', verbose_name=_('race'))
     seat = models.ForeignKey(Seat, related_name='results', verbose_name=_('seat'))
-    qualifying = SwapIntegerField(unique_for_fields=['race'], blank=True, null=True, default=None, verbose_name=_('qualifying'))
+    qualifying = SwapIntegerField(unique_for_fields=['race'], blank=True, null=True, default=None,
+                                  verbose_name=_('qualifying'))
     finish = SwapIntegerField(unique_for_fields=['race'], blank=True, null=True, default=None, verbose_name=_('finish'))
     fastest_lap = ExclusiveBooleanField(on='race', default=False, verbose_name=_('fastest lap'))
     retired = models.BooleanField(default=False, verbose_name=_('retired'))
@@ -819,7 +814,7 @@ class Result(models.Model):
         for kwarg in key_in_filters.keys():
             value = locals().get(kwarg)  # get the value of kwarg
             if value:
-                key = key_in_filters.get(kwarg) # the key of filter is the value of kwarg in key_in_filter
+                key = key_in_filters.get(kwarg)  # the key of filter is the value of kwarg in key_in_filter
                 filter_params[key] = value
         filter_params.update(**extra_filters)
 
@@ -886,7 +881,7 @@ class Result(models.Model):
         verbose_name_plural = _('Results')
 
 
-class ContenderSeason(AbstractStreakModel):
+class ContenderSeason(AbstractStreakModel, SeasonStatsModel):
     """ ContenderSeason is not a model. Only for validation and ranks"""
 
     driver = None
@@ -902,15 +897,18 @@ class ContenderSeason(AbstractStreakModel):
         self.teams = Team.objects.filter(seats__in=self.seats)
         self.teams_verbose = self.get_teams_verbose()
 
+    def get_team_name_in_season(self, team):
+        team_name = team.name
+        team_season = TeamSeason.objects.filter(team=team, season=self.season)
+        if team_season.exists():
+            team_name = '{team}'.format(team=team_season.first().get_name_in_season())
+        return team_name
+
     def get_teams_verbose(self):
         # In case of sponsor_name, it will be show in teams_verbose
         teams_verbose = []
         for team in self.teams:
-            team_season = TeamSeason.objects.filter(team=team, season=self.season)
-            if team_season.exists():
-                team_verbose = '{team}'.format(team=team_season.first().get_name_in_season())
-            else:
-                team_verbose = team.name
+            team_verbose = self.get_team_name_in_season(team=team)
             teams_verbose.append(team_verbose)
         return ', '.join(teams_verbose)
 
@@ -931,11 +929,7 @@ class ContenderSeason(AbstractStreakModel):
         results = get_tuples_from_results(results)
         season_races = list(self.season.past_races.values_list('round', flat=True))
         positions_by_round = {result.round: result.finish for result in results}
-        positions_in_row = []
-        for x in season_races:
-            positions_in_row.append(positions_by_round[x] if x in positions_by_round else None)
-        return positions_in_row
-
+        return [positions_by_round[x] for x in season_races if x in positions_by_round]
 
     def get_saved_points(self, limit_races=None):
         results = self.get_results(limit_races=limit_races)
@@ -946,30 +940,66 @@ class ContenderSeason(AbstractStreakModel):
     def is_active(self):
         return True
 
-    def get_points(self, limit_races=None, punctuation_config=None, **kwargs):
-        """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
-
+    def get_points_list(self, limit_races=None, punctuation_config=None, **kwargs):
         if punctuation_config is None:
             points_list = self.get_saved_points(limit_races=limit_races)
         else:
             points_list = []
             results = self.get_results(limit_races=limit_races, **kwargs)
-            # Result can be the only param passed to get_results_tuple.
-            # If results=false, get_results will be calculate without params, return all results of all competitions.
-            # If skip_results_if_false is True, results will be skipped but return ResultTuple structure.
             for result_tuple in get_tuples_from_results(results=results):
                 points = PointsCalculator(punctuation_config).calculator(result_tuple)
                 if points: points_list.append(points)
+        return points_list
 
+    def get_points(self, limit_races=None, punctuation_config=None, **kwargs):
+        """ Get points. Can be limited. Punctuation config will be overwrite temporarily"""
+
+        points_list = self.get_points_list(limit_races=limit_races, punctuation_config=punctuation_config, **kwargs)
         points_list = sorted(points_list, reverse=True)
         season_rounds = self.season.rounds
         if season_rounds:
             points_list = points_list[:season_rounds]
         return sum(points_list)
 
+    def _summary_season(self, exclude_position=False):
+        summary_season = {
+            'season': self.season,
+            'competition': self.season.competition,
+            'year': self.season.year,
+            'teams': self.teams_verbose
+        }
+
+        if not exclude_position:
+            summary_season['pos'] = self.get_points_position()
+
+        return summary_season
+
+
+
+    def get_summary_stats(self, records_list=None, append_points=False, **kwargs):
+        """
+        Return multiple records (or only one) record in season
+
+        """
+        exclude_position = kwargs.pop('exclude_position', False)
+        summary_stats = self._summary_season(exclude_position)
+        summary_stats.update(
+            stats=self.driver.get_stats_list(records_list=records_list, append_points=append_points,
+                                                   season=self.season, **kwargs)
+        )
+
+        return summary_stats
+
+    def get_points_position(self):
+
+        """
+        Return position in season rank
+
+        """
+        return self._points_position('points_rank', 'driver')
+
 
 class RankModel(AbstractRankModel):
-
     @property
     def stats_filter_kwargs(self):
         return {}

@@ -123,6 +123,7 @@ class ViewTest(FixturesTest):
         self._GET_request('dr27-global-index')
         self._GET_request('dr27-global-driver')
         self._GET_request('dr27-global-driver-olympic')
+        self._GET_request('dr27-global-driver-seasons-rank')
         self._GET_request('dr27-global-driver-comeback')
         self._test_driver_record_view('dr27-global', kwargs)
 
@@ -181,8 +182,7 @@ class ViewTest(FixturesTest):
     def test_team_records_global_view(self):
         kwargs = {}
         self._GET_request('dr27-global-team')
-        self._GET_request('dr27-global-driver-olympic')
-        self._GET_request('dr27-global-driver-seasons-rank')
+        self._GET_request('dr27-global-team-olympic')
         self._GET_request('dr27-global-team-seasons-rank')
         self._test_team_records_view('dr27-global', kwargs)
 
@@ -395,7 +395,7 @@ class DR27Api(APITestCase):
     def test_api_race(self):
         self._GET_request('race-list')
         self._GET_request('race-detail', kwargs={'pk': 1})
-        self._GET_request('race-no-start-seats', kwargs={'pk': 1})
+        self._GET_request('race-no-seats', kwargs={'pk': 1})
         self._GET_request('race-results', kwargs={'pk': 1})
         self._GET_request('race-seats', kwargs={'pk': 1})
 
