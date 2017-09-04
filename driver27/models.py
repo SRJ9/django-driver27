@@ -790,7 +790,7 @@ class TeamSeason(TeamStatsModel, SeasonStatsModel):
 
         summary_stats.update(
             seats=seats,
-            stats=self.team.get_stats_list(records_list=records_list, append_points=append_points, **kwargs)
+            stats=self.team.get_stats_list(records_list=records_list, append_points=append_points, season=season, **kwargs)
         )
 
         return summary_stats
