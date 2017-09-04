@@ -58,6 +58,10 @@ class AbstractStatsModel(models.Model):
     def is_active(self):
         raise NotImplementedError('Not implemented property')
 
+
+    def get_summary_points_rank(self, **kwargs):
+        return self.get_summary_points(**kwargs)
+
     @property
     def result_filter_kwargs(self):
         raise NotImplementedError('Not implemented property')
@@ -217,6 +221,9 @@ class SeasonStatsModel(object):
                 position = index + 1
                 break
         return position
+
+    def get_summary_points_rank(self, **kwargs):
+        return self.get_summary_points(points_to_rank=True, **kwargs)
 
     def get_summary_points(self, append_to_summary=None, **kwargs):
         exclude_position = kwargs.pop('exclude_position', False)

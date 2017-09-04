@@ -368,6 +368,40 @@ class Season(AbstractRankModel):
     def stats_filter_kwargs(self):
         return {'season': self}
 
+    def get_results(self, kwargs=None):
+        cache_str = 'season_results_{pk}'.format(pk=self.pk)
+        cache_results = cache.get(cache_str)
+
+        if cache_results:
+            results = cache_results
+        else:
+            results = Result.wizard(season=self)
+            cache.set(cache_str, results)
+        return results
+
+    def get_results_list(self, element='driver', kwargs=None):
+        cache_str = 'season_results_{pk}_{element}'.format(pk=self.pk, element=element)
+        cache_results_list = cache.get(cache_str)
+
+        if cache_results_list:
+            entries = cache_results_list
+        else:
+            results = self.get_results()
+            entries = {}
+            for result in results:
+                key = getattr(result, element)
+                if key not in entries:
+                    entries[key] = []
+                entries[key].append(result)
+        return entries
+
+    def get_results_by_drivers(self):
+        return self.get_results_list('driver')
+
+
+    def get_results_by_teams(self):
+        return self.get_results_list('team')
+
     @property
     def drivers(self):
         """ As season is related with seats, this method is a shorcut to get drivers """
@@ -705,11 +739,16 @@ class TeamSeason(TeamStatsModel, SeasonStatsModel):
         return Result.wizard(limit_races=limit_races, **dict(results_filter, **extra_filter))
 
     def get_points_list(self, limit_races=None, punctuation_config=None, **kwargs):
+        points_to_rank = kwargs.pop('points_to_rank', None)
         if punctuation_config is None:
             points_list = self.get_saved_points(limit_races=limit_races, **kwargs)
         else:
             points_list = []
-            results = self.get_results(limit_races=limit_races, **kwargs)
+            if points_to_rank:
+                results = self.season.get_results_list('team')[self.team]
+            else:
+                results = self.get_results(limit_races=limit_races, **kwargs)
+
             for result_tuple in get_tuples_from_results(results=results):
                 points = PointsCalculator(punctuation_config).calculator(result_tuple, skip_wildcard=True)
                 if points: points_list.append(points)
@@ -941,11 +980,16 @@ class ContenderSeason(AbstractStreakModel, SeasonStatsModel):
         return True
 
     def get_points_list(self, limit_races=None, punctuation_config=None, **kwargs):
+        points_to_rank = kwargs.pop('points_to_rank', None)
         if punctuation_config is None:
             points_list = self.get_saved_points(limit_races=limit_races)
         else:
+            results = self.season.get_results_list()[self.driver]
             points_list = []
-            results = self.get_results(limit_races=limit_races, **kwargs)
+            if points_to_rank:
+                results = self.season.get_results_list()[self.driver]
+            else:
+                results = self.get_results(limit_races=limit_races, **kwargs)
             for result_tuple in get_tuples_from_results(results=results):
                 points = PointsCalculator(punctuation_config).calculator(result_tuple)
                 if points: points_list.append(points)

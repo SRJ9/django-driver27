@@ -32,6 +32,7 @@ class AbstractRankModel(models.Model):
     def get_team_stats_cls(self, team):
         raise NotImplementedError('Not implemented method')
 
+
     @property
     def stats_filter_kwargs(self):
         raise NotImplementedError('Not implemented property')
@@ -58,7 +59,7 @@ class AbstractRankModel(models.Model):
         items= getattr(self, element_group).all()
         for item in items:
             stat_cls = stats_cls(item)
-            rank.append(stat_cls.get_summary_points(punctuation_config=punctuation_config,
+            rank.append(stat_cls.get_summary_points_rank(punctuation_config=punctuation_config,
                                                     exclude_position=True,
                                                     append_to_summary={element_name: item},
                                                     **self.stats_filter_kwargs))
@@ -126,7 +127,7 @@ class AbstractRankModel(models.Model):
             rank = cache_rank
         else:
             drivers = getattr(self, 'drivers').all()
-            rank = [self.get_stats_cls(driver).get_summary_points(
+            rank = [self.get_stats_cls(driver).get_summary_points_rank(
                 append_to_summary={'driver': driver},
                 **self.stats_filter_kwargs) for driver in drivers]
         rank = sorted(rank, key=lambda x: x['pos_str'], reverse=True)
