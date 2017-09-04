@@ -62,7 +62,7 @@ class ViewTest(FixturesTest):
     # def test_competition_list(self):
     #     self._GET_request('dr27-competition-list')
 
-    def test_competition_view(self):
+    def _test_competition_view(self):
         kwargs = {'competition_slug': 'f1'}
         self._GET_request('dr27-competition-view', kwargs=kwargs)
         self._GET_request('dr27-competition-driver-olympic', kwargs=kwargs)
@@ -72,7 +72,7 @@ class ViewTest(FixturesTest):
         self._GET_request('dr27-competition-team-seasons-rank', kwargs=kwargs)
         self._GET_request('dr27-competition-view', kwargs={'competition_slug': 'f19'}, code=404)
 
-    def test_season_view(self):
+    def _test_season_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016}
         self._GET_request('dr27-season-view', kwargs=kwargs)
         self._GET_request('dr27-season-race-list', kwargs=kwargs)
@@ -88,6 +88,7 @@ class ViewTest(FixturesTest):
 
         kwargs = {'competition_slug': 'f19', 'year': 2006}
         self._GET_request('dr27-season-view', kwargs=kwargs, code=404)
+
 
     def test_race_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016, 'race_id': 1}
@@ -113,10 +114,9 @@ class ViewTest(FixturesTest):
     def test_driver_records_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016}
         self._test_driver_record_view('dr27-season', kwargs)
-
-    def test_driver_records_competition_view(self):
         kwargs = {'competition_slug': 'f1'}
         self._test_driver_record_view('dr27-competition', kwargs)
+
 
     def test_driver_records_global_view(self):
         kwargs = {}
@@ -126,8 +126,10 @@ class ViewTest(FixturesTest):
         self._GET_request('dr27-global-driver-seasons-rank')
         self._GET_request('dr27-global-driver-comeback')
         self._test_driver_record_view('dr27-global', kwargs)
+        self._test_competition_view()
+        self._test_season_view()
 
-    def test_driver_records_redir(self):
+    def _test_driver_records_redir(self):
         kwargs = {'record': 'POLE'}
         response = self.client.post(reverse('dr27-driver-record-redir'), data=kwargs)
         self.assertEqual(response.status_code, 302)

@@ -393,6 +393,7 @@ class Season(AbstractRankModel):
                 if key not in entries:
                     entries[key] = []
                 entries[key].append(result)
+            cache.set(cache_str, entries)
         return entries
 
     def get_results_by_drivers(self):
@@ -971,9 +972,8 @@ class ContenderSeason(AbstractStreakModel, SeasonStatsModel):
         return [positions_by_round[x] for x in season_races if x in positions_by_round]
 
     def get_saved_points(self, limit_races=None):
-        results = self.get_results(limit_races=limit_races)
-        points = results.values_list('points', flat=True)
-        return [point for point in points if point]
+        results = self.season.get_results_list()[self.driver]
+        return [result.points for result in results if result.points]
 
     @property
     def is_active(self):
@@ -984,7 +984,6 @@ class ContenderSeason(AbstractStreakModel, SeasonStatsModel):
         if punctuation_config is None:
             points_list = self.get_saved_points(limit_races=limit_races)
         else:
-            results = self.season.get_results_list()[self.driver]
             points_list = []
             if points_to_rank:
                 results = self.season.get_results_list()[self.driver]
@@ -1031,7 +1030,6 @@ class ContenderSeason(AbstractStreakModel, SeasonStatsModel):
             stats=self.driver.get_stats_list(records_list=records_list, append_points=append_points,
                                                    season=self.season, **kwargs)
         )
-
         return summary_stats
 
     def get_points_position(self):

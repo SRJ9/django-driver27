@@ -91,8 +91,8 @@ class AbstractRankModel(models.Model):
                 rank = self.points_rank_by_season(punctuation_config=punctuation_config)
             else:
                 rank = self._points_rank(punctuation_config=punctuation_config)
+            cache.set(cache_str, rank)
         rank = order_points(rank)
-        cache.set(cache_str, rank)
         return rank
 
     def team_points_rank(self, punctuation_code=None, by_season=False):
