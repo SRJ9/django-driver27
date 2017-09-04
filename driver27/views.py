@@ -87,8 +87,9 @@ def _rank_view(request, competition_slug, year, rank_model='driver', by_season=F
     by_season = request.POST.get('by_season', by_season)
     season_or_competition = get_season_or_competition(competition_slug, year)
     season, competition = split_season_and_competition(season_or_competition)
-    default_punctuation = getattr(season_or_competition, 'punctuation', None)
-    scoring_code = request.POST.get('scoring', default_punctuation)
+    # default_punctuation = getattr(season_or_competition, 'punctuation', None)
+    # scoring_code = request.POST.get('scoring', default_punctuation)
+    scoring_code = request.POST.get('scoring', None)
 
     has_champion = False
     punctuation_selector = get_punctuation_label_dict()

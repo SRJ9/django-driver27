@@ -545,8 +545,8 @@ class Season(AbstractRankModel):
     def get_leader(self, rank=None, team=False, punctuation_code=None):
         """ Get driver leader or team leader """
         if not rank:
-            if not punctuation_code:
-                punctuation_code = self.punctuation
+            # if not punctuation_code:
+            #     punctuation_code = self.punctuation
             punctuation_code_dict = {'punctuation_code': punctuation_code}
             rank_method = 'team_points_rank' if team else 'points_rank'
             rank = getattr(self, rank_method)(**punctuation_code_dict)
