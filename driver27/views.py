@@ -96,29 +96,25 @@ def rank_tpl(request, competition_slug=None, year=None):
     season, competition = split_season_and_competition(season_or_competition)
     scoring_code = request.GET.get('scoring', None)
 
-    has_champion = False
     if rank_model == 'driver':
-        rank = season_or_competition.points_rank(punctuation_code=scoring_code, by_season=by_season)
-        if hasattr(season_or_competition, 'has_champion'):
-            has_champion = season_or_competition.has_champion(punctuation_code=scoring_code)
-        tpl = 'driver27/driver/driver-list-table.html'
+        rank_method = 'points_rank'
     elif rank_model == 'team':
-        rank = season_or_competition.team_points_rank(punctuation_code=scoring_code, by_season=by_season)
-        tpl = 'driver27/team/team-list-table.html'
+        rank_method = 'team_points_rank'
     else:
         raise Http404(_('Impossible rank'))
 
+    rank = getattr(season_or_competition, rank_method)(punctuation_code=scoring_code, by_season=by_season)
+    tpl = 'driver27/' + rank_model + '/' + rank_model + '-list-table.html'
+
     context = {
         'rank': rank,
-               'season': season,
-               'competition': competition,
-               'has_champion': has_champion,
-               'scoring_code': scoring_code,
-               'by_season': by_season
+        'season': season,
+        'competition': competition,
+        'scoring_code': scoring_code,
+        'by_season': by_season
     }
 
     return render(request, tpl, context)
-
 
 
 def _rank_view(request, competition_slug, year, rank_model='driver', by_season=False):
@@ -130,23 +126,22 @@ def _rank_view(request, competition_slug, year, rank_model='driver', by_season=F
     punctuation_selector = get_punctuation_label_dict()
     if rank_model == 'driver':
         rank_title = _('DRIVERS')
-        tpl = 'driver27/driver/driver-list.html'
     elif rank_model == 'team':
         rank_title = _('TEAMS')
-        tpl = 'driver27/team/team-list.html'
     else:
         raise Http404(_('Impossible rank'))
 
+    tpl = 'driver27/' + rank_model + '/' + rank_model + '-list.html'
     title = u'{season_or_competition} [{title}]'.format(season_or_competition=season_or_competition,
                                                         title=rank_title)
 
     context = {
-               'season': season,
-               'competition': competition,
-               'title': title,
-               'scoring_list': punctuation_selector,
-               'scoring_code': scoring_code,
-               'by_season': by_season}
+        'season': season,
+        'competition': competition,
+        'title': title,
+        'scoring_list': punctuation_selector,
+        'scoring_code': scoring_code,
+        'by_season': by_season}
 
     return render(request, tpl, context)
 
@@ -163,10 +158,10 @@ def driver_comeback_view(request, competition_slug=None, year=None):
 
     context = {
         # 'rank': rank,
-               'season': season,
-               'competition': competition,
-               'title': title
-               }
+        'season': season,
+        'competition': competition,
+        'title': title
+    }
 
     tpl = 'driver27/driver/driver-comeback.html'
 
@@ -191,11 +186,11 @@ def common_olympic_view(request, tpl, olympic_method, rank_title, competition_sl
 
     context = {
         # 'rank': rank,
-               'season': season,
-               'competition': competition,
-               'title': title,
-               'positions': range(1, LIMIT_POSITION_LIST + 1),
-               'olympic': True}
+        'season': season,
+        'competition': competition,
+        'title': title,
+        'positions': range(1, LIMIT_POSITION_LIST + 1),
+        'olympic': True}
     return render(request, tpl, context)
 
 def driver_season_pos_view(request, competition_slug, year):
@@ -203,13 +198,13 @@ def driver_season_pos_view(request, competition_slug, year):
     # rank = season.get_positions_draw()
     rank_title = 'POSITION draw'
     title = u'{season} [{title}]'.format(season=season,
-                                                        title=rank_title)
+                                         title=rank_title)
     context = {
         # 'rank': rank,
-               'season': season,
-               'title': title,
-               'positions': list(season.past_races.values_list('round', flat=True)),
-               'olympic': True}
+        'season': season,
+        'title': title,
+        'positions': list(season.past_races.values_list('round', flat=True)),
+        'olympic': True}
     return render(request, 'driver27/driver/driver-list.html', context)
 
 
@@ -243,7 +238,7 @@ def race_list(request, competition_slug, year):
 def race_view(request, competition_slug, year, race_id=None):
     season = get_season(competition_slug, year)
     race = get_or_404(Race, {'season': season.pk, 'round': race_id}, _('Race does not exist'))
-    results = race.results.all()\
+    results = race.results.all() \
         .annotate(null_position=Count('finish')).order_by('-null_position', 'finish', 'qualifying')
     title = _('Results of %(race)s') % {'race': race}
     context = {'race': race, 'season': season, 'title': title, 'results': results}
@@ -273,7 +268,7 @@ def get_record_common_context(request, competition_slug, year, record=None):
         record_config = get_safe_record_config(record)
         record_label = record_config.get('label')
         title = _('%(record_label)s Record, %(season_or_competition)s') \
-            % {'record_label': record_label, 'season_or_competition': season_or_competition}
+                % {'record_label': record_label, 'season_or_competition': season_or_competition}
         context['record_filter'] = record_config.get('filter')
     else:
         title = _('Select a %(season_or_competition)s record') % {'season_or_competition': season_or_competition}
@@ -502,4 +497,3 @@ def driver_record_redirect_view(request):
     reverse_url = reverse_url_dict.get(rank_opt, 'record')
 
     return redirect(reverse('-'.join([base_reverse_url, 'driver', reverse_url]), args=reverse_args))
-
