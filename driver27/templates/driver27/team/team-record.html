@@ -39,25 +39,7 @@
 
     </form>
     {% if rank %}
-        <table class="table table-condensed table-striped table-hover">
-            <tr>
-                <th>{% trans 'Count' %}</th>
-                <th>{% trans 'Team' %}</th>
 
-                {% if rank_opt == 'seasons' %}
-                    <th>{% trans 'Season' %}</th>
-                {% endif %}
-            </tr>
-            {% for entry in rank %}
-                <tr>
-                    <td>{{ entry.stat }}</td>
-                    <td><a href="{% url 'dr27-profile-team-view' entry.team.pk %}">{{ entry.team }}</a></td>
-                    {% if rank_opt == 'seasons' %}
-                        <td>{{ entry.season }}</td>
-                    {% endif %}
-                </tr>
-            {% endfor %}
-
-        </table>
+        {% include 'driver27/team/team-record-table.html' %}
     {% endif %}
 {% endblock %}

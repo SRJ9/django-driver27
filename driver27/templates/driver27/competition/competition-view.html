@@ -10,34 +10,11 @@
     {{ block.super }}
     <table class="table table-condensed table-striped table-hover">
         <tr>
-            <th class="col-md-2">{%  trans 'Season' %}</th>
-            <th class="col-md-4">{%  trans 'Driver leader' %}</th>
-            <th class="col-md-6">{%  trans 'Team leader' %}</th>
+            <th class="col-md-2">{% trans 'Season' %}</th>
+            <th class="col-md-4">{% trans 'Driver leader' %}</th>
+            <th class="col-md-6">{% trans 'Team leader' %}</th>
         </tr>
-        {% for season in competition.seasons.all %}
-            <tr>
-            <td>
-                <a href="{% url 'dr27-season-view' competition.slug season.year %}">
-                    {{ season }}
-                </a>
-            </td>
-            <td>
-                {% if season.leader %}
-                {{ season.pk | champion_filter | safe }}
-                {{ season.leader.points }} <a href="{% url 'dr27-profile-view' season.leader.driver.pk %}">{{ season.leader.driver }}</a> ({{ season.leader.teams }})
-                {% else %}
-                -
-                {% endif %}
-            </td>
-            <td>
-                {% if season.team_leader %}
-                {{ season.team_leader.points }} <a href="{% url 'dr27-profile-team-view' season.team_leader.team.pk %}">{{ season.team_leader.team }}</a>
-                {% else %}
-                -
-                {% endif %}
-            </td>
-            </tr>
-        {% endfor %}
+{#        {% include 'driver27/competition/competition-table.html' %}#}
     </table>
 
 
