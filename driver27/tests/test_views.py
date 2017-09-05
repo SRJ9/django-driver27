@@ -17,6 +17,7 @@ from ..admin.formsets import RaceFormSet
 from ..admin.common import AlwaysChangedModelForm
 from ..punctuation import get_punctuation_config
 from rest_framework.test import APITestCase
+from ..api.common import DRIVER27_API_NAMESPACE
 
 
 class MockRequest(object):
@@ -370,6 +371,7 @@ class DR27Api(APITestCase):
     fixtures = get_fixtures_test()
 
     def _GET_request(self, reverse_url, kwargs=None, code=200):
+        reverse_url = ':'.join([DRIVER27_API_NAMESPACE, reverse_url])
         request_url = reverse(reverse_url, kwargs=kwargs)
         response = self.client.get(request_url, format='json')
         self.assertEqual(response.status_code, code)
