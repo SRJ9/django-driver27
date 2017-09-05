@@ -10,6 +10,12 @@
     {% if olympic %}
 {#        {% include 'driver27/team/team-list-olympic.html' %}#}
     {% else %}
+        <div id="team-rank"></div>
 {#        {% include 'driver27/team/team-list-table.html' %}#}
     {% endif %}
+{% endblock %}
+
+{% block bootstrap3_extra_script %}
+    {{ block.super }}
+    {% include 'driver27/include_rank_js.html' %}
 {% endblock %}

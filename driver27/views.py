@@ -90,13 +90,32 @@ def split_season_and_competition(season_or_competition):
     return season, competition
 
 def rank_tpl(request, competition_slug=None, year=None):
+    rank_model = request.GET.get('rank_model', 'driver')
+    by_season = request.GET.get('by_season', False)
     season_or_competition = get_season_or_competition(competition_slug, year)
-    scoring_code = request.POST.get('scoring', None)
-    rank = season_or_competition.points_rank(punctuation_code=scoring_code)
-    tpl = 'driver27/driver/driver-list-table.html'
-    context = {'rank': rank,
-               'scoring_code': scoring_code
-               }
+    season, competition = split_season_and_competition(season_or_competition)
+    scoring_code = request.GET.get('scoring', None)
+
+    has_champion = False
+    if rank_model == 'driver':
+        rank = season_or_competition.points_rank(punctuation_code=scoring_code, by_season=by_season)
+        if hasattr(season_or_competition, 'has_champion'):
+            has_champion = season_or_competition.has_champion(punctuation_code=scoring_code)
+        tpl = 'driver27/driver/driver-list-table.html'
+    elif rank_model == 'team':
+        rank = season_or_competition.team_points_rank(punctuation_code=scoring_code, by_season=by_season)
+        tpl = 'driver27/team/team-list-table.html'
+    else:
+        raise Http404(_('Impossible rank'))
+
+    context = {
+        'rank': rank,
+               'season': season,
+               'competition': competition,
+               'has_champion': has_champion,
+               'scoring_code': scoring_code,
+               'by_season': by_season
+    }
 
     return render(request, tpl, context)
 
@@ -106,20 +125,13 @@ def _rank_view(request, competition_slug, year, rank_model='driver', by_season=F
     by_season = request.POST.get('by_season', by_season)
     season_or_competition = get_season_or_competition(competition_slug, year)
     season, competition = split_season_and_competition(season_or_competition)
-    # default_punctuation = getattr(season_or_competition, 'punctuation', None)
-    # scoring_code = request.POST.get('scoring', default_punctuation)
     scoring_code = request.POST.get('scoring', None)
 
-    has_champion = False
     punctuation_selector = get_punctuation_label_dict()
     if rank_model == 'driver':
-        # rank = season_or_competition.points_rank(punctuation_code=scoring_code, by_season=by_season)
-        # if hasattr(season_or_competition, 'has_champion'):
-        #     has_champion = season_or_competition.has_champion(punctuation_code=scoring_code)
         rank_title = _('DRIVERS')
         tpl = 'driver27/driver/driver-list.html'
     elif rank_model == 'team':
-        # rank = season_or_competition.team_points_rank(punctuation_code=scoring_code, by_season=by_season)
         rank_title = _('TEAMS')
         tpl = 'driver27/team/team-list.html'
     else:
@@ -129,11 +141,9 @@ def _rank_view(request, competition_slug, year, rank_model='driver', by_season=F
                                                         title=rank_title)
 
     context = {
-        # 'rank': rank,
                'season': season,
                'competition': competition,
                'title': title,
-               # 'has_champion': has_champion,
                'scoring_list': punctuation_selector,
                'scoring_code': scoring_code,
                'by_season': by_season}
@@ -191,7 +201,7 @@ def common_olympic_view(request, tpl, olympic_method, rank_title, competition_sl
 def driver_season_pos_view(request, competition_slug, year):
     season = get_season(competition_slug, year)
     # rank = season.get_positions_draw()
-    # rank_title = 'POSITION draw'
+    rank_title = 'POSITION draw'
     title = u'{season} [{title}]'.format(season=season,
                                                         title=rank_title)
     context = {

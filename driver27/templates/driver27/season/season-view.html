@@ -9,17 +9,11 @@
 
     <div class="row">
     <div class="col-md-6">
-    {% with rank=driver_rank %}
-        <div id="rank"></div>
-{#        {% include 'driver27/driver/driver-list-table.html' %}#}
-    {% endwith %}
+        <div id="driver-rank"></div>
     </div>
 
     <div class="col-md-6">
-
-    {% with rank=team_rank %}
-        {% include 'driver27/team/team-list-table.html' %}
-    {% endwith %}
+        <div id="team-rank"></div>
 
     </div>
     </div>
@@ -27,17 +21,5 @@
 
 {% block bootstrap3_extra_script %}
     {{ block.super }}
-    <script type="text/javascript">
-
-        $.get(
-            {% if season %}"{% url 'dr27-season-driver-tpl' season.competition.pk season.year %}"
-            {% elif competition %}}"{% url 'dr27-competition-driver-tpl' competition.pk %}"
-            {% else %}"{% url 'dr27-global-driver-tpl' %}"{% endif %},
-        function (data) {
-            $('#rank').html(data);
-        }
-        )
-        ;
-
-    </script>
+    {% include 'driver27/include_rank_js.html' %}
 {% endblock %}
