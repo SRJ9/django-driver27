@@ -1,8 +1,10 @@
 from django_countries.serializer_fields import CountryField
 from rest_framework import serializers
 from ..models import GrandPrix, Circuit, Season, Competition, Driver, Team, Seat, Race, Result, SeatPeriod
-from .common import DR27Serializer
+from .common import DR27Serializer, DRIVER27_API_NAMESPACE
 
+def get_view_name_detail(detail):
+    return DRIVER27_API_NAMESPACE + ':' + detail + '-detail'
 
 class GrandPrixSerializer(DR27Serializer, serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
@@ -11,6 +13,7 @@ class GrandPrixSerializer(DR27Serializer, serializers.ModelSerializer):
     class Meta:
         model = GrandPrix
         fields = ('url', 'id', 'country', 'name', 'first_held', 'default_circuit', 'competitions',)
+        extra_kwargs = {'url': {'view_name': get_view_name_detail('grandprix')}}
 
 
 class CircuitSerializer(DR27Serializer, serializers.ModelSerializer):
@@ -20,13 +23,14 @@ class CircuitSerializer(DR27Serializer, serializers.ModelSerializer):
     class Meta:
         model = Circuit
         fields = ('url', 'id', 'country', 'name', 'city', 'opened_in',)
+        extra_kwargs = {'url': {'view_name': get_view_name_detail('circuit')}}
 
 
 class SeasonSerializer(DR27Serializer, serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     competition_details = serializers.SerializerMethodField()
     slug = serializers.SerializerMethodField(read_only=True)
-    races = serializers.HyperlinkedRelatedField(view_name='race-detail',
+    races = serializers.HyperlinkedRelatedField(view_name=get_view_name_detail('race'),
                                                 many=True,
                                                 read_only=True)
 
@@ -42,6 +46,7 @@ class SeasonSerializer(DR27Serializer, serializers.ModelSerializer):
         fields = ('url', 'id', 'year', 'rounds', 'slug', 'punctuation', 'competition',
                   'competition_details', 'races',)
         read_only_fields = ('competition_details', 'races',)
+        extra_kwargs = {'url': {'view_name': get_view_name_detail('season')}}
 
 
 class CompetitionSerializer(DR27Serializer, serializers.HyperlinkedModelSerializer):
@@ -54,6 +59,7 @@ class CompetitionSerializer(DR27Serializer, serializers.HyperlinkedModelSerializ
     class Meta:
         model = Competition
         fields = ('url', 'id', 'name', 'full_name', 'country', 'slug', 'seasons')
+        extra_kwargs = {'url': {'view_name': get_view_name_detail('competition')}}
 
 
 class DriverSerializer(serializers.HyperlinkedModelSerializer):
@@ -64,6 +70,9 @@ class DriverSerializer(serializers.HyperlinkedModelSerializer):
         model = Driver
         fields = ('url', 'id', 'last_name', 'first_name', 'year_of_birth', 'country', 'seats')
         read_only_fields = ('seats',)
+        extra_kwargs = {'url': {'view_name': get_view_name_detail('driver')},
+                        'seats': {'view_name': get_view_name_detail('seat')}
+                        }
 
 
 class NestedDriverSerializer(DriverSerializer):
@@ -79,6 +88,7 @@ class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
         fields = ('url', 'id', 'name', 'full_name', 'competitions', 'country')
+        extra_kwargs = {'url': {'view_name': get_view_name_detail('team')}}
 
 
 class NestedTeamSerializer(TeamSerializer):
@@ -113,6 +123,7 @@ class SeatSerializer(serializers.ModelSerializer):
         model = Seat
         fields = ('url', 'id', 'team', 'team_details', 'driver', 'driver_details', 'periods')
         read_only_fields = ('periods',)
+        extra_kwargs = {'url': {'view_name': get_view_name_detail('seat')}}
 
 
 class SeatRecapSerializer(serializers.ModelSerializer):
@@ -161,6 +172,7 @@ class ResultSerializer(serializers.ModelSerializer):
                   'wildcard',
                   'retired',
                   'comment')
+        extra_kwargs = {'url': {'view_name': get_view_name_detail('result')}}
 
 
 class RaceSerializer(serializers.ModelSerializer):
@@ -183,3 +195,5 @@ class RaceSerializer(serializers.ModelSerializer):
         model = Race
         fields = ('url', 'id', 'season', 'round', 'grand_prix', 'grand_prix_details',
                   'circuit', 'circuit_details', 'date', 'alter_punctuation')
+
+        extra_kwargs = {'url': {'view_name': get_view_name_detail('race')}}
