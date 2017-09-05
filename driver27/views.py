@@ -52,10 +52,15 @@ def competition_view(request, competition_slug):
 
 
 def global_view(request):
-    seasons = Season.objects.order_by('year', 'competition')
     title = _('Global view')
-    context = {'seasons': seasons, 'title': title}
+    context = {'title': title}
     tpl = 'driver27/global/global-view.html'
+    return render(request, tpl, context)
+
+def global_tpl(request):
+    seasons = Season.objects.order_by('year', 'competition')
+    context = {'seasons': seasons}
+    tpl = 'driver27/global/_season_list.html'
     return render(request, tpl, context)
 
 
@@ -82,6 +87,18 @@ def split_season_and_competition(season_or_competition):
         competition = None
     return season, competition
 
+def rank_tpl(request, competition_slug=None, year=None):
+    season_or_competition = get_season_or_competition(competition_slug, year)
+    scoring_code = request.POST.get('scoring', None)
+    rank = season_or_competition.points_rank(punctuation_code=scoring_code)
+    tpl = 'driver27/driver/driver-list-table.html'
+    context = {'rank': rank,
+               'scoring_code': scoring_code
+               }
+
+    return render(request, tpl, context)
+
+
 
 def _rank_view(request, competition_slug, year, rank_model='driver', by_season=False):
     by_season = request.POST.get('by_season', by_season)
@@ -94,9 +111,9 @@ def _rank_view(request, competition_slug, year, rank_model='driver', by_season=F
     has_champion = False
     punctuation_selector = get_punctuation_label_dict()
     if rank_model == 'driver':
-        rank = season_or_competition.points_rank(punctuation_code=scoring_code, by_season=by_season)
-        if hasattr(season_or_competition, 'has_champion'):
-            has_champion = season_or_competition.has_champion(punctuation_code=scoring_code)
+        # rank = season_or_competition.points_rank(punctuation_code=scoring_code, by_season=by_season)
+        # if hasattr(season_or_competition, 'has_champion'):
+        #     has_champion = season_or_competition.has_champion(punctuation_code=scoring_code)
         rank_title = _('DRIVERS')
         tpl = 'driver27/driver/driver-list.html'
     elif rank_model == 'team':
@@ -109,11 +126,12 @@ def _rank_view(request, competition_slug, year, rank_model='driver', by_season=F
     title = u'{season_or_competition} [{title}]'.format(season_or_competition=season_or_competition,
                                                         title=rank_title)
 
-    context = {'rank': rank,
+    context = {
+        # 'rank': rank,
                'season': season,
                'competition': competition,
                'title': title,
-               'has_champion': has_champion,
+               # 'has_champion': has_champion,
                'scoring_list': punctuation_selector,
                'scoring_code': scoring_code,
                'by_season': by_season}
