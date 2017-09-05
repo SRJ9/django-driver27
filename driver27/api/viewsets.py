@@ -1,5 +1,6 @@
 from django.utils.timezone import datetime  # important if using timezones
 from rest_framework.decorators import detail_route
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from .common import DR27ViewSet
 from .serializers import RaceSerializer, ResultSerializer, SeatSerializer, SeasonSerializer
@@ -9,6 +10,10 @@ from .common import get_dict_from_rank_entry, get_dict_from_team_rank_entry, get
 from ..models import Competition, Driver, Race, Result, Season, Seat, Team, GrandPrix, Circuit, SeatPeriod
 from django.db.models import Q
 from ..punctuation import get_punctuation_config
+
+class ShortPagePagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
 
 
 class CommonDetailViewSet(object):
@@ -171,6 +176,7 @@ class CompetitionViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet):
 class ResultViewSet(DR27ViewSet):
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
+    pagination_class = ShortPagePagination
 
 
 # ViewSets define the view behavior.
