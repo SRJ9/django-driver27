@@ -8,12 +8,7 @@
 {% block dr27_content %}
     {{ block.super }}
     {% include 'driver27/driver/driver-list-scoring-form.html' %}
-    {% if olympic %}
-{#        {% include 'driver27/driver/driver-list-olympic.html' %}#}
-    {% else %}
-        <div id="driver-rank"></div>
-        {#        {% include 'driver27/driver/driver-list-table.html' %}#}
-    {% endif %}
+    <div id="driver-standing" class="standing" data-standing-model="driver"></div>
 {% endblock %}
 
 {% block bootstrap3_extra_script %}

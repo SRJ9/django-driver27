@@ -4,9 +4,11 @@
         <thead>
         <tr>
             <th>{% trans 'Team' %}</th>
-            {% for position in positions %}
-                <th>{{ position }}</th>
-            {% endfor %}
+            {% with ''|center:20 as range %}
+                {% for _ in range %}
+                    <th>{{ forloop.counter }}</th>
+                {% endfor %}
+            {% endwith %}
         </tr>
         </thead>
 

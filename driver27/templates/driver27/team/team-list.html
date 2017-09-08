@@ -7,15 +7,14 @@
 {% block dr27_content %}
     {{ block.super }}
     {% include 'driver27/team/team-list-scoring-form.html' %}
-    {% if olympic %}
-{#        {% include 'driver27/team/team-list-olympic.html' %}#}
-    {% else %}
-        <div id="team-rank"></div>
-{#        {% include 'driver27/team/team-list-table.html' %}#}
-    {% endif %}
+    <div id="team-standing" class="standing" data-standing-model="team"></div>
 {% endblock %}
 
 {% block bootstrap3_extra_script %}
     {{ block.super }}
+    {% if olympic %}
     {% include 'driver27/include_rank_js.html' %}
+    {% else %}
+    {% include 'driver27/include_olympic_js.html' %}
+    {% endif %}
 {% endblock %}

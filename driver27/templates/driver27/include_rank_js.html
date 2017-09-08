@@ -1,21 +1,27 @@
-    <script type="text/javascript">
+<script type="text/javascript">
 
-        $.get({% if season %}"{% url 'dr27-season-driver-tpl' season.competition.slug season.year %}"
-            {% elif competition %}}"{% url 'dr27-competition-driver-tpl' competition.slug %}"
-            {% else %}"{% url 'dr27-global-driver-tpl' %}"{% endif %}, {'rank_model': 'driver'},
-                function (data) {
-                $('#driver-rank').replaceWith(data);
+    function reload_standing(el){
+        var standing_model = $(el).data('standingModel');
+        console.log(standing_model);
+        $.get("{% url 'dr27-ajax:standing' %}",
+            {
+                'olympic': "{% if olympic == True %}1{% else %}0{% endif %}",
+                'competition': "{{ competition.pk }}",
+                'year': "{{ season.year }}",
+                'punctuation': "{{ scoring_code }}",
+                'by_season': "{% if by_season %}1{% else %}0{% endif %}",
+                'model': standing_model
+            },
+            function (response) {
+                $(el).replaceWith(response);
             }
-        )
-        ;
+        );
+    }
 
-        $.get({% if season %}"{% url 'dr27-season-driver-tpl' season.competition.slug season.year %}"
-            {% elif competition %}}"{% url 'dr27-competition-driver-tpl' competition.slug %}"
-            {% else %}"{% url 'dr27-global-driver-tpl' %}"{% endif %}, {'rank_model': 'team'},
-                function (data) {
-                $('#team-rank').replaceWith(data);
-            }
-        )
-        ;
+    $(function(){
+        $('.standing[data-standing-model]').each(function(index, el){
+            reload_standing(el);
+        })
+    });
 
-    </script>
+</script>

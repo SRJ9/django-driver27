@@ -5,6 +5,7 @@ from ..api import urls_api
 
 urlpatterns = [
     url(r'^$', views.global_view, name='dr27-global-view'),
+    url(r'^ajax/', include('driver27.urls.ajax', namespace='dr27-ajax')),
     url(r'^global/', include('driver27.urls.global')),
     url(r'^api/auth/', include('rest_framework.urls')),
     url(r'^api/', include(urls_api)),

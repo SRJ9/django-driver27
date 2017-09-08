@@ -15,36 +15,12 @@ from .models import Competition, Season, Race, RankModel, Driver, Team, get_tupl
 from .records import get_record_config, get_record_label_dict
 from .punctuation import get_punctuation_config, get_punctuation_label_dict
 from . import LIMIT_POSITION_LIST
-
-
-def get_or_404(cls, conditions, raise_text):
-    try:
-        obj = cls.objects.get(**conditions)
-    except cls.DoesNotExist:
-        raise Http404(raise_text)
-    return obj
-
-
-def get_season(slug, year):
-    return get_or_404(Season, {'year': year, 'competition__slug': slug}, _('Season does not exist'))
-
-
-def get_competition(slug):
-    return get_or_404(Competition, {'slug': slug}, _('Competition does not exist'))
-
-
-def get_season_or_competition(slug=None, year=None):
-    if slug is not None:
-        if year is not None:
-            return get_season(slug, year)
-        else:
-            return get_competition(slug)
-    else:
-        return RankModel()
+from .common import get_season_or_competition, split_season_and_competition
+from django.shortcuts import render, get_object_or_404
 
 
 def competition_view(request, competition_slug):
-    competition_obj = get_competition(slug=competition_slug)
+    competition_obj = get_object_or_404(Competition, slug=competition_slug)
     title = '{competition}'.format(competition=competition_obj)
     context = {'competition': competition_obj, 'title': title}
     tpl = 'driver27/competition/competition-view.html'
@@ -65,62 +41,17 @@ def global_tpl(request):
 
 
 def season_view(request, competition_slug, year):
-    season = get_season(competition_slug, year)
-    # driver_rank = season.points_rank()
-    # team_rank = season.team_points_rank()
+    season = get_object_or_404(Season, competition__slug=competition_slug, year=year)
     title = '{competition}/{year:d}'.format(competition=season.competition, year=season.year)
-    context = {'season': season, 'title': title,
-               # 'driver_rank': driver_rank, 'team_rank': team_rank
-               }
+    context = {'season': season, 'title': title}
     tpl = 'driver27/season/season-view.html'
     return render(request, tpl, context)
 
 
-def split_season_and_competition(season_or_competition):
-    # if season_or_competition does not have 'competition' attr, season_or_competition is competition
-    if hasattr(season_or_competition, 'competition'):
-        season = season_or_competition
-        competition = season.competition
-    elif hasattr(season_or_competition, 'seasons'):
-        season = None
-        competition = season_or_competition
-    else:
-        season = None
-        competition = None
-    return season, competition
-
-def rank_tpl(request, competition_slug=None, year=None):
-    rank_model = request.GET.get('rank_model', 'driver')
-    by_season = request.GET.get('by_season', False)
-    season_or_competition = get_season_or_competition(competition_slug, year)
-    season, competition = split_season_and_competition(season_or_competition)
-    scoring_code = request.GET.get('scoring', None)
-
-    if rank_model == 'driver':
-        rank_method = 'points_rank'
-    elif rank_model == 'team':
-        rank_method = 'team_points_rank'
-    else:
-        raise Http404(_('Impossible rank'))
-
-    rank = getattr(season_or_competition, rank_method)(punctuation_code=scoring_code, by_season=by_season)
-    tpl = 'driver27/' + rank_model + '/' + rank_model + '-list-table.html'
-
-    context = {
-        'rank': rank,
-        'season': season,
-        'competition': competition,
-        'scoring_code': scoring_code,
-        'by_season': by_season
-    }
-
-    return render(request, tpl, context)
-
-
 def _rank_view(request, competition_slug, year, rank_model='driver', by_season=False):
-    by_season = request.POST.get('by_season', by_season)
     season_or_competition = get_season_or_competition(competition_slug, year)
     season, competition = split_season_and_competition(season_or_competition)
+    by_season = request.POST.get('by_season', by_season)
     scoring_code = request.POST.get('scoring', None)
 
     punctuation_selector = get_punctuation_label_dict()
@@ -189,13 +120,22 @@ def common_olympic_view(request, tpl, olympic_method, rank_title, competition_sl
         'season': season,
         'competition': competition,
         'title': title,
-        'positions': range(1, LIMIT_POSITION_LIST + 1),
-        'olympic': True}
+        'olympic': True
+    }
     return render(request, tpl, context)
 
+def driver_olympic_view(request, competition_slug=None, year=None):
+    return common_olympic_view(request, 'driver27/driver/driver-list.html', 'olympic_rank',
+                               _('DRIVERS rank by olympic mode'), competition_slug=competition_slug, year=year)
+
+
+def team_olympic_view(request, competition_slug=None, year=None):
+    return common_olympic_view(request, 'driver27/team/team-list.html', 'team_olympic_rank',
+                               _('TEAMS rank by olympic mode'), competition_slug=competition_slug, year=year)
+
 def driver_season_pos_view(request, competition_slug, year):
-    season = get_season(competition_slug, year)
-    # rank = season.get_positions_draw()
+    season = get_object_or_404(Season, competition__slug=competition_slug, year=year)
+    rank = season.get_positions_draw()
     rank_title = 'POSITION draw'
     title = u'{season} [{title}]'.format(season=season,
                                          title=rank_title)
@@ -207,17 +147,6 @@ def driver_season_pos_view(request, competition_slug, year):
         'olympic': True}
     return render(request, 'driver27/driver/driver-list.html', context)
 
-
-def driver_olympic_view(request, competition_slug=None, year=None):
-    return common_olympic_view(request, 'driver27/driver/driver-list.html', 'olympic_rank',
-                               _('DRIVERS rank by olympic mode'), competition_slug=competition_slug, year=year)
-
-
-def team_olympic_view(request, competition_slug=None, year=None):
-    return common_olympic_view(request, 'driver27/team/team-list.html', 'team_olympic_rank',
-                               _('TEAMS rank by olympic mode'), competition_slug=competition_slug, year=year)
-
-
 def team_rank_view(request, competition_slug=None, year=None):
     return _rank_view(request, competition_slug, year, rank_model='team')
 
@@ -227,7 +156,7 @@ def team_rank_seasons_view(request, competition_slug=None, year=None):
 
 
 def race_list(request, competition_slug, year):
-    season = get_season(competition_slug, year)
+    season = get_object_or_404(Season, competition__slug=competition_slug, year=year)
     races = season.races.all()
     title = _('%(season)s [RACES]') % {'season': season}
     context = {'races': races, 'season': season, 'title': title}
@@ -236,12 +165,11 @@ def race_list(request, competition_slug, year):
 
 
 def race_view(request, competition_slug, year, race_id=None):
-    season = get_season(competition_slug, year)
-    race = get_or_404(Race, {'season': season.pk, 'round': race_id}, _('Race does not exist'))
+    race = get_object_or_404(Race, season__competition__slug=competition_slug, season__year=year, pk=race_id)
     results = race.results.all() \
         .annotate(null_position=Count('finish')).order_by('-null_position', 'finish', 'qualifying')
     title = _('Results of %(race)s') % {'race': race}
-    context = {'race': race, 'season': season, 'title': title, 'results': results}
+    context = {'race': race, 'season': race.season, 'title': title, 'results': results}
     tpl = 'driver27/race/race-view.html'
     return render(request, tpl, context)
 
@@ -403,15 +331,15 @@ def _team_record_view(request, competition_slug, year, rank_type, record=None):
 
 
 def driver_profile_view(request, driver_id):
-    driver = get_or_404(Driver, {'pk': driver_id}, _('Driver does not exist'))
-    # by_season = driver.get_stats_by_season(append_points=True)
-    # by_competition = driver.get_stats_by_competition(append_points=True)
+    driver = get_object_or_404(Driver, pk=driver_id)
+    by_season = driver.get_stats_by_season(append_points=True)
+    by_competition = driver.get_stats_by_competition(append_points=True)
     context = {
         'driver': driver,
-        # 'by_season': by_season,
-        # 'by_competition': by_competition,
-        # 'results': get_tuples_from_results(driver.get_results()),
-        # 'stats': driver.get_stats_list(append_points=True),
+        'by_season': by_season,
+        'by_competition': by_competition,
+        'results': get_tuples_from_results(driver.get_results()),
+        'stats': driver.get_stats_list(append_points=True),
         'title': 'Profile of {driver}'.format(driver=driver)
     }
     tpl = 'driver27/driver/driver-profile.html'
@@ -419,14 +347,14 @@ def driver_profile_view(request, driver_id):
 
 
 def team_profile_view(request, team_id):
-    team = get_or_404(Team, {'pk': team_id}, _('Team does not exist'))
-    # by_season = team.get_stats_by_season(append_points=True)
-    # by_competition = team.get_stats_by_competition(append_points=True)
+    team = get_object_or_404(Team, pk=team_id)
+    by_season = team.get_stats_by_season(append_points=True)
+    by_competition = team.get_stats_by_competition(append_points=True)
     context = {
         'team': team,
-        # 'by_season': by_season,
-        # 'by_competition': by_competition,
-        # 'stats': team.get_stats_list(append_points=True),
+        'by_season': by_season,
+        'by_competition': by_competition,
+        'stats': team.get_stats_list(append_points=True),
         'title': 'Profile of {team}'.format(team=team)
     }
     tpl = 'driver27/team/team-profile.html'
@@ -475,7 +403,6 @@ def team_record_redirect_view(request):
     return redirect(reverse('-'.join([base_reverse_url, 'team', reverse_url]), args=reverse_args))
 
 
-@require_http_methods(["POST"])
 @require_http_methods(["POST"])
 def driver_record_redirect_view(request):
     base_reverse_url, reverse_args = _get_reverse_record_url(request)

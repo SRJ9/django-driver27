@@ -7,7 +7,6 @@ def _dr27_stats_urls(base_path, stat_type):
     record_view = getattr(views, stat_type+'_record_view')
     return [
         url(r'^$', getattr(views, stat_type+'_rank_view'), name=base_path+'-'+stat_type),
-        url(r'^tpl/$', getattr(views, 'rank_tpl'), name=base_path+'-'+stat_type+'-tpl'),
         url(r'^seasons/$', getattr(views, stat_type+'_rank_seasons_view'), name=base_path+'-'+stat_type+'-seasons-rank'),
         url(r'^olympic/$', getattr(views, stat_type+'_olympic_view'), name=base_path+'-'+stat_type+'-olympic'),
         url(r'^record/$', getattr(views, stat_type+'_record_view'), name=base_path+'-'+stat_type+'-record-index'),
