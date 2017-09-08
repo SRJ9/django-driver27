@@ -12,9 +12,5 @@
 
 {% block bootstrap3_extra_script %}
     {{ block.super }}
-    {% if olympic %}
     {% include 'driver27/include_rank_js.html' %}
-    {% else %}
-    {% include 'driver27/include_olympic_js.html' %}
-    {% endif %}
 {% endblock %}

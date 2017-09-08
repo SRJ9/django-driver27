@@ -1,26 +1,46 @@
 <script type="text/javascript">
 
-    function reload_standing(el){
+    function reload_standing(el) {
         var standing_model = $(el).data('standingModel');
-        console.log(standing_model);
-        $.get("{% url 'dr27-ajax:standing' %}",
-            {
-                'olympic': "{% if olympic == True %}1{% else %}0{% endif %}",
-                'competition': "{{ competition.pk }}",
-                'year': "{{ season.year }}",
-                'punctuation': "{{ scoring_code }}",
-                'by_season': "{% if by_season %}1{% else %}0{% endif %}",
-                'model': standing_model
-            },
+
+        var params = {
+            'competition': "{{ competition.pk }}",
+            'year': "{{ season.year }}",
+            'model': standing_model
+        };
+
+        {% if olympic == True %}
+            params.olympic = 1;
+        {% endif %}
+
+        punctuation = $('#scoring').val();
+        if (punctuation) {
+            params.punctuation = punctuation;
+        }
+
+        by_season = $('#by_season').is(':checked');
+        if (by_season) {
+            params.by_season = 1;
+        }
+
+        $.get("{% url 'dr27-ajax:standing' %}", params,
             function (response) {
-                $(el).replaceWith(response);
+                $(el).html(response);
             }
         );
     }
 
-    $(function(){
-        $('.standing[data-standing-model]').each(function(index, el){
+    function reload_all_standings() {
+        $('.standing[data-standing-model]').each(function (index, el) {
             reload_standing(el);
+        })
+    }
+
+    $(function () {
+        reload_all_standings();
+
+        $('#scoring, #by_season').change(function () {
+            reload_all_standings();
         })
     });
 
