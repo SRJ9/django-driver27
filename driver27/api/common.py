@@ -6,8 +6,6 @@ from rest_framework.views import exception_handler as rest_exception_handler
 from collections import namedtuple
 
 
-DRIVER27_API_NAMESPACE = 'driver27-api'
-
 
 def get_dict_from_team_rank_entry(rank_entry):
 

@@ -9,7 +9,7 @@
 {% block dr27_content %}
     {{ block.super }}
     {% load champion_filter i18n %}
-    <form method="POST" class="form-inline" action="{% url 'dr27-team-record-redir' %}" onchange="this.submit()">
+    <form method="POST" class="form-inline" action="{% url 'driver27:dr27-team-record-redir' %}" onchange="this.submit()">
         {% csrf_token %}
         <div class="form-group col-md-4">
             {% if competition %}

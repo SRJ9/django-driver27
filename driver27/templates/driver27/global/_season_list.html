@@ -2,12 +2,12 @@
 {% for season in seasons %}
     <tr>
         <td>
-            <a href="{% url 'dr27-season-view' season.competition.slug season.year %}">
+            <a href="{% url 'driver27:dr27-season-view' season.competition.slug season.year %}">
                 {{ season }}
             </a>
         </td>
         <td>
-            <a href="{% url 'dr27-competition-view' season.competition.slug %}">
+            <a href="{% url 'driver27:dr27-competition-view' season.competition.slug %}">
                 {{ season.competition }}
             </a>
         </td>
@@ -18,7 +18,7 @@
             {% if season.leader %}
                 {{ season.pk | champion_filter | safe }}
                 {{ season.leader.points }}
-                <a href="{% url 'dr27-profile-view' season.leader.driver.pk %}">{{ season.leader.driver }}</a> (
+                <a href="{% url 'driver27:dr27-profile-view' season.leader.driver.pk %}">{{ season.leader.driver }}</a> (
                 {{ season.leader.teams }})
             {% else %}
                 -
@@ -27,7 +27,7 @@
         <td>
             {% if season.team_leader %}
                 {{ season.team_leader.points }}
-                <a href="{% url 'dr27-profile-team-view' season.team_leader.team.pk %}">{{ season.team_leader.team }}</a>
+                <a href="{% url 'driver27:dr27-profile-team-view' season.team_leader.team.pk %}">{{ season.team_leader.team }}</a>
             {% else %}
                 -
             {% endif %}

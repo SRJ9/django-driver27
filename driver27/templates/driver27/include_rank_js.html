@@ -23,7 +23,7 @@
             params.by_season = 1;
         }
 
-        $.get("{% url 'dr27-ajax:standing' %}", params,
+        $.get("{% url 'driver27:dr27-ajax:standing' %}", params,
             function (response) {
                 $(el).html(response);
             }

@@ -11,7 +11,7 @@
     {% for entry in rank %}
         <tr>
             <td>{{ entry.stat }}</td>
-            <td><a href="{% url 'dr27-profile-view' entry.driver.pk %}">{{ entry.driver }}</a></td>
+            <td><a href="{% url 'driver27:dr27-profile-view' entry.driver.pk %}">{{ entry.driver }}</a></td>
             <td>{{ entry.teams }}</td>
             {% if rank_opt == 'seasons' %}
                 <td>{{ entry.season }}</td>

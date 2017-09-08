@@ -36,10 +36,10 @@
                                     class="season-stat"
                                     data-competition="{{ season.competition.slug }}" data-year="{{ season.year }}">
                                 <td>
-                                    <a href="{% url 'dr27-competition-view' season.competition.slug %}">{{ season.competition }}</a>
+                                    <a href="{% url 'driver27:dr27-competition-view' season.competition.slug %}">{{ season.competition }}</a>
                                 </td>
                                 <td>
-                                    <a href="{% url 'dr27-season-view' season.competition.slug season.year %}">{{ season.year }}</a>
+                                    <a href="{% url 'driver27:dr27-season-view' season.competition.slug season.year %}">{{ season.year }}</a>
                                 </td>
                                 <td>{{ season.teams }}</td>
                                 <td>{{ season.stats.RACE }}</td>
@@ -90,7 +90,7 @@
 
                         >
                         <td>{{ result.competition }}/{{ result.year }} {{ result.round|stringformat:"02d" }}</td>
-                            <td><a href="{% url 'dr27-season-race-view' result.competition.slug result.year result.round %}">{{ result.grand_prix }}</a></td>
+                            <td><a href="{% url 'driver27:dr27-season-race-view' result.competition.slug result.year result.round %}">{{ result.grand_prix }}</a></td>
                         <td class="text-center"><i class="{{ result.country.flag_css }}"></i></td>
                         <td>{{ result.qualifying }}</td>
                         <td>{{ result.finish|default_if_none:"-" }} </td>

@@ -19,7 +19,7 @@
         {% for entry in rank %}
             <tr>
                 <td>{{ entry.points }}</td>
-                <td><a href="{% url 'dr27-profile-team-view' entry.team.pk %}">{{ entry.team }}</a></td>
+                <td><a href="{% url 'driver27:dr27-profile-team-view' entry.team.pk %}">{{ entry.team }}</a></td>
                 {% if by_season %}
                     <td>{{ entry.season }}</td>
 

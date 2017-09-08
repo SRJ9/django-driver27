@@ -2,7 +2,7 @@ from rest_framework import routers
 from .viewsets import CircuitViewSet, CompetitionViewSet, DriverViewSet
 from .viewsets import GrandPrixViewSet, RaceViewSet, ResultViewSet, SeasonViewSet
 from .viewsets import SeatViewSet, TeamViewSet, SeatPeriodViewSet
-from .common import DRIVER27_API_NAMESPACE
+from ..common import DRIVER27_API_NAMESPACE
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()

@@ -1,10 +1,11 @@
 from django_countries.serializer_fields import CountryField
 from rest_framework import serializers
 from ..models import GrandPrix, Circuit, Season, Competition, Driver, Team, Seat, Race, Result, SeatPeriod
-from .common import DR27Serializer, DRIVER27_API_NAMESPACE
+from .common import DR27Serializer
+from ..common import DRIVER27_API_NAMESPACE, DRIVER27_NAMESPACE
 
 def get_view_name_detail(detail):
-    return DRIVER27_API_NAMESPACE + ':' + detail + '-detail'
+    return DRIVER27_NAMESPACE + ':' + DRIVER27_API_NAMESPACE + ':' + detail + '-detail'
 
 class GrandPrixSerializer(DR27Serializer, serializers.ModelSerializer):
     id = serializers.ReadOnlyField()

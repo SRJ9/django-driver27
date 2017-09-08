@@ -18,6 +18,7 @@ from . import LIMIT_POSITION_LIST
 from .common import get_season_or_competition, split_season_and_competition
 from django.shortcuts import render, get_object_or_404
 
+from .common import DRIVER27_NAMESPACE
 
 def competition_view(request, competition_slug):
     competition_obj = get_object_or_404(Competition, slug=competition_slug)
@@ -375,6 +376,8 @@ def _get_reverse_record_url(request):
         base_reverse_url = 'dr27-competition'
     else:
         base_reverse_url = 'dr27-global'
+
+    base_reverse_url = ':'.join([DRIVER27_NAMESPACE, base_reverse_url])
 
     return base_reverse_url, reverse_args
 

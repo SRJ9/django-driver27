@@ -17,8 +17,7 @@ from ..admin.formsets import RaceFormSet
 from ..admin.common import AlwaysChangedModelForm
 from ..punctuation import get_punctuation_config
 from rest_framework.test import APITestCase
-from ..api.common import DRIVER27_API_NAMESPACE
-
+from ..common import DRIVER27_NAMESPACE, DRIVER27_API_NAMESPACE
 
 class MockRequest(object):
     pass
@@ -55,6 +54,7 @@ class ViewTest(FixturesTest):
 
     def _GET_request(self, reverse_url, kwargs=None, code=200):
         # Issue a GET request.
+        reverse_url = DRIVER27_NAMESPACE+':'+reverse_url
         the_reverse = reverse(reverse_url, kwargs=kwargs)
         response = self.client.get(the_reverse)
         # Check that the response is 302 OK.
@@ -162,14 +162,16 @@ class ViewTest(FixturesTest):
         self._GET_request(base_path+'-team-record', kwargs=kwargs, code=404)
 
     def test_team_records_redir(self):
+        URL = ':'.join([DRIVER27_NAMESPACE, 'dr27-team-record-redir'])
+        REDIR_URL = reverse(URL)
         kwargs = {'record': 'POLE'}
-        response = self.client.post(reverse('dr27-team-record-redir'), data=kwargs)
+        response = self.client.post(REDIR_URL, data=kwargs)
         self.assertEqual(response.status_code, 302)
         kwargs['competition'] = 'f1'
-        response = self.client.post(reverse('dr27-team-record-redir'), data=kwargs)
+        response = self.client.post(REDIR_URL, data=kwargs)
         self.assertEqual(response.status_code, 302)
         kwargs['year'] = '2016'
-        response = self.client.post(reverse('dr27-team-record-redir'), data=kwargs)
+        response = self.client.post(REDIR_URL, data=kwargs)
         self.assertEqual(response.status_code, 302)
 
 
@@ -373,7 +375,7 @@ class DR27Api(APITestCase):
     fixtures = get_fixtures_test()
 
     def _GET_request(self, reverse_url, kwargs=None, code=200):
-        reverse_url = ':'.join([DRIVER27_API_NAMESPACE, reverse_url])
+        reverse_url = ':'.join([DRIVER27_NAMESPACE, DRIVER27_API_NAMESPACE, reverse_url])
         request_url = reverse(reverse_url, kwargs=kwargs)
         response = self.client.get(request_url, format='json')
         self.assertEqual(response.status_code, code)

@@ -3,10 +3,10 @@
 {% block dr27_menu %}
     {% include 'driver27/season/season-menu-pre.html' %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'dr27-season-race-list' season.competition.slug season.year %}">Races</a>
+        <a class="nav-link" href="{% url 'driver27:dr27-season-race-list' season.competition.slug season.year %}">Races</a>
     </li>
         <li class="nav-item">
-        <a class="nav-link" href="{% url 'dr27-season-race-view' season.competition.slug season.year race.round %}">{{ race }}</a>
+        <a class="nav-link" href="{% url 'driver27:dr27-season-race-view' season.competition.slug season.year race.round %}">{{ race }}</a>
     </li>
 {% endblock %}
 {% block dr27_content %}
@@ -28,8 +28,8 @@
                 {{ result.finish }}
             {% endif %}
         </td>
-            <td><a href="{% url 'dr27-profile-view' result.driver.pk %}">{{ result.driver }}</a></td>
-            <td><a href="{% url 'dr27-profile-team-view' result.team.pk %}">{{ result.team }}</a></td>
+            <td><a href="{% url 'driver27:dr27-profile-view' result.driver.pk %}">{{ result.driver }}</a></td>
+            <td><a href="{% url 'driver27:dr27-profile-team-view' result.team.pk %}">{{ result.team }}</a></td>
         <td>
             {% if result.qualifying %}
                 {{ result.qualifying }}

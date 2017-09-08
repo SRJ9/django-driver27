@@ -23,7 +23,7 @@
     {{ block.super }}
     <script type="text/javascript">
 
-        $.get("{% url 'dr27-global-tpl' %}",
+        $.get("{% url 'driver27:dr27-global-tpl' %}",
             function (data) {
                 $('#seasons-list').replaceWith(data);
             }

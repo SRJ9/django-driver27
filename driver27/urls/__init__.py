@@ -1,13 +1,21 @@
 from django.conf.urls import url, include
 
 from .. import views
-from ..api import urls_api
+from ..api import urls_api1
+from ..common import DRIVER27_NAMESPACE
+
+
+def driver27_urls():
+    return [
+        url(r'^$', views.global_view, name='dr27-global-view'),
+        url(r'^ajax/', include('driver27.urls.ajax', namespace='dr27-ajax')),
+        url(r'^global/', include('driver27.urls.global')),
+        url(r'^api/auth/', include('rest_framework.urls')),
+        url(r'^api/', include(urls_api)),
+        url(r'^(?P<competition_slug>[-\w\d]+)/', include('driver27.urls.competition')),
+    ]
+
 
 urlpatterns = [
-    url(r'^$', views.global_view, name='dr27-global-view'),
-    url(r'^ajax/', include('driver27.urls.ajax', namespace='dr27-ajax')),
-    url(r'^global/', include('driver27.urls.global')),
-    url(r'^api/auth/', include('rest_framework.urls')),
-    url(r'^api/', include(urls_api)),
-    url(r'^(?P<competition_slug>[-\w\d]+)/', include('driver27.urls.competition')),
+    url(r'^', include(driver27_urls(), namespace=DRIVER27_NAMESPACE)),
 ]
