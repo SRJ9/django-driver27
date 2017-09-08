@@ -1,10 +1,10 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Season, Competition, RankModel
 
 DRIVER27_NAMESPACE = 'driver27'
 DRIVER27_API_NAMESPACE = 'api'
 
 def get_season_or_competition(slug=None, year=None):
+    from .models import Season, Competition, RankModel
     if slug:
         if year:
             return get_object_or_404(Season, competition__slug=slug, year=year)

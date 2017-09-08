@@ -15,7 +15,7 @@
 
         {% for entry in rank %}
             <tr>
-                <td><a href="{% url 'driver27:dr27-profile-view' entry.driver.pk %}">{{ entry.driver }}</a></td>
+                <td><a href="{{ entry.driver.get_absolute_url }}">{{ entry.driver }}</a></td>
                 <td>{{ entry.teams }}</td>
                 {% for position in entry.pos_list %}
                     <td>{{ position | default_if_none:"-"}}</td>

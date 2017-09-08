@@ -25,8 +25,8 @@
             {% for entry in rank %}
                 <tr class="comeback-entry" data-finish="{{ entry.finish }}">
                     <td>{{ entry.comeback }}</td>
-                    <td><a href="{% url 'driver27:dr27-profile-view' entry.driver.pk %}">{{ entry.driver }}</a></td>
-                    <td><a href="{% url 'driver27:dr27-profile-team-view' entry.team.pk %}">{{ entry.team }}</a></td>
+                    <td><a href="{{ entry.driver.get_absolute_url }}">{{ entry.driver }}</a></td>
+                    <td><a href="{{ entry.team.get_absolute_url }}">{{ entry.team }}</a></td>
                     <td>{{ entry.race }}</td>
                     <td>{{ entry.qualifying }}</td>
                     <td>{{ entry.finish }}</td>

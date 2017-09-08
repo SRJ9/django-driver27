@@ -1,7 +1,7 @@
 from django.conf.urls import url, include
 
 from .. import views
-from ..api import urls_api1
+from ..api import urls_api
 from ..common import DRIVER27_NAMESPACE
 
 

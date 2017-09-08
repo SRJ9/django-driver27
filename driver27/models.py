@@ -20,6 +20,13 @@ from .punctuation import get_punctuation_config
 from .rank import AbstractRankModel
 from .stats import AbstractStreakModel, AbstractStatsModel, TeamStatsModel, StatsByCompetitionModel, SeasonStatsModel
 
+try:
+    from django.urls import reverse
+except ImportError:
+    from django.core.urlresolvers import reverse
+
+from .common import DRIVER27_NAMESPACE
+
 ResultTuple = namedtuple('ResultTuple',
                          'qualifying finish fastest_lap wildcard retired race_id circuit grand_prix country competition year ' \
                          'round alter_punctuation points')
@@ -47,6 +54,10 @@ class Driver(StatsByCompetitionModel):
     year_of_birth = models.IntegerField(verbose_name=_('year of birth'), null=True, blank=True)
     country = CountryField(verbose_name=_('country'), null=True, blank=True)
     teams = models.ManyToManyField('Team', through='Seat', related_name='drivers', verbose_name=_('teams'))
+
+    def get_absolute_url(self):
+        URL = ':'.join([DRIVER27_NAMESPACE, 'dr27-profile-view'])
+        return reverse(URL, kwargs = {'driver_id': self.pk})
 
     @property
     def result_filter_kwargs(self):
@@ -198,6 +209,10 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
     competitions = models.ManyToManyField('Competition', through='CompetitionTeam', related_name='teams',
                                           verbose_name=_('competitions'))
     country = CountryField(verbose_name=_('country'), blank=True, null=True)
+
+    def get_absolute_url(self):
+        URL = ':'.join([DRIVER27_NAMESPACE, 'dr27-profile-team-view'])
+        return reverse(URL, kwargs = {'team_id': self.pk})
 
     def _races(self, competition=None, **kwargs):
         """

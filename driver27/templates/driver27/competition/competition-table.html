@@ -10,7 +10,7 @@
             {% if season.leader %}
                 {{ season.pk | champion_filter | safe }}
                 {{ season.leader.points }}
-                <a href="{% url 'driver27:dr27-profile-view' season.leader.driver.pk %}">{{ season.leader.driver }}</a> (
+                <a href="{{ season.leader.driver.get_absolute_url }}">{{ season.leader.driver }}</a> (
                 {{ season.leader.teams }})
             {% else %}
                 -
@@ -19,7 +19,7 @@
         <td>
             {% if season.team_leader %}
                 {{ season.team_leader.points }}
-                <a href="{% url 'driver27:dr27-profile-team-view' season.team_leader.team.pk %}">{{ season.team_leader.team }}</a>
+                <a href="{{ season.team_leader.team.get_absolute_url }}">{{ season.team_leader.team }}</a>
             {% else %}
                 -
             {% endif %}

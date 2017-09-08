@@ -28,8 +28,8 @@
                 {{ result.finish }}
             {% endif %}
         </td>
-            <td><a href="{% url 'driver27:dr27-profile-view' result.driver.pk %}">{{ result.driver }}</a></td>
-            <td><a href="{% url 'driver27:dr27-profile-team-view' result.team.pk %}">{{ result.team }}</a></td>
+            <td><a href="{{ result.driver.get_absolute_url }}">{{ result.driver }}</a></td>
+            <td><a href="{{ result.team.get_absolute_url }}">{{ result.team }}</a></td>
         <td>
             {% if result.qualifying %}
                 {{ result.qualifying }}
