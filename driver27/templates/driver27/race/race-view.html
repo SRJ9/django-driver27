@@ -3,7 +3,7 @@
 {% block dr27_menu %}
     {% include 'driver27/season/season-menu-pre.html' %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'driver27:dr27-season-race-list' season.competition.slug season.year %}">Races</a>
+        <a class="nav-link" href="{{ season.get_races_url }}">Races</a>
     </li>
         <li class="nav-item">
         <a class="nav-link" href="{{ race.get_absolute_url }}">{{ race }}</a>

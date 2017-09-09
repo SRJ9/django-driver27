@@ -383,10 +383,17 @@ class Season(AbstractRankModel):
     rounds = models.IntegerField(blank=True, null=True, default=None, verbose_name=_('rounds'))
     punctuation = models.CharField(max_length=20, null=True, default=None, verbose_name=_('punctuation'))
 
+    def get_params_url(self):
+        return {'competition_slug': self.competition.slug, 'year': self.year}
 
     def get_absolute_url(self):
         URL = ':'.join([DRIVER27_NAMESPACE, 'dr27-season-view'])
-        return reverse(URL, kwargs = {'competition_slug': self.competition.slug, 'year': self.year})
+        return reverse(URL, kwargs=self.get_params_url())
+
+    def get_races_url(self):
+        URL = ':'.join([DRIVER27_NAMESPACE, 'dr27-season-race-list'])
+        return reverse(URL, kwargs=self.get_params_url())
+
 
     @property
     def stats_filter_kwargs(self):
