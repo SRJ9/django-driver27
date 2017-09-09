@@ -21,7 +21,7 @@
         {% for race in races %}
             <tr>
                 <td>
-                    <a href="{% url 'driver27:dr27-season-race-view' season.competition.slug season.year race.round %}">{{ race.round }}</a>
+                    <a href="{{ race.get_absolute_url }}">{{ race.round }}</a>
                 </td>
                 <td>{{ race.date }}</td>
                 <td>{{ race.grand_prix }}</td>

@@ -6,7 +6,7 @@
         <a class="nav-link" href="{% url 'driver27:dr27-season-race-list' season.competition.slug season.year %}">Races</a>
     </li>
         <li class="nav-item">
-        <a class="nav-link" href="{% url 'driver27:dr27-season-race-view' season.competition.slug season.year race.round %}">{{ race }}</a>
+        <a class="nav-link" href="{{ race.get_absolute_url }}">{{ race }}</a>
     </li>
 {% endblock %}
 {% block dr27_content %}

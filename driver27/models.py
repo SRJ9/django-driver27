@@ -160,6 +160,10 @@ class Competition(AbstractRankModel):
     country = CountryField(null=True, blank=True, default=None, verbose_name=_('country'))
     slug = models.SlugField(null=True, blank=True, default=None)
 
+    def get_absolute_url(self):
+        URL = ':'.join([DRIVER27_NAMESPACE, 'dr27-competition-view'])
+        return reverse(URL, kwargs = {'competition_slug': self.slug})
+
     @property
     def drivers(self):
         """ Queryset of driver with at least one result in a race of this competition """
@@ -378,6 +382,11 @@ class Season(AbstractRankModel):
     competition = models.ForeignKey(Competition, related_name='seasons', verbose_name=_('competition'))
     rounds = models.IntegerField(blank=True, null=True, default=None, verbose_name=_('rounds'))
     punctuation = models.CharField(max_length=20, null=True, default=None, verbose_name=_('punctuation'))
+
+
+    def get_absolute_url(self):
+        URL = ':'.join([DRIVER27_NAMESPACE, 'dr27-season-view'])
+        return reverse(URL, kwargs = {'competition_slug': self.competition.slug, 'year': self.year})
 
     @property
     def stats_filter_kwargs(self):
@@ -607,6 +616,13 @@ class Race(models.Model):
     date = models.DateField(blank=True, null=True, default=None, verbose_name=_('date'))
     alter_punctuation = models.CharField(choices=ALTER_PUNCTUATION, null=True, blank=True,
                                          default=None, max_length=6, verbose_name=_('alter punctuation'))
+
+    def get_absolute_url(self):
+        URL = ':'.join([DRIVER27_NAMESPACE, 'dr27-race-view'])
+        season = self.season
+        slug = season.competition.slug
+        year = season.year
+        return reverse(URL, kwargs = {'competition_slug': slug, 'year': year, 'race_id': self.round})
 
     def _grandprix_exception(self):
         """ Grand Prix must be related with season competition """

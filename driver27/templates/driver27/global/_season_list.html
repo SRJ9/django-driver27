@@ -2,12 +2,12 @@
 {% for season in seasons %}
     <tr>
         <td>
-            <a href="{% url 'driver27:dr27-season-view' season.competition.slug season.year %}">
+            <a href="{{ season.get_absolute_url }}">
                 {{ season }}
             </a>
         </td>
         <td>
-            <a href="{% url 'driver27:dr27-competition-view' season.competition.slug %}">
+            <a href="{{ season.competition.get_absolute_url }}">
                 {{ season.competition }}
             </a>
         </td>
