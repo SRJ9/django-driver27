@@ -618,7 +618,7 @@ class Race(models.Model):
                                          default=None, max_length=6, verbose_name=_('alter punctuation'))
 
     def get_absolute_url(self):
-        URL = ':'.join([DRIVER27_NAMESPACE, 'dr27-race-view'])
+        URL = ':'.join([DRIVER27_NAMESPACE, 'dr27-season-race-view'])
         season = self.season
         slug = season.competition.slug
         year = season.year
