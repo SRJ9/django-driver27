@@ -13,12 +13,11 @@ except ImportError:
 
 from .models import Competition, Season, Race, RankModel, Driver, Team, get_tuples_from_results
 from .records import get_record_config, get_record_label_dict
-from .punctuation import get_punctuation_config, get_punctuation_label_dict
-from . import LIMIT_POSITION_LIST
-from .common import get_season_or_competition, split_season_and_competition
+from .punctuation import get_punctuation_label_dict
 from django.shortcuts import render, get_object_or_404
 
 from .common import DRIVER27_NAMESPACE
+from .decorators import competition_request
 
 def competition_view(request, competition_slug):
     competition_obj = get_object_or_404(Competition, slug=competition_slug)
@@ -49,90 +48,68 @@ def season_view(request, competition_slug, year):
     return render(request, tpl, context)
 
 
-def _rank_view(request, competition_slug, year, rank_model='driver', by_season=False):
-    season_or_competition = get_season_or_competition(competition_slug, year)
-    season, competition = split_season_and_competition(season_or_competition)
+@competition_request
+def _rank_view(request, context, rank_model='driver', by_season=False):
+    season_or_competition = context.get('season_or_competition')
     by_season = request.POST.get('by_season', by_season)
     scoring_code = request.POST.get('scoring', None)
 
     punctuation_selector = get_punctuation_label_dict()
-    if rank_model == 'driver':
-        rank_title = _('DRIVERS')
-    elif rank_model == 'team':
-        rank_title = _('TEAMS')
-    else:
+    rank_title = {'driver': _('DRIVERS'), 'team': _('TEAMS')}.get(rank_model)
+    if rank_title is None:
         raise Http404(_('Impossible rank'))
 
     tpl = 'driver27/' + rank_model + '/' + rank_model + '-list.html'
     title = u'{season_or_competition} [{title}]'.format(season_or_competition=season_or_competition,
                                                         title=rank_title)
 
-    context = {
-        'season': season,
-        'competition': competition,
-        'title': title,
-        'scoring_list': punctuation_selector,
-        'scoring_code': scoring_code,
-        'by_season': by_season}
-
+    context.update(title=title, scoring_list=punctuation_selector, scoring_code=scoring_code, by_season=by_season)
     return render(request, tpl, context)
 
-
-def driver_comeback_view(request, competition_slug=None, year=None):
-    season_or_competition = get_season_or_competition(competition_slug, year)
-    season, competition = split_season_and_competition(season_or_competition)
-
-    # rank = season_or_competition.comeback_rank()
+@competition_request
+def driver_comeback_view(request, context, *args, **kwargs):
+    season_or_competition = context['season_or_competition']
     rank_title = _('DRIVERS Comeback')
 
     title = u'{season_or_competition} [{title}]'.format(season_or_competition=season_or_competition,
                                                         title=rank_title)
-
-    context = {
-        # 'rank': rank,
-        'season': season,
-        'competition': competition,
-        'title': title
-    }
-
+    context['title'] = title
     tpl = 'driver27/driver/driver-comeback.html'
-
     return render(request, tpl, context)
 
 
-def driver_rank_view(request, competition_slug=None, year=None):
-    return _rank_view(request, competition_slug, year, rank_model='driver')
+def driver_rank_view(request, *args, **kwargs):
+    return _rank_view(request, rank_model='driver', *args, **kwargs)
 
 
-def driver_rank_seasons_view(request, competition_slug=None, year=None):
-    return _rank_view(request, competition_slug, year, rank_model='driver', by_season=True)
+def driver_rank_seasons_view(request, *args, **kwargs):
+    return _rank_view(request, rank_model='driver', by_season=True, *args, **kwargs)
 
 
-def common_olympic_view(request, tpl, olympic_method, rank_title, competition_slug=None, year=None):
-    season_or_competition = get_season_or_competition(competition_slug, year)
-    season, competition = split_season_and_competition(season_or_competition)
-    # rank = getattr(season_or_competition, olympic_method)()
+@competition_request
+def common_olympic_view(request, context, tpl, olympic_method, rank_title):
+    season_or_competition = context.get('season_or_competition')
 
     title = u'{season_or_competition} [{title}]'.format(season_or_competition=season_or_competition,
                                                         title=rank_title)
 
-    context = {
-        # 'rank': rank,
-        'season': season,
-        'competition': competition,
-        'title': title,
-        'olympic': True
-    }
+    context.update(title=title, olympic=True)
     return render(request, tpl, context)
 
-def driver_olympic_view(request, competition_slug=None, year=None):
-    return common_olympic_view(request, 'driver27/driver/driver-list.html', 'olympic_rank',
-                               _('DRIVERS rank by olympic mode'), competition_slug=competition_slug, year=year)
+def driver_olympic_view(request, *args, **kwargs):
+    return common_olympic_view(request,
+                               tpl='driver27/driver/driver-list.html',
+                               olympic_method='olympic_rank',
+                               rank_title=_('DRIVERS rank by olympic mode'),
+                               *args, **kwargs)
 
 
-def team_olympic_view(request, competition_slug=None, year=None):
-    return common_olympic_view(request, 'driver27/team/team-list.html', 'team_olympic_rank',
-                               _('TEAMS rank by olympic mode'), competition_slug=competition_slug, year=year)
+def team_olympic_view(request, *args, **kwargs):
+    return common_olympic_view(request,
+                               tpl='driver27/team/team-list.html',
+                               olympic_method='team_olympic_rank',
+                               rank_title=_('TEAMS rank by olympic mode'),
+                               *args, **kwargs)
 
 def driver_season_pos_view(request, competition_slug, year):
     season = get_object_or_404(Season, competition__slug=competition_slug, year=year)
@@ -148,12 +125,12 @@ def driver_season_pos_view(request, competition_slug, year):
         'olympic': True}
     return render(request, 'driver27/driver/driver-list.html', context)
 
-def team_rank_view(request, competition_slug=None, year=None):
-    return _rank_view(request, competition_slug, year, rank_model='team')
+def team_rank_view(request, *args, **kwargs):
+    return _rank_view(request, rank_model='team', *args, **kwargs)
 
 
-def team_rank_seasons_view(request, competition_slug=None, year=None):
-    return _rank_view(request, competition_slug, year, rank_model='team', by_season=True)
+def team_rank_seasons_view(request,  *args, **kwargs):
+    return _rank_view(request, rank_model='team', by_season=True, *args, **kwargs)
 
 
 def race_list(request, competition_slug, year):
@@ -182,17 +159,11 @@ def get_safe_record_config(record):
     else:
         raise Http404(_('Record does not exist'))
 
+@competition_request
+def get_record_common_context(request, context, record=None, *args, **kwargs):
+    season_or_competition = context.get('season_or_competition')
 
-def get_record_common_context(request, competition_slug, year, record=None):
-    season_or_competition = get_season_or_competition(competition_slug, year)
-    season, competition = split_season_and_competition(season_or_competition)
-
-    context = {
-        'season_or_competition': season_or_competition,
-        'season': season,
-        'competition': competition,
-        'record': record,
-    }
+    context.update(record=record)
     if record:
         record_config = get_safe_record_config(record)
         record_label = record_config.get('label')
@@ -203,62 +174,50 @@ def get_record_common_context(request, competition_slug, year, record=None):
         title = _('Select a %(season_or_competition)s record') % {'season_or_competition': season_or_competition}
 
     context['title'] = title
+    context.pop('record_filter', None)
     context['record_codes'] = get_record_label_dict()
     return context
 
-
-def driver_record_view(request, competition_slug=None, year=None, record=None):
-    context = get_record_common_context(request, competition_slug, year, record)
-    rank = None
-    season_or_competition = context.get('season_or_competition')
-    if record:
-        rank = None
-        # rank = season_or_competition.stats_rank(**context.get('record_filter')) if 'record_filter' in context else None
-    context.pop('record_filter', None)
-    context['rank'] = rank
+def driver_record_view(request, *args, **kwargs):
+    context = get_record_common_context(request, *args, **kwargs)
     tpl = 'driver27/driver/driver-record.html'
     return render(request, tpl, context)
 
 
-def common_record_seasons_view(request, tpl, season_rank_method, competition_slug=None, year=None, record=None):
-    context = get_record_common_context(request, competition_slug, year, record)
-    rank = None
-    season_or_competition = context.get('season_or_competition')
-    if record:
-        # rank = getattr(season_or_competition, season_rank_method)(**context.get('record_filter')) \
-        #     if 'record_filter' in context else None
-        rank = None
-    context.pop('record_filter', None)
-    context['rank'] = rank
+def common_record_seasons_view(request, tpl, season_rank_method, *args, **kwargs):
+    context = get_record_common_context(request, *args, **kwargs)
     context['rank_opt'] = 'seasons'
     return render(request, tpl, context)
 
 
-def driver_record_seasons_view(request, competition_slug=None, year=None, record=None):
-    return common_record_seasons_view(request, 'driver27/driver/driver-record.html', 'seasons_rank',
-                                      competition_slug=competition_slug, year=year, record=record)
+def driver_record_seasons_view(request, *args, **kwargs):
+    return common_record_seasons_view(request,
+                                      tpl='driver27/driver/driver-record.html',
+                                      season_rank_method='seasons_rank',
+                                      *args, **kwargs)
 
 
-def team_record_seasons_view(request, competition_slug=None, year=None, record=None):
-    return common_record_seasons_view(request, 'driver27/team/team-record.html', 'seasons_team_rank',
-                                      competition_slug=competition_slug, year=year, record=record)
+def team_record_seasons_view(request, *args, **kwargs):
+    return common_record_seasons_view(request,
+                                      tpl='driver27/team/team-record.html',
+                                      season_rank_method='seasons_team_rank',
+                                      *args, **kwargs)
 
 
-def driver_active_streak_view(request, competition_slug=None, year=None, record=None):
-    return driver_streak_view(request, competition_slug=competition_slug, year=year, record=record, only_actives=True)
+def driver_active_streak_view(request, *args, **kwargs):
+    return driver_streak_view(request, only_actives=True, *args, **kwargs)
 
 
-def driver_top_streak_view(request, competition_slug=None, year=None, record=None):
-    return driver_streak_view(request, competition_slug=competition_slug, year=year, record=record, max_streak=True)
+def driver_top_streak_view(request, *args, **kwargs):
+    return driver_streak_view(request, max_streak=True, *args, **kwargs)
 
 
-def driver_top_streak_active_view(request, competition_slug=None, year=None, record=None):
-    return driver_streak_view(request, competition_slug=competition_slug, year=year, record=record,
-                              only_actives=True, max_streak=True)
+def driver_top_streak_active_view(request, *args, **kwargs):
+    return driver_streak_view(request, only_actives=True, max_streak=True, *args, **kwargs)
 
 
-def team_top_streak_view(request, competition_slug=None, year=None, record=None):
-    return team_streak_view(request, competition_slug=competition_slug, year=year, record=record, max_streak=True)
+def team_top_streak_view(request, *args, **kwargs):
+    return team_streak_view(request, max_streak=True, *args, **kwargs)
 
 
 def get_streak_value_for_selector(only_actives=False, max_streak=False):
@@ -275,56 +234,41 @@ def get_streak_value_for_selector(only_actives=False, max_streak=False):
     return streak_value
 
 
-def common_streak_view(request, streak_method, tpl, competition_slug=None, year=None, record=None, only_actives=False,
-                       max_streak=False,
-                       ):
-    context = get_record_common_context(request, competition_slug, year, record)
-    rank = None
-    season_or_competition = context.get('season_or_competition')
-    if record:
-        # rank = getattr(season_or_competition, streak_method)(only_actives=only_actives, max_streak=max_streak,
-        #                                                      **context.get('record_filter')) \
-        #     if 'record_filter' in context else None
-        rank = None
+def common_streak_view(request, streak_method, tpl, only_actives=False,max_streak=False, *args, **kwargs):
+    context = get_record_common_context(request, *args, **kwargs)
     context.pop('record_filter', None)
-    context['rank'] = rank
     context['rank_opt'] = get_streak_value_for_selector(only_actives=only_actives, max_streak=max_streak)
     return render(request, tpl, context)
 
 
-def driver_streak_view(request, competition_slug=None, year=None, record=None, only_actives=False, max_streak=False):
-    return common_streak_view(request, 'streak_rank', 'driver27/driver/driver-record.html',
-                              competition_slug=competition_slug, year=year, record=record, only_actives=only_actives,
-                              max_streak=max_streak)
+def driver_streak_view(request, *args, **kwargs):
+    return common_streak_view(request,
+                              streak_method='streak_rank',
+                              tpl='driver27/driver/driver-record.html',
+                              *args, **kwargs)
 
 
-def team_streak_view(request, competition_slug=None, year=None, record=None, only_actives=False, max_streak=False):
-    return common_streak_view(request, 'streak_team_rank', 'driver27/team/team-record.html',
-                              competition_slug=competition_slug, year=year, record=record, only_actives=only_actives,
-                              max_streak=max_streak)
+def team_streak_view(request, *args, **kwargs):
+    return common_streak_view(request,
+                              streak_method='streak_team_rank',
+                              tpl='driver27/team/team-record.html',
+                              *args, **kwargs)
 
 
-def team_record_doubles_view(request, competition_slug=None, year=None, record=None):
-    return _team_record_view(request, competition_slug, year, record=record, rank_type='DOUBLES')
+def team_record_doubles_view(request, *args, **kwargs):
+    return _team_record_view(request, rank_type='DOUBLES', *args, **kwargs)
 
 
-def team_record_races_view(request, competition_slug=None, year=None, record=None):
-    return _team_record_view(request, competition_slug, year, record=record, rank_type='RACES')
+def team_record_races_view(request, *args, **kwargs):
+    return _team_record_view(request, rank_type='RACES', *args, **kwargs)
 
 
-def team_record_view(request, competition_slug=None, year=None, record=None):
-    return _team_record_view(request, competition_slug, year, record=record, rank_type='STATS')
+def team_record_view(request, *args, **kwargs):
+    return _team_record_view(request, rank_type='STATS', *args, **kwargs)
 
 
-def _team_record_view(request, competition_slug, year, rank_type, record=None):
-    context = get_record_common_context(request, competition_slug, year, record)
-
-    rank = None
-    season_or_competition = context.get('season_or_competition')
-    if record:
-        # rank = season_or_competition.get_team_rank(rank_type, **context.get('record_filter')) if 'record_filter' in context else None
-        rank = None
-    context['rank'] = rank
+def _team_record_view(request, rank_type, *args, **kwargs):
+    context = get_record_common_context(request, *args, **kwargs)
     context['rank_opt'] = rank_type
     context['doubles_record_codes'] = [double_code for double_code, double_label in get_record_label_dict(doubles=True)]
     tpl = 'driver27/team/team-record.html'
