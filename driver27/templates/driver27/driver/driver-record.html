@@ -8,15 +8,16 @@
 {% block dr27_content %}
     {{ block.super }}
     {% load champion_filter i18n %}
-    <form method="POST" class="form-inline" action="{% url 'driver27:dr27-driver-record-redir' %}" onchange="this.submit()">
+    <form method="POST" class="form-inline" action="{% url 'driver27:dr27-driver-record-redir' %}"
+          onchange="this.submit()">
         {% csrf_token %}
-            <div class="form-group col-md-4">
-        {% if competition %}
-            <input type="hidden" name="competition" value="{{ competition.slug }}"/>
-        {% endif %}
-        {% if season %}
-            <input type="hidden" name="year" value="{{ season.year }}"/>
-        {% endif %}
+        <div class="form-group col-md-4">
+            {% if competition %}
+                <input type="hidden" name="competition" value="{{ competition.slug }}"/>
+            {% endif %}
+            {% if season %}
+                <input type="hidden" name="year" value="{{ season.year }}"/>
+            {% endif %}
             <label for="record" class="control-label">Record:</label>
             <select id="record" name="record" class="form-control input-sm">
                 {% if not record %}
@@ -35,6 +36,6 @@
     </form>
     {% if rank %}
 
-{#                {% include 'driver27/driver/driver-record-table.html' %}#}
+        {% include 'driver27/driver/driver-record-table.html' %}
     {% endif %}
 {% endblock %}

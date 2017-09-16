@@ -130,7 +130,7 @@ def race_list(request, competition_slug, year):
 
 
 def race_view(request, competition_slug, year, race_id=None):
-    race = get_object_or_404(Race, season__competition__slug=competition_slug, season__year=year, pk=race_id)
+    race = get_object_or_404(Race, season__competition__slug=competition_slug, season__year=year, round=race_id)
     results = race.results.all() \
         .annotate(null_position=Count('finish')).order_by('-null_position', 'finish', 'qualifying')
     title = _('Results of %(race)s') % {'race': race}
