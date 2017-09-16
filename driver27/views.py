@@ -78,14 +78,6 @@ def driver_comeback_view(request, context, *args, **kwargs):
     return render(request, tpl, context)
 
 
-def driver_rank_view(request, *args, **kwargs):
-    return _rank_view(request, rank_model='driver', *args, **kwargs)
-
-
-def driver_rank_seasons_view(request, *args, **kwargs):
-    return _rank_view(request, rank_model='driver', by_season=True, *args, **kwargs)
-
-
 @competition_request
 def common_olympic_view(request, context, tpl, olympic_method, rank_title):
     season_or_competition = context.get('season_or_competition')
@@ -113,24 +105,16 @@ def team_olympic_view(request, *args, **kwargs):
 
 def driver_season_pos_view(request, competition_slug, year):
     season = get_object_or_404(Season, competition__slug=competition_slug, year=year)
-    rank = season.get_positions_draw()
+    # rank = season.get_positions_draw()
     rank_title = 'POSITION draw'
     title = u'{season} [{title}]'.format(season=season,
                                          title=rank_title)
     context = {
-        # 'rank': rank,
         'season': season,
         'title': title,
         'positions': list(season.past_races.values_list('round', flat=True)),
         'olympic': True}
     return render(request, 'driver27/driver/driver-list.html', context)
-
-def team_rank_view(request, *args, **kwargs):
-    return _rank_view(request, rank_model='team', *args, **kwargs)
-
-
-def team_rank_seasons_view(request,  *args, **kwargs):
-    return _rank_view(request, rank_model='team', by_season=True, *args, **kwargs)
 
 
 def race_list(request, competition_slug, year):
@@ -204,34 +188,21 @@ def team_record_seasons_view(request, *args, **kwargs):
                                       *args, **kwargs)
 
 
-def driver_active_streak_view(request, *args, **kwargs):
-    return driver_streak_view(request, only_actives=True, *args, **kwargs)
-
-
-def driver_top_streak_view(request, *args, **kwargs):
-    return driver_streak_view(request, max_streak=True, *args, **kwargs)
-
-
-def driver_top_streak_active_view(request, *args, **kwargs):
-    return driver_streak_view(request, only_actives=True, max_streak=True, *args, **kwargs)
-
-
-def team_top_streak_view(request, *args, **kwargs):
-    return team_streak_view(request, max_streak=True, *args, **kwargs)
-
-
 def get_streak_value_for_selector(only_actives=False, max_streak=False):
-    if not only_actives:
-        if max_streak:
-            streak_value = 'streak_top'
-        else:
-            streak_value = 'streak'
-    else:
-        if max_streak:
-            streak_value = 'streak_top_actives'
-        else:
-            streak_value = 'streak_actives'
-    return streak_value
+    streak_value = 0
+    if only_actives:
+        streak_value += 1
+    if max_streak:
+        streak_value += 2
+
+    streak_value = str(streak_value)
+
+    return {
+        '0': 'streak',
+        '1': 'streak_actives',
+        '2': 'streak_top',
+        '3': 'streak_top_actives'
+    }.get(streak_value)
 
 
 def common_streak_view(request, streak_method, tpl, only_actives=False,max_streak=False, *args, **kwargs):
@@ -255,19 +226,7 @@ def team_streak_view(request, *args, **kwargs):
                               *args, **kwargs)
 
 
-def team_record_doubles_view(request, *args, **kwargs):
-    return _team_record_view(request, rank_type='DOUBLES', *args, **kwargs)
-
-
-def team_record_races_view(request, *args, **kwargs):
-    return _team_record_view(request, rank_type='RACES', *args, **kwargs)
-
-
-def team_record_view(request, *args, **kwargs):
-    return _team_record_view(request, rank_type='STATS', *args, **kwargs)
-
-
-def _team_record_view(request, rank_type, *args, **kwargs):
+def team_record_view(request, rank_type='STATS', *args, **kwargs):
     context = get_record_common_context(request, *args, **kwargs)
     context['rank_opt'] = rank_type
     context['doubles_record_codes'] = [double_code for double_code, double_label in get_record_label_dict(doubles=True)]

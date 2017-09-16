@@ -8,15 +8,11 @@ try:
 except ImportError:
     from django.core.urlresolvers import reverse
 
-from .common import get_season_or_competition, split_season_and_competition
+from .decorators import competition_request
 
-
-def standing_view(request):
-    # season or competition
-    competition = request.GET.get('competition', None)
-    year = request.GET.get('year', None)
-    season_or_competition = get_season_or_competition(competition, year)
-    season, competition = split_season_and_competition(season_or_competition)
+@competition_request
+def standing_view(request, context):
+    season_or_competition = context.get('season_or_competition')
 
     # driver/team olympic/common
     standing_model = request.GET.get('model', 'driver')
@@ -54,11 +50,6 @@ def standing_view(request):
     rank = getattr(season_or_competition, standing_method)(**standing_kwargs)
     tpl = 'driver27/' + standing_model + '/' + standing_model + '-list-'+suffix_tpl + '.html'
 
-    context = {
-        'rank': rank,
-        'season': season,
-        'competition': competition,
-        'by_season': by_season
-    }
+    context.update(rank=rank, by_season=by_season)
 
     return render(request, tpl, context)
