@@ -4,7 +4,7 @@
         var standing_model = $(el).data('standingModel');
 
         var params = {
-            'competition': "{{ competition.pk }}",
+            'competition_slug': "{{ competition.slug }}",
             'year': "{{ season.year }}",
             'model': standing_model
         };

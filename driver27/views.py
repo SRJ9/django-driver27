@@ -42,11 +42,11 @@ def global_tpl(request, competition=None):
     tpl = 'driver27/global/_season_list.html'
     return render(request, tpl, context)
 
-
-def season_view(request, competition_slug, year):
-    season = get_object_or_404(Season, competition__slug=competition_slug, year=year)
+@competition_request
+def season_view(request, context):
+    season = context.get('season')
     title = '{competition}/{year:d}'.format(competition=season.competition, year=season.year)
-    context = {'season': season, 'title': title}
+    context.update(title=title)
     tpl = 'driver27/season/season-view.html'
     return render(request, tpl, context)
 

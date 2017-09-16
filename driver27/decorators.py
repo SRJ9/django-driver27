@@ -3,8 +3,12 @@ from django.shortcuts import render, get_object_or_404
 
 def competition_request(f):
     def wrap(request, *args, **kwargs):
-        slug = kwargs.pop('competition_slug', None)
-        year = kwargs.pop('year', None)
+        if request.is_ajax():
+            slug = request.GET.get('competition_slug', None)
+            year = request.GET.get('year', None)
+        else:
+            slug = kwargs.pop('competition_slug', None)
+            year = kwargs.pop('year', None)
 
         from .models import Season, Competition, RankModel
         season = competition = None
