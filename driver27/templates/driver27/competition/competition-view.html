@@ -14,8 +14,23 @@
             <th class="col-md-4">{% trans 'Driver leader' %}</th>
             <th class="col-md-6">{% trans 'Team leader' %}</th>
         </tr>
-        {% include 'driver27/competition/competition-table.html' %}
+
+        <tr id="seasons-list"></tr>
     </table>
 
 
+{% endblock %}
+
+{% block bootstrap3_extra_script %}
+    {{ block.super }}
+    <script type="text/javascript">
+
+        $.get("{% url 'driver27:dr27-global-tpl' %}", {'competition': "{{ competition.pk }}"},
+            function (data) {
+                $('#seasons-list').replaceWith(data);
+            }
+        )
+        ;
+
+    </script>
 {% endblock %}

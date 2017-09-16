@@ -6,14 +6,16 @@
                 {{ season }}
             </a>
         </td>
-        <td>
-            <a href="{{ season.competition.get_absolute_url }}">
-                {{ season.competition }}
-            </a>
-        </td>
-        <td>
-            {{ season.year }}
-        </td>
+        {% if not request.GET.competition %}
+            <td>
+                <a href="{{ season.competition.get_absolute_url }}">
+                    {{ season.competition }}
+                </a>
+            </td>
+            <td>
+                {{ season.year }}
+            </td>
+        {% endif %}
         <td>
             {% if season.leader %}
                 {{ season.pk | champion_filter | safe }}

@@ -33,8 +33,11 @@ def global_view(request):
     tpl = 'driver27/global/global-view.html'
     return render(request, tpl, context)
 
-def global_tpl(request):
-    seasons = Season.objects.order_by('year', 'competition')
+def global_tpl(request, competition=None):
+    seasons = Season.objects
+    if competition:
+        seasons = seasons.filter(competition=competition)
+    seasons = seasons.order_by('year', 'competition')
     context = {'seasons': seasons}
     tpl = 'driver27/global/_season_list.html'
     return render(request, tpl, context)
