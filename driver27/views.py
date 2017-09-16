@@ -277,11 +277,11 @@ def _get_reverse_record_url(request):
     reverse_args = [arg for arg in request_args if arg]
 
     if competition_slug and year:
-        base_reverse_url = 'dr27-season'
+        base_reverse_url = 'competition:dr27-season'
     elif competition_slug:
-        base_reverse_url = 'dr27-competition'
+        base_reverse_url = 'competition:dr27-competition'
     else:
-        base_reverse_url = 'dr27-global'
+        base_reverse_url = 'global:dr27-global'
 
     base_reverse_url = ':'.join([DRIVER27_NAMESPACE, base_reverse_url])
 

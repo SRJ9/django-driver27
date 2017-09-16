@@ -5,67 +5,67 @@
 {% if season %}
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-season-driver' season.competition.slug season.year %}">{% trans 'Drivers' %}</a>
+           href="{% url 'driver27:competition:dr27-season-driver' season.competition.slug season.year %}">{% trans 'Drivers' %}</a>
     </li>
     <li class="nav-item">
         <a>>></a>
     </li>
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-season-driver-record-index' season.competition.slug season.year %}">{% trans 'Records' %}</a>
+           href="{% url 'driver27:competition:dr27-season-driver-record-index' season.competition.slug season.year %}">{% trans 'Records' %}</a>
     </li>
 
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-season-driver-olympic' season.competition.slug season.year %}">{% trans 'Olympic' %}</a>
+           href="{% url 'driver27:competition:dr27-season-driver-olympic' season.competition.slug season.year %}">{% trans 'Olympic' %}</a>
     </li>
 
         <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-season-position-draw' season.competition.slug season.year %}">{% trans 'Position draw' %}</a>
+           href="{% url 'driver27:competition:dr27-season-position-draw' season.competition.slug season.year %}">{% trans 'Position draw' %}</a>
     </li>
 
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-season-driver-comeback' season.competition.slug season.year %}">{% trans 'Comebacks' %}</a>
+           href="{% url 'driver27:competition:dr27-season-driver-comeback' season.competition.slug season.year %}">{% trans 'Comebacks' %}</a>
     </li>
 
 {% elif competition %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'driver27:dr27-competition-driver' competition.slug %}">{% trans 'Drivers' %}</a>
+        <a class="nav-link" href="{% url 'driver27:competition:dr27-competition-driver' competition.slug %}">{% trans 'Drivers' %}</a>
     </li>
 
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-competition-driver-record-index' competition.slug %}">{% trans 'Records' %}</a>
+           href="{% url 'driver27:competition:dr27-competition-driver-record-index' competition.slug %}">{% trans 'Records' %}</a>
     </li>
 
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-competition-driver-olympic' competition.slug %}">{% trans 'Olympic' %}</a>
+           href="{% url 'driver27:competition:dr27-competition-driver-olympic' competition.slug %}">{% trans 'Olympic' %}</a>
     </li>
 
         <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-competition-driver-comeback' competition.slug %}">{% trans 'Comebacks' %}</a>
+           href="{% url 'driver27:competition:dr27-competition-driver-comeback' competition.slug %}">{% trans 'Comebacks' %}</a>
     </li>
 {% else %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'driver27:dr27-global-driver' %}">{% trans 'Drivers' %}</a>
+        <a class="nav-link" href="{% url 'driver27:global:dr27-global-driver' %}">{% trans 'Drivers' %}</a>
     </li>
 
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-global-driver-record-index' %}">{% trans 'Records' %}</a>
+           href="{% url 'driver27:global:dr27-global-driver-record-index' %}">{% trans 'Records' %}</a>
     </li>
 
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-global-driver-olympic' %}">{% trans 'Olympic' %}</a>
+           href="{% url 'driver27:global:dr27-global-driver-olympic' %}">{% trans 'Olympic' %}</a>
     </li>
 
         <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-global-driver-comeback' %}">{% trans 'Comeback' %}</a>
+           href="{% url 'driver27:global:dr27-global-driver-comeback' %}">{% trans 'Comeback' %}</a>
     </li>
 {% endif %}

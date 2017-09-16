@@ -25,7 +25,7 @@
     {{ block.super }}
     <script type="text/javascript">
 
-        $.get("{% url 'driver27:dr27-global-tpl' %}", {'competition': "{{ competition.pk }}"},
+        $.get("{% url 'driver27:global:dr27-global-tpl' %}", {'competition': "{{ competition.pk }}"},
             function (data) {
                 $('#seasons-list').replaceWith(data);
             }

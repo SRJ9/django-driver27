@@ -5,47 +5,47 @@
 {% if season %}
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-season-team' season.competition.slug season.year %}">{% trans 'Teams' %}</a>
+           href="{% url 'driver27:competition:dr27-season-team' season.competition.slug season.year %}">{% trans 'Teams' %}</a>
     </li>
     <li class="nav-item">
         <a>>></a>
     </li>
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-season-team-record-index' season.competition.slug season.year %}">{% trans 'Records' %}</a>
+           href="{% url 'driver27:competition:dr27-season-team-record-index' season.competition.slug season.year %}">{% trans 'Records' %}</a>
     </li>
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-season-team-olympic' season.competition.slug season.year %}">{% trans 'Olympic' %}</a>
+           href="{% url 'driver27:competition:dr27-season-team-olympic' season.competition.slug season.year %}">{% trans 'Olympic' %}</a>
     </li>
 {% elif competition %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'driver27:dr27-competition-team' competition.slug %}">{% trans 'Teams' %}</a>
+        <a class="nav-link" href="{% url 'driver27:competition:dr27-competition-team' competition.slug %}">{% trans 'Teams' %}</a>
     </li>
     <li class="nav-item">
         <a>>></a>
     </li>
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-competition-team-record-index' competition.slug %}">{% trans 'Records' %}</a>
+           href="{% url 'driver27:competition:dr27-competition-team-record-index' competition.slug %}">{% trans 'Records' %}</a>
     </li>
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-competition-team-olympic' competition.slug %}">{% trans 'Olympic' %}</a>
+           href="{% url 'driver27:competition:dr27-competition-team-olympic' competition.slug %}">{% trans 'Olympic' %}</a>
     </li>
 {% else %}
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'driver27:dr27-global-team' %}">{% trans 'Teams' %}</a>
+        <a class="nav-link" href="{% url 'driver27:global:dr27-global-team' %}">{% trans 'Teams' %}</a>
     </li>
     <li class="nav-item">
         <a>>></a>
     </li>
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-global-team-record-index' %}">{% trans 'Records' %}</a>
+           href="{% url 'driver27:global:dr27-global-team-record-index' %}">{% trans 'Records' %}</a>
     </li>
     <li class="nav-item">
         <a class="nav-link"
-           href="{% url 'driver27:dr27-global-team-olympic' %}">{% trans 'Olympic' %}</a>
+           href="{% url 'driver27:global:dr27-global-team-olympic' %}">{% trans 'Olympic' %}</a>
     </li>
 {% endif %}
