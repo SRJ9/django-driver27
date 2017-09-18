@@ -277,11 +277,11 @@ def _get_reverse_record_url(request):
     reverse_args = [arg for arg in request_args if arg]
 
     if competition_slug and year:
-        base_reverse_url = 'competition:dr27-season'
+        base_reverse_url = 'season'
     elif competition_slug:
-        base_reverse_url = 'competition:dr27-competition'
+        base_reverse_url = 'competition'
     else:
-        base_reverse_url = 'global:dr27-global'
+        base_reverse_url = 'global'
 
     base_reverse_url = ':'.join([DRIVER27_NAMESPACE, base_reverse_url])
 
@@ -307,9 +307,12 @@ def team_record_redirect_view(request):
     if not (request.POST.get('competition') and request.POST.get('year')):
         reverse_url_dict['seasons'] = 'seasons'
 
-    reverse_url = reverse_url_dict.get(rank_opt, 'stats')
+    reverse_param = reverse_url_dict.get(rank_opt, 'stats')
 
-    return redirect(reverse('-'.join([base_reverse_url, 'team', reverse_url]), args=reverse_args))
+    the_reverse = '{base_reverse_url}:team-{reverse_param}'.format(
+        base_reverse_url=base_reverse_url, reverse_param=reverse_param
+    )
+    return redirect(reverse(the_reverse, args=reverse_args))
 
 
 @require_http_methods(["POST"])
@@ -330,6 +333,11 @@ def driver_record_redirect_view(request):
     if not (request.POST.get('competition') and request.POST.get('year')):
         reverse_url_dict['seasons'] = 'seasons'
 
-    reverse_url = reverse_url_dict.get(rank_opt, 'record')
 
-    return redirect(reverse('-'.join([base_reverse_url, 'driver', reverse_url]), args=reverse_args))
+    reverse_param = reverse_url_dict.get(rank_opt, 'record')
+
+    the_reverse = '{base_reverse_url}:driver-{reverse_param}'.format(
+        base_reverse_url=base_reverse_url, reverse_param=reverse_param
+    )
+
+    return redirect(reverse(the_reverse, args=reverse_args))

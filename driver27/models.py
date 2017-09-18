@@ -56,7 +56,7 @@ class Driver(StatsByCompetitionModel):
     teams = models.ManyToManyField('Team', through='Seat', related_name='drivers', verbose_name=_('teams'))
 
     def get_absolute_url(self):
-        URL = ':'.join([DRIVER27_NAMESPACE, 'global:dr27-profile-view'])
+        URL = ':'.join([DRIVER27_NAMESPACE, 'global:driver-profile'])
         return reverse(URL, kwargs = {'driver_id': self.pk})
 
     @property
@@ -161,7 +161,7 @@ class Competition(AbstractRankModel):
     slug = models.SlugField(null=True, blank=True, default=None)
 
     def get_absolute_url(self):
-        URL = ':'.join([DRIVER27_NAMESPACE, 'competition:dr27-competition-view'])
+        URL = ':'.join([DRIVER27_NAMESPACE, 'competition:view'])
         return reverse(URL, kwargs = {'competition_slug': self.slug})
 
     @property
@@ -215,7 +215,7 @@ class Team(TeamStatsModel, StatsByCompetitionModel):
     country = CountryField(verbose_name=_('country'), blank=True, null=True)
 
     def get_absolute_url(self):
-        URL = ':'.join([DRIVER27_NAMESPACE, 'global:dr27-profile-team-view'])
+        URL = ':'.join([DRIVER27_NAMESPACE, 'global:team-profile'])
         return reverse(URL, kwargs = {'team_id': self.pk})
 
     def _races(self, competition=None, **kwargs):
@@ -387,11 +387,11 @@ class Season(AbstractRankModel):
         return {'competition_slug': self.competition.slug, 'year': self.year}
 
     def get_absolute_url(self):
-        URL = ':'.join([DRIVER27_NAMESPACE, 'competition:dr27-season-view'])
+        URL = ':'.join([DRIVER27_NAMESPACE, 'season:view'])
         return reverse(URL, kwargs=self.get_params_url())
 
     def get_races_url(self):
-        URL = ':'.join([DRIVER27_NAMESPACE, 'competition:dr27-season-race-list'])
+        URL = ':'.join([DRIVER27_NAMESPACE, 'season:race-list'])
         return reverse(URL, kwargs=self.get_params_url())
 
 
@@ -625,7 +625,7 @@ class Race(models.Model):
                                          default=None, max_length=6, verbose_name=_('alter punctuation'))
 
     def get_absolute_url(self):
-        URL = ':'.join([DRIVER27_NAMESPACE, 'competition:dr27-season-race-view'])
+        URL = ':'.join([DRIVER27_NAMESPACE, 'season:race-view'])
         season = self.season
         slug = season.competition.slug
         year = season.year

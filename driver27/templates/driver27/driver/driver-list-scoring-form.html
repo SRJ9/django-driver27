@@ -2,11 +2,11 @@
     {% if scoring_list %}
         <div class="change_punctuation">
             {% if season %}
-                <form method="POST" action="{% url 'driver27:competition:dr27-season-driver' season.competition.slug season.year %}">
+                <form method="POST" action="{% url 'driver27:season:driver' season.competition.slug season.year %}">
              {% elif competition %}
-                <form method="POST" action="{% url 'driver27:competition:dr27-competition-driver' competition.slug %}">
+                <form method="POST" action="{% url 'driver27:competition:driver' competition.slug %}">
              {% else %}
-                <form method="POST" action="{% url 'driver27:global:dr27-global-driver' %}">
+                <form method="POST" action="{% url 'driver27:global:driver' %}">
              {% endif %}
             {% csrf_token %}
                 <div class="form-group">
