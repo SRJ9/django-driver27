@@ -1,4 +1,4 @@
-django
+django>=1.10
 django-bootstrap3
 django-countries
 django-tabbed-admin
