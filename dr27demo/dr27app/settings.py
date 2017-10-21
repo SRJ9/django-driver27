@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'tabbed_admin',
     'rest_framework',
     'django_filters',
+    'memcache_status',
     'driver27'
 ]
 
@@ -152,4 +153,12 @@ DR27_CONFIG = {
 
 COUNTRIES_OVERRIDE = {
     'EU': 'Europe'
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211'
+
+    }
 }

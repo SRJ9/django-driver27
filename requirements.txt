@@ -9,3 +9,5 @@ djangorestframework>=3.7.0
 django-swapfield
 django-filter
 unicodecsv
+python-memcached
+django-memcache-status
