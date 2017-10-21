@@ -25,9 +25,11 @@
     {{ block.super }}
     <script type="text/javascript">
 
+        $('.loader-lock').removeClass('hide');
         $.get("{% url 'driver27:global:tpl' %}", {'competition': "{{ competition.pk }}"},
             function (data) {
                 $('#seasons-list').replaceWith(data);
+                $('.loader-lock').addClass('hide');
             }
         )
         ;
