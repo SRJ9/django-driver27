@@ -4,6 +4,9 @@
 {% block bootstrap3_title %}{{ title }} :: DR27{% endblock %}
 
 {% block bootstrap3_content %}
+    <div class="loader-lock hide">
+        <p>{% trans 'Content is being loaded' %}</p>
+    </div>
     <div class="container">
         <h1>{% block title %}Driver27{% endblock %}</h1>
         <div class="header clearfix">

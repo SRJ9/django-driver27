@@ -1,6 +1,9 @@
 <script type="text/javascript">
 
     function reload_standing(el) {
+
+        $('.loader-lock').removeClass('hide');
+
         var standing_model = $(el).data('standingModel');
 
         var params = {
@@ -26,6 +29,7 @@
         $.get("{% url 'driver27:dr27-ajax:standing' %}", params,
             function (response) {
                 $(el).html(response);
+                $('.loader-lock').addClass('hide');
             }
         );
     }

@@ -10,14 +10,14 @@
         {% endif %}
         {% csrf_token %}
         <div class="form-group">
-            <select name="scoring" class="form-control input-sm">
+            <select name="scoring" id="scoring" class="form-control input-sm">
                 <option value="">---</option>
                 {% for sc_code, sc_label in scoring_list %}
                     <option value="{{ sc_code }}"
                             {% if sc_code == scoring_code %}selected{% endif %}>{{ sc_label }}</option>
                 {% endfor %}
             </select>
-            <input type="checkbox" name="by_season" value="1" {% if by_season %}checked{% endif %}><label
+            <input type="checkbox" name="by_season" id="by_season" value="1" {% if by_season %}checked{% endif %}><label
                 for="by_season">{% trans 'Top By season' %}</label>
 
             <input type="submit" value="Change punctuation" class="btn btn-xs btn-primary">
