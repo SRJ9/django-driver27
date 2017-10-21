@@ -158,7 +158,7 @@ Todo
 -  [x] Add drivers profile with records, last\_wins, teams...
 -  [x] Add easy clone to Season
 -  [x] Translate
--  [ ] 1980's punctuation. Only 11 best results.
+-  [x] 1980's punctuation. Only 11 best results.
 -  [ ] Old punctuation. Split season races, and get only 4 of each half.
 
 History
