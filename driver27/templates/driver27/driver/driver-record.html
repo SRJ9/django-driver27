@@ -8,8 +8,7 @@
 {% block dr27_content %}
     {{ block.super }}
     {% load champion_filter i18n %}
-    <form method="POST" class="form-inline" action="{% url 'driver27:global:dr27-driver-record-redir' %}"
-          onchange="this.submit()">
+    <form method="POST" class="form-inline">
         {% csrf_token %}
         <div class="form-group col-md-4">
             {% if competition %}
@@ -34,8 +33,12 @@
             </select>
         </div>
     </form>
-    {% if rank %}
 
-        {% include 'driver27/driver/driver-record-table.html' %}
-    {% endif %}
+
+    <div id="driver-stats" class="stats" data-standing-model="driver"></div>
+{% endblock %}
+
+{% block bootstrap3_extra_script %}
+    {{ block.super }}
+    {% include 'driver27/include_rank_js.html' %}
 {% endblock %}

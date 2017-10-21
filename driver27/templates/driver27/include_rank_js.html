@@ -1,16 +1,42 @@
 <script type="text/javascript">
 
+    function get_common_params(){
+        return {
+            'competition_slug': "{{ competition.slug }}",
+            'year': "{{ season.year }}"
+        }
+    }
+
+    function reload_stats(el){
+
+        var standing_model = $(el).data('standingModel');
+
+        $('.loader-lock').removeClass('hide');
+
+        var params = get_common_params();
+
+        params['model'] = standing_model;
+        params['record'] = $('#record').val();
+        params['rank_opt'] = $('#rank_opt').val();
+
+        $.get("{% url 'driver27:dr27-ajax:stats' %}", params,
+            function (response) {
+                $(el).html(response);
+                $('.loader-lock').addClass('hide');
+            }
+        );
+
+    }
+
     function reload_standing(el) {
 
         $('.loader-lock').removeClass('hide');
 
         var standing_model = $(el).data('standingModel');
 
-        var params = {
-            'competition_slug': "{{ competition.slug }}",
-            'year': "{{ season.year }}",
-            'model': standing_model
-        };
+        var params = get_common_params();
+
+        params['model'] = standing_model;
 
         {% if olympic == True %}
             params.olympic = 1;
@@ -40,12 +66,23 @@
         })
     }
 
+    function reload_all_stats() {
+        $('.stats[data-standing-model]').each(function (index, el) {
+            reload_stats(el);
+        })
+    }
+
     $(function () {
         reload_all_standings();
+        reload_all_stats();
 
         $('#scoring, #by_season').change(function () {
             reload_all_standings();
-        })
+        });
+
+        $('#record, #rank_opt').change(function () {
+            reload_all_stats();
+        });
     });
 
 </script>
