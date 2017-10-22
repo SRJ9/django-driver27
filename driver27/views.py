@@ -30,7 +30,7 @@ def competition_view(request, competition_slug):
 def global_view(request):
     title = _('Global view')
     context = {'title': title}
-    tpl = 'driver27/global/global-view.html'
+    tpl = 'driver27/global/view.html'
     return render(request, tpl, context)
 
 def global_tpl(request, competition=None):
@@ -62,7 +62,7 @@ def _rank_view(request, context, rank_model='driver', by_season=False):
     if rank_title is None:
         raise Http404(_('Impossible rank'))
 
-    tpl = 'driver27/' + rank_model + '/' + rank_model + '-list.html'
+    tpl = 'driver27/' + rank_model + '/list.html'
     title = u'{season_or_competition} [{title}]'.format(season_or_competition=season_or_competition,
                                                         title=rank_title)
 
@@ -93,7 +93,7 @@ def common_olympic_view(request, context, tpl, olympic_method, rank_title):
 
 def driver_olympic_view(request, *args, **kwargs):
     return common_olympic_view(request,
-                               tpl='driver27/driver/driver-list.html',
+                               tpl='driver27/driver/list.html',
                                olympic_method='olympic_rank',
                                rank_title=_('DRIVERS rank by olympic mode'),
                                *args, **kwargs)
@@ -101,7 +101,7 @@ def driver_olympic_view(request, *args, **kwargs):
 
 def team_olympic_view(request, *args, **kwargs):
     return common_olympic_view(request,
-                               tpl='driver27/team/team-list.html',
+                               tpl='driver27/team/list.html',
                                olympic_method='team_olympic_rank',
                                rank_title=_('TEAMS rank by olympic mode'),
                                *args, **kwargs)
@@ -117,7 +117,7 @@ def driver_season_pos_view(request, competition_slug, year):
         'title': title,
         'positions': list(season.past_races.values_list('round', flat=True)),
         'olympic': True}
-    return render(request, 'driver27/driver/driver-list.html', context)
+    return render(request, 'driver27/driver/list.html', context)
 
 
 def race_list(request, competition_slug, year):
@@ -125,7 +125,7 @@ def race_list(request, competition_slug, year):
     races = season.races.all()
     title = _('%(season)s [RACES]') % {'season': season}
     context = {'races': races, 'season': season, 'title': title}
-    tpl = 'driver27/race/race-list.html'
+    tpl = 'driver27/race/list.html'
     return render(request, tpl, context)
 
 
@@ -135,7 +135,7 @@ def race_view(request, competition_slug, year, race_id=None):
         .annotate(null_position=Count('finish')).order_by('-null_position', 'finish', 'qualifying')
     title = _('Results of %(race)s') % {'race': race}
     context = {'race': race, 'season': race.season, 'title': title, 'results': results}
-    tpl = 'driver27/race/race-view.html'
+    tpl = 'driver27/race/view.html'
     return render(request, tpl, context)
 
 
@@ -192,7 +192,7 @@ def driver_profile_view(request, driver_id):
         'stats': driver.get_stats_list(append_points=True),
         'title': 'Profile of {driver}'.format(driver=driver)
     }
-    tpl = 'driver27/driver/driver-profile.html'
+    tpl = 'driver27/driver/profile.html'
     return render(request, tpl, context)
 
 
@@ -207,6 +207,6 @@ def team_profile_view(request, team_id):
         'stats': team.get_stats_list(append_points=True),
         'title': 'Profile of {team}'.format(team=team)
     }
-    tpl = 'driver27/team/team-profile.html'
+    tpl = 'driver27/team/profile.html'
     return render(request, tpl, context)
 

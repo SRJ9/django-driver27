@@ -50,7 +50,7 @@ def standing_view(request, context):
         standing_kwargs.update(punctuation_code=punctuation_code, by_season=by_season)
 
     rank = getattr(season_or_competition, standing_method)(**standing_kwargs)
-    tpl = 'driver27/' + standing_model + '/' + standing_model + '-list-'+suffix_tpl + '.html'
+    tpl = 'driver27/' + standing_model + '/list-'+suffix_tpl + '.html'
 
     context.update(rank=rank, by_season=by_season)
 
@@ -67,7 +67,7 @@ def stats_view(request, context):
 
     rank_opt = request.GET.get('rank_opt', None)
     rank = None
-    tpl = 'driver27/' + standing_model + '/' + standing_model + '-record-table.html'
+    tpl = 'driver27/' + standing_model + '/record-table.html'
     if record:
         record_filter = record_config.get('filter')
         if rank_opt:

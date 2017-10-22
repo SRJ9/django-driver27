@@ -3,8 +3,7 @@
 {% block dr27_menu %}
 
     {% include 'driver27/_selector_menu.html' %}
-    {% include 'driver27/team/team-menu.html' %}
-
+    {% include 'driver27/driver/menu.html' %}
 {% endblock %}
 {% block dr27_content %}
     {{ block.super }}
@@ -23,21 +22,20 @@
                 {% if not record %}
                     <option value="">---</option>
                 {% endif %}
-                {% include 'driver27/team/team-record-optgroup.html' %}
+                {% include 'driver27/driver/record-optgroup.html' %}
             </select>
         </div>
         <div class="col-md-4 form-group">
             <label for="rank_opt" class="control-label">{% trans 'Filter' %}</label>
             <select id="rank_opt" name="rank_opt" class="form-control input-sm">
 
-                {% include 'driver27/team/team-streak-opt.html' %}
+                {% include 'driver27/driver/streak-opt.html' %}
             </select>
         </div>
     </form>
 
-    <div class="clear"></div>
 
-    <div id="team-stats" class="stats" data-standing-model="team"></div>
+    <div id="driver-stats" class="stats" data-standing-model="driver"></div>
 {% endblock %}
 
 {% block bootstrap3_extra_script %}

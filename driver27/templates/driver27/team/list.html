@@ -1,14 +1,13 @@
 {% extends 'driver27/base.html' %}
 {% load i18n %}
 {% block dr27_menu %}
-
     {% include 'driver27/_selector_menu.html' %}
-    {% include 'driver27/driver/driver-menu.html' %}
+    {% include 'driver27/team/menu.html' %}
 {% endblock %}
 {% block dr27_content %}
     {{ block.super }}
-    {% include 'driver27/driver/driver-list-scoring-form.html' %}
-    <div id="driver-standing" class="standing" data-standing-model="driver"></div>
+    {% include 'driver27/team/scoring-form.html' %}
+    <div id="team-standing" class="standing" data-standing-model="team"></div>
 {% endblock %}
 
 {% block bootstrap3_extra_script %}
