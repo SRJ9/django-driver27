@@ -68,9 +68,11 @@ class ViewTest(FixturesTest):
         self._GET_request('competition:view', kwargs=kwargs)
         self._GET_request('competition:driver-olympic', kwargs=kwargs)
         self._GET_request('competition:driver-comeback', kwargs=kwargs)
+        self._GET_request('competition:driver-record-index', kwargs=kwargs)
         self._GET_request('competition:team-olympic', kwargs=kwargs)
         self._GET_request('competition:driver-seasons-rank', kwargs=kwargs)
         self._GET_request('competition:team-seasons-rank', kwargs=kwargs)
+        self._GET_request('competition:driver-record-index', kwargs=kwargs)
         self._GET_request('competition:view', kwargs={'competition_slug': 'f19'}, code=404)
 
     def _test_season_view(self):
@@ -83,8 +85,10 @@ class ViewTest(FixturesTest):
         self._GET_request('season:driver', kwargs=kwargs)
         self._GET_request('season:driver-olympic', kwargs=kwargs)
         self._GET_request('season:driver-comeback', kwargs=kwargs)
+        self._GET_request('season:driver-record-index', kwargs=kwargs)
         self._GET_request('season:team', kwargs=kwargs)
         self._GET_request('season:team-olympic', kwargs=kwargs)
+        self._GET_request('season:team-record-index', kwargs=kwargs)
         self._GET_request('season:race-list', kwargs=kwargs)
 
         kwargs = {'competition_slug': 'f19', 'year': 2006}
@@ -143,6 +147,7 @@ class ViewTest(FixturesTest):
         self._GET_request('global:driver-olympic')
         self._GET_request('global:driver-seasons-rank')
         self._GET_request('global:driver-comeback')
+        self._GET_request('global:driver-record-index')
         self._test_competition_view()
         self._test_season_view()
 
@@ -156,6 +161,7 @@ class ViewTest(FixturesTest):
         self._GET_request('global:team')
         self._GET_request('global:team-olympic')
         self._GET_request('global:team-seasons-rank')
+        self._GET_request('global:team-record-index')
 
     def test_contender_season_points(self):
         driver = Driver.objects.get(pk=1)

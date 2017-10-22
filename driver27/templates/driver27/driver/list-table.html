@@ -4,14 +4,14 @@
         <thead>
         <tr>
             {% if by_season %}
-                <th class="col-md-2">{% trans 'Points' %}</th>
-                <th class="col-md-3">{% trans 'Driver' %}</th>
+                <th class="col-md-1">{% trans 'Points' %}</th>
+                <th class="col-md-4">{% trans 'Driver' %}</th>
                 <th class="col-md-5">{% trans 'Team' %}</th>
                 <th class="col-md-2">{% trans 'Season' %}</th>
             {% else %}
 
-                <th class="col-md-4">{% trans 'Points' %}</th>
-                <th class="col-md-3">{% trans 'Driver' %}</th>
+                <th class="col-md-2">{% trans 'Points' %}</th>
+                <th class="col-md-5">{% trans 'Driver' %}</th>
                 <th class="col-md-5">{% trans 'Team' %}</th>
             {% endif %}
 
@@ -21,7 +21,11 @@
         {% for entry in rank %}
             <tr>
                 <td id="points_{{ forloop.counter }}">{{ entry.points }}</td>
-                <td><a href="{{ entry.driver.get_absolute_url }}">{{ entry.driver }}</a>
+                <td>
+                    {% with driver=entry.driver %}
+                        <i class="flag2x {{ driver.country.flag_css }}"></i>
+                        <a href="{{ driver.get_absolute_url }}">{{ driver }}</a>
+                    {% endwith %}
                     {% if forloop.counter == 1 %}
                         {{ season.pk | champion_filter | safe }}
                     {% endif %}

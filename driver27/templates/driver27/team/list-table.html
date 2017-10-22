@@ -19,7 +19,13 @@
         {% for entry in rank %}
             <tr>
                 <td>{{ entry.points }}</td>
-                <td><a href="{{ entry.team.get_absolute_url }}">{{ entry.team }}</a></td>
+                <td>
+                    {% with team=entry.team %}
+                        <i class="flag2x {{ team.country.flag_css }}"></i>
+                        <a href="{{ team.get_absolute_url }}">{{ team }}</a>
+                    {% endwith %}
+
+                </td>
                 {% if by_season %}
                     <td>{{ entry.season }}</td>
 

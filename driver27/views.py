@@ -167,7 +167,7 @@ def get_record_common_context(request, context, record=None, *args, **kwargs):
 
 def driver_record_view(request, *args, **kwargs):
     context = get_record_common_context(request, *args, **kwargs)
-    tpl = 'driver27/driver/driver-record.html'
+    tpl = 'driver27/driver/record.html'
     return render(request, tpl, context)
 
 
@@ -176,7 +176,7 @@ def team_record_view(request, rank_type='STATS', *args, **kwargs):
     context = get_record_common_context(request, *args, **kwargs)
     context['rank_opt'] = rank_type
     context['doubles_record_codes'] = [double_code for double_code, double_label in get_record_label_dict(doubles=True)]
-    tpl = 'driver27/team/team-record.html'
+    tpl = 'driver27/team/record.html'
     return render(request, tpl, context)
 
 
