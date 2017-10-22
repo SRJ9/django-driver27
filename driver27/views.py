@@ -23,7 +23,7 @@ def competition_view(request, competition_slug):
     competition_obj = get_object_or_404(Competition, slug=competition_slug)
     title = '{competition}'.format(competition=competition_obj)
     context = {'competition': competition_obj, 'title': title}
-    tpl = 'driver27/competition/competition-view.html'
+    tpl = 'driver27/competition/view.html'
     return render(request, tpl, context)
 
 
@@ -47,7 +47,7 @@ def season_view(request, context):
     season = context.get('season')
     title = '{competition}/{year:d}'.format(competition=season.competition, year=season.year)
     context.update(title=title)
-    tpl = 'driver27/season/season-view.html'
+    tpl = 'driver27/season/view.html'
     return render(request, tpl, context)
 
 
@@ -77,7 +77,7 @@ def driver_comeback_view(request, context, *args, **kwargs):
     title = u'{season_or_competition} [{title}]'.format(season_or_competition=season_or_competition,
                                                         title=rank_title)
     context['title'] = title
-    tpl = 'driver27/driver/driver-comeback.html'
+    tpl = 'driver27/driver/comeback.html'
     return render(request, tpl, context)
 
 
