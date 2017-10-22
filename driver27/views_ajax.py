@@ -65,6 +65,9 @@ def stats_view(request, context):
 
     standing_model = request.GET.get('model', 'driver')
 
+    if standing_model not in ['driver', 'team']:
+        raise Http404(_('The standing requested is invalid'))
+
     rank_opt = request.GET.get('rank_opt', None)
     rank = None
     tpl = 'driver27/' + standing_model + '/record-table.html'

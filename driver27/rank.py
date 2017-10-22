@@ -246,11 +246,10 @@ class AbstractRankModel(models.Model):
         else:
             teams = getattr(self, 'teams').all()
             rank = []
-
             for team in teams:
                 stat_cls = self.get_stats_cls(team)
-                if only_actives and not stat_cls.is_active:
-                    continue
+                # if only_actives and not stat_cls.is_active:
+                #     continue
 
                 rank.append({'stat': stat_cls.get_streak(unique_by_race=True, result_filter=self.stats_filter_kwargs,
                                                          max_streak=max_streak, **filters),

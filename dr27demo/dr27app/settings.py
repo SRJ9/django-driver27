@@ -54,8 +54,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-MIDDLEWARE_CLASSES = MIDDLEWARE
-
 ROOT_URLCONF = 'dr27demo.dr27app.urls'
 
 TEMPLATES = [

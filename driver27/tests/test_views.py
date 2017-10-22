@@ -52,11 +52,11 @@ class ViewTest(FixturesTest):
         self.client = Client()
         self.factory = RequestFactory()
 
-    def _GET_request(self, reverse_url, kwargs=None, code=200):
+    def _GET_request(self, reverse_url, kwargs=None, data=None, code=200):
         # Issue a GET request.
         reverse_url = DRIVER27_NAMESPACE+':'+reverse_url
         the_reverse = reverse(reverse_url, kwargs=kwargs)
-        response = self.client.get(the_reverse)
+        response = self.client.get(the_reverse, data=data)
         # Check that the response is 302 OK.
         self.assertEqual(response.status_code, code)
 
@@ -90,6 +90,44 @@ class ViewTest(FixturesTest):
         kwargs = {'competition_slug': 'f19', 'year': 2006}
         self._GET_request('season:view', kwargs=kwargs, code=404)
 
+    def test_ajax_standing(self, model='driver', default_code=200):
+        URL = 'dr27-ajax:standing'
+        data = {'model': model}
+        self._GET_request(URL, data=data, code=default_code)
+        data['competition_slug'] = 'f1'
+        self._GET_request(URL, data=data, code=default_code)
+        data['year'] = 2016
+        self._GET_request(URL, data=data, code=default_code)
+        data['olympic'] = True
+        self._GET_request(URL, data=data, code=default_code)
+
+    def test_ajax_standing_team(self):
+        self.test_ajax_standing(model='team')
+
+    def test_ajax_standing_404_model(self):
+        self.test_ajax_standing(model='else', default_code=404)
+
+    def test_ajax_stats(self, model='driver', default_code=200):
+        URL = 'dr27-ajax:stats'
+        data = {'model': model}
+        self._GET_request(URL, data=data, code=default_code)
+        data['competition_slug'] = 'f1'
+        self._GET_request(URL, data=data, code=default_code)
+        data['year'] = 2016
+        self._GET_request(URL, data=data, code=default_code)
+        data['record'] = 'POLE'
+        self._GET_request(URL, data=data, code=default_code)
+        for opt in [None, 'streak', 'seasons', 'streak_top', 'streak_actives', 'streak_top_actives']:
+            data['rank_opt'] = opt
+            self._GET_request(URL, data=data, code=default_code)
+        data['record'] = 'FFF'
+        self._GET_request(URL, data=data, code=404)
+
+    def test_ajax_stats_team(self):
+        self.test_ajax_stats(model='team')
+
+    def test_ajax_stats_404_model(self):
+        self.test_ajax_stats(model='else', default_code=404)
 
     def test_race_view(self):
         kwargs = {'competition_slug': 'f1', 'year': 2016, 'race_id': 1}
@@ -115,7 +153,6 @@ class ViewTest(FixturesTest):
 
         
     def test_team_records_global_view(self):
-        kwargs = {}
         self._GET_request('global:team')
         self._GET_request('global:team-olympic')
         self._GET_request('global:team-seasons-rank')
