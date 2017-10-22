@@ -1,4 +1,5 @@
 {% load i18n %}
+{% if rank %}
 <table class="table table-condensed table-striped table-hover">
     <tr>
         <th>{% trans 'Count' %}</th>
@@ -19,3 +20,4 @@
     {% endfor %}
 
 </table>
+{% endif %}

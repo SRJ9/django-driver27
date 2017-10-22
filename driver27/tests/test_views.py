@@ -97,27 +97,6 @@ class ViewTest(FixturesTest):
         kwargs['race_id'] = 200
         self._GET_request('season:race-view', kwargs=kwargs, code=404)
 
-    def _test_driver_record_view(self, base_path, kwargs):
-        self._GET_request(base_path+':driver-record-index', kwargs=kwargs)
-        kwargs['record'] = 'POLE'
-        self._GET_request(base_path+':driver-record', kwargs=kwargs)
-        self._GET_request(base_path+':driver-streak', kwargs=kwargs)
-        self._GET_request(base_path+':driver-top-streak', kwargs=kwargs)
-        self._GET_request(base_path+':driver-active-streak', kwargs=kwargs)
-        self._GET_request(base_path+':driver-active-top-streak', kwargs=kwargs)
-
-        if base_path == 'competition' or base_path == 'global':
-            self._GET_request(base_path+':driver-seasons', kwargs=kwargs)
-
-        kwargs['record'] = 'FFF'
-        self._GET_request(base_path+':driver-record', kwargs=kwargs, code=404)
-
-    def test_driver_records_view(self):
-        kwargs = {'competition_slug': 'f1', 'year': 2016}
-        self._test_driver_record_view('season', kwargs)
-        kwargs = {'competition_slug': 'f1'}
-        self._test_driver_record_view('competition', kwargs)
-
 
     def test_driver_records_global_view(self):
         kwargs = {}
@@ -126,70 +105,20 @@ class ViewTest(FixturesTest):
         self._GET_request('global:driver-olympic')
         self._GET_request('global:driver-seasons-rank')
         self._GET_request('global:driver-comeback')
-        self._test_driver_record_view('global', kwargs)
         self._test_competition_view()
         self._test_season_view()
-
-    def _test_driver_records_redir(self):
-        kwargs = {'record': 'POLE'}
-        response = self.client.post(reverse('global:dr27-driver-record-redir'), data=kwargs)
-        self.assertEqual(response.status_code, 302)
-        kwargs['competition'] = 'f1'
-        response = self.client.post(reverse('global:dr27-driver-record-redir'), data=kwargs)
-        self.assertEqual(response.status_code, 302)
-        kwargs['year'] = '2016'
-        response = self.client.post(reverse('global:dr27-driver-record-redir'), data=kwargs)
-        self.assertEqual(response.status_code, 302)
 
     def test_profiles_view(self):
 
         self._GET_request('global:driver-profile', kwargs={'driver_id': 1})
         self._GET_request('global:team-profile', kwargs={'team_id': 1})
 
-    def _test_team_records_view(self, base_path, kwargs):
-        self._GET_request(base_path+':team-record-index', kwargs=kwargs)
-        kwargs['record'] = 'POLE'
-        self._GET_request(base_path+':team-record', kwargs=kwargs)
-        self._GET_request(base_path+':team-record-races', kwargs=kwargs)
-        self._GET_request(base_path+':team-record-doubles', kwargs=kwargs)
-        self._GET_request(base_path+':team-streak', kwargs=kwargs)
-        self._GET_request(base_path+':team-top-streak', kwargs=kwargs)
-
-        if base_path == 'competition' or base_path == 'global':
-            self._GET_request(base_path+':team-seasons', kwargs=kwargs)
-
-        kwargs['record'] = 'FFF'
-        self._GET_request(base_path+':team-record', kwargs=kwargs, code=404)
-
-    def test_team_records_redir(self):
-        URL = ':'.join([DRIVER27_NAMESPACE, 'global:dr27-team-record-redir'])
-        REDIR_URL = reverse(URL)
-        kwargs = {'record': 'POLE'}
-        response = self.client.post(REDIR_URL, data=kwargs)
-        self.assertEqual(response.status_code, 302)
-        kwargs['competition'] = 'f1'
-        response = self.client.post(REDIR_URL, data=kwargs)
-        self.assertEqual(response.status_code, 302)
-        kwargs['year'] = '2016'
-        response = self.client.post(REDIR_URL, data=kwargs)
-        self.assertEqual(response.status_code, 302)
-
-
-
-    def test_team_records_view(self):
-        kwargs = {'competition_slug': 'f1', 'year': 2016}
-        self._test_team_records_view('season', kwargs)
-
-    def test_team_records_competition_view(self):
-        kwargs = {'competition_slug': 'f1'}
-        self._test_team_records_view('competition', kwargs)
         
     def test_team_records_global_view(self):
         kwargs = {}
         self._GET_request('global:team')
         self._GET_request('global:team-olympic')
         self._GET_request('global:team-seasons-rank')
-        self._test_team_records_view('global', kwargs)
 
     def test_contender_season_points(self):
         driver = Driver.objects.get(pk=1)

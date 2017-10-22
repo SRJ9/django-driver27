@@ -16,8 +16,19 @@
         var params = get_common_params();
 
         params['model'] = standing_model;
-        params['record'] = $('#record').val();
-        params['rank_opt'] = $('#rank_opt').val();
+
+        record_el = $('#record');
+
+        if(record_el.val() !== ''){
+            params['record'] = record_el.val();
+        }
+
+        rank_opt = $('#rank_opt');
+
+        if(rank_opt.val() !== ''){
+            params['rank_opt'] = rank_opt.val();
+        }
+
 
         $.get("{% url 'driver27:dr27-ajax:stats' %}", params,
             function (response) {

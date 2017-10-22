@@ -34,23 +34,6 @@ def dr27_record_urls_by_type(stat_type):
     }.get(stat_type)
 
 
-def dr27_records_list(stat_type):
-    record_config = {'view': stat_type + '_record_view', 'name': 'record'}
-    url_pattern = Driver27ShortcutUrls(stat_type)
-    url_pattern.bulk_append_urls(
-        [
-            ('$', record_config['view'], record_config['name']),
-            ('seasons/$', stat_type + '_record_seasons_view', 'seasons'),
-            ('streak/$', stat_type + '_streak_view', 'streak'),
-            ('streak/top/$', stat_type + '_streak_view', 'top-streak', {'max_streak': True})
-        ]
-    )
-
-    urls_to_append = dr27_record_urls_by_type(stat_type)
-    url_pattern.bulk_append_urls(urls_to_append)
-    return url_pattern
-
-
 def dr27_stats_urls(stat_type):
     url_pattern = Driver27ShortcutUrls(stat_type)
     url_pattern.bulk_append_urls(
@@ -61,8 +44,6 @@ def dr27_stats_urls(stat_type):
             ('record/$', stat_type + '_record_view', 'record-index'),
         ]
     )
-
-    url_pattern += [url(r'^record/(?P<record>[-\w\d]+)/', include(dr27_records_list(stat_type)))]
 
     if stat_type == 'driver':
         url_pattern.append_url('comeback/$', 'driver_comeback_view', 'comeback')
