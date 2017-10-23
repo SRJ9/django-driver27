@@ -10,7 +10,6 @@ from django.db.models import Q
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
 from django_countries.fields import CountryField
-from exclusivebooleanfield.fields import ExclusiveBooleanField
 from slugify import slugify
 from swapfield.fields import SwapIntegerField
 
@@ -36,14 +35,27 @@ def get_tuples_from_results(results):
     return [get_tuple_from_result(result) for result in results]
 
 
-def get_tuple_from_result(result):
-    return ResultTuple(result.qualifying, result.finish, result.fastest_lap,
-                       result.wildcard, result.retired, result.race_id, result.race.circuit,
-                       result.race.grand_prix,
-                       getattr(result.race.grand_prix, 'country', None),
-                       result.race.season.competition, result.race.season.year,
-                       result.race.round,
-                       result.race.alter_punctuation, result.points)
+def get_tuple_from_result(result, **kwargs):
+    result_kwargs = {
+        'qualifying': result.qualifying,
+        'finish': result.finish,
+        'fastest_lap': result.is_fastest,
+        'wildcard': result.wildcard,
+        'retired': result.retired,
+        'race_id': result.race_id,
+        'circuit': result.race.circuit,
+        'grand_prix': result.race.grand_prix,
+        'country': getattr(result.race.grand_prix, 'country', None),
+        'competition': result.race.season.competition,
+        'year': result.race.season.year,
+        'round': result.race.round,
+        'alter_punctuation': result.race.alter_punctuation,
+        'points': result.points
+    }
+
+    result_kwargs.update(**kwargs)
+
+    return ResultTuple(**result_kwargs)
 
 
 @python_2_unicode_compatible
@@ -374,7 +386,6 @@ class GrandPrix(models.Model):
         verbose_name = _('Grand Prix')
         verbose_name_plural = _('Grands Prix')
 
-
 @python_2_unicode_compatible
 class Season(AbstractRankModel):
     """ Season model. The main model to restrict races, results and punctuation """
@@ -507,8 +518,7 @@ class Season(AbstractRankModel):
         return self.past_or_pending_races(past=True)
 
     @property
-    def num_pending_races(self):  # noqa
-        # @todo check behavior when races exceeded season:rounds
+    def num_pending_races(self):
         expected_pending_races = races_no_results = self.pending_races.count()
         season_rounds = self.rounds
         if season_rounds:
@@ -526,9 +536,12 @@ class Season(AbstractRankModel):
         max_points = 0
 
         for race in self.pending_races.all():
-            max_result = Result(finish=1, qualifying=1, fastest_lap=True, race=race)
+            # max_result = Result(finish=1, qualifying=1, race=race)
+            # @todo fastest_car modify tuple behavior
+            max_result = Result(finish=1, qualifying=1, race=race)
+            max_tuple = get_tuple_from_result(max_result, fastest_lap=True)
             max_points += PointsCalculator(punctuation_config=punctuation_config).calculator(
-                get_tuple_from_result(max_result)
+                max_tuple
             )
         return max_points
 
@@ -623,6 +636,9 @@ class Race(models.Model):
     date = models.DateField(blank=True, null=True, default=None, verbose_name=_('date'))
     alter_punctuation = models.CharField(choices=ALTER_PUNCTUATION, null=True, blank=True,
                                          default=None, max_length=6, verbose_name=_('alter punctuation'))
+    fastest_car = models.ForeignKey(Seat, related_name='fastest_in', blank=True, null=True, default=None,
+                                    on_delete=models.SET_NULL)
+
 
     def get_absolute_url(self):
         URL = ':'.join([DRIVER27_NAMESPACE, 'season:race-view'])
@@ -697,7 +713,7 @@ class Race(models.Model):
     @property
     def fastest(self):
         """ get_result_seat(fastest) """
-        return self.get_result_seat(fastest_lap=True)
+        return self.fastest_car
 
     @classmethod
     def bulk_copy(cls, races_pk, season_pk):
@@ -861,7 +877,7 @@ class Result(models.Model):
     qualifying = SwapIntegerField(unique_for_fields=['race'], blank=True, null=True, default=None,
                                   verbose_name=_('qualifying'))
     finish = SwapIntegerField(unique_for_fields=['race'], blank=True, null=True, default=None, verbose_name=_('finish'))
-    fastest_lap = ExclusiveBooleanField(on='race', default=False, verbose_name=_('fastest lap'))
+    # fastest_lap = ExclusiveBooleanField(on='race', default=False, verbose_name=_('fastest lap'))
     retired = models.BooleanField(default=False, verbose_name=_('retired'))
     wildcard = models.BooleanField(default=False, verbose_name=_('wildcard'))
     comment = models.CharField(max_length=250, blank=True, null=True, default=None, verbose_name=_('comment'))
@@ -933,6 +949,13 @@ class Result(models.Model):
     @property
     def team(self):
         return self.seat.team
+
+    @property
+    def is_fastest(self):
+        try:
+            return self.race.fastest_car.pk == self.seat.pk
+        except AttributeError:
+            return False
 
     def points_calculator(self, punctuation_config):
         result_tuple = get_tuple_from_result(self)

@@ -26,26 +26,6 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         self.assertEquals(result.driver, result.seat.driver)
         self.assertEquals(result.team, result.seat.team)
 
-    def test_result_fastest_unique(self):
-        seat_a = self.get_test_seat()
-        competition = self.get_test_competition()
-        season = self.get_test_season(competition=competition)
-        race = self.get_test_race(season=season)
-        self.get_test_competition_team(competition=competition, team=seat_a.team)
-        result = self.get_test_result(seat=seat_a, race=race)
-        result.fastest_lap = True
-        self.assertIsNone(result.save())
-        self.assertEquals(result.fastest_lap, True)
-        # create result_b
-        seat_b = self.get_test_seat_teammate(seat_a=seat_a)
-        result_b = self.get_test_result(seat=seat_b, race=race)
-        result_b.fastest_lap = True
-        self.assertIsNone(result_b.save())
-        # Although both results have fastest_lap=True, only the last is saved.
-        self.assertEquals(Result.objects.filter(race=race, fastest_lap=True).count(), 1)
-        self.assertEquals(Result.objects.get(race=race, seat=seat_a).fastest_lap, False)
-        self.assertEquals(Result.objects.get(race=race, seat=seat_b).fastest_lap, True)
-
     def test_result_points(self):
         seat = self.get_test_seat()
         competition = self.get_test_competition()
@@ -65,8 +45,8 @@ class ResultTestCase(TestCase, CommonResultTestCase):
         race_points = result.points
 
         # change scoring to add fastest_lap point
-        result.fastest_lap = True
-        self.assertIsNone(result.save())
+        race.fastest_car = result.seat
+        self.assertIsNone(race.save())
 
         # modify scoring to check if fastest_lap scoring is counted
         punctuation_config = season.get_punctuation_config()

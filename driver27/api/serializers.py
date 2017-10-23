@@ -154,6 +154,10 @@ class SeatRecapSerializer(serializers.ModelSerializer):
 class ResultSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     seat_details = serializers.SerializerMethodField()
+    fastest_lap = serializers.SerializerMethodField()
+
+    def get_fastest_lap(self, obj):
+        return obj.is_fastest
 
     def get_seat_details(self, obj):
         return SeatRecapSerializer(instance=obj.seat,

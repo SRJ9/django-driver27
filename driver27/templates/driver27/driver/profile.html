@@ -85,7 +85,7 @@
                             data-qualifying="{{ result.qualifying }}"
                             data-finish="{{ result.finish }}"
                             data-retired="{{ result.retired }}"
-                            data-fastest="{{ result.fastest_lap }}"
+                            data-fastest="{{ result.is_fastest }}"
                             data-points="{{ result.points }}"
 
                         >
@@ -95,7 +95,7 @@
                         <td>{{ result.qualifying }}</td>
                         <td>{{ result.finish|default_if_none:"-" }} </td>
                         <td><i class="glyphicon {% if result.retired %}text-danger glyphicon-remove-sign{% else %}glyphicon-flag{% endif %}"></i></td>
-                            <td class="text-center">{% if result.fastest_lap %}<i class="glyphicon glyphicon-time"></i>{% endif %}</td>
+                            <td class="text-center">{% if result.is_fastest %}<i class="glyphicon glyphicon-time"></i>{% endif %}</td>
                         <td>{{ result.points|default_if_none:"0" }}</td>
                         </tr>
                     {% endfor %}

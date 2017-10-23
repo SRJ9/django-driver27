@@ -4,7 +4,6 @@ django-countries
 django-tabbed-admin
 python-slugify
 tox
-django-exclusivebooleanfield
 djangorestframework>=3.7.0
 django-swapfield
 django-filter

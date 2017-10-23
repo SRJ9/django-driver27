@@ -246,7 +246,7 @@ class RaceAdmin(CommonTabbedModelAdmin):
     form = RaceAdminForm
     tab_overview = (
         (None, {
-            'fields': ('season', 'round', 'grand_prix', 'circuit', 'date', 'alter_punctuation')
+            'fields': ('season', 'round', 'grand_prix', 'circuit', 'date', 'alter_punctuation', 'fastest_car')
         }),
     )
     tab_results = (
