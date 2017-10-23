@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from django import template
-from ..models import Season
 register = template.Library()
 
 @register.filter

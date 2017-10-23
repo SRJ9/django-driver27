@@ -1,5 +1,5 @@
 {% extends 'driver27/base.html' %}
-{% load static i18n print_pos %}
+{% load static i18n print_pos race_url %}
 {% block dr27_content %}
     {{ block.super }}
     <div class="container-fluid">
@@ -65,7 +65,7 @@
         <div class="clearfix"></div>
         <div class="col-md-9">
             {% if results %}
-            <table class="table table-bordered table-striped profile-results-list">
+                <table class="table table-bordered table-striped profile-results-list">
                     <thead>
                     <tr>
                         <th>{% trans 'Race' %}</th>
@@ -85,21 +85,24 @@
                             data-qualifying="{{ result.qualifying }}"
                             data-finish="{{ result.finish }}"
                             data-retired="{{ result.retired }}"
-                            data-fastest="{{ result.is_fastest }}"
+                            data-fastest="{{ result.fastest_lap }}"
                             data-points="{{ result.points }}"
 
                         >
-                        <td>{{ result.competition }}/{{ result.year }} {{ result.round|stringformat:"02d" }}</td>
-                            <td><a href="{{ result.race.get_absolute_url }}">{{ result.grand_prix }}</a></td>
-                        <td class="text-center"><i class="{{ result.country.flag_css }}"></i></td>
-                        <td>{{ result.qualifying }}</td>
-                        <td>{{ result.finish|default_if_none:"-" }} </td>
-                        <td><i class="glyphicon {% if result.retired %}text-danger glyphicon-remove-sign{% else %}glyphicon-flag{% endif %}"></i></td>
-                            <td class="text-center">{% if result.is_fastest %}<i class="glyphicon glyphicon-time"></i>{% endif %}</td>
-                        <td>{{ result.points|default_if_none:"0" }}</td>
+                            <td>{{ result.competition }}/{{ result.year }} {{ result.round|stringformat:"02d" }}</td>
+                            <td><a href="{{ result.race_id|race_url }}">{{ result.grand_prix }}</a> {{ result.race }}</td>
+                            <td class="text-center"><i class="{{ result.country.flag_css }}"></i></td>
+                            <td>{{ result.qualifying }}</td>
+                            <td>{{ result.finish|default_if_none:"-" }} </td>
+                            <td>
+                                <i class="glyphicon {% if result.retired %}text-danger glyphicon-remove-sign{% else %}glyphicon-flag{% endif %}"></i>
+                            </td>
+                            <td class="text-center">{% if result.fastest_lap %}
+                                <i class="glyphicon glyphicon-time"></i>{% endif %}</td>
+                            <td>{{ result.points|default_if_none:"0" }}</td>
                         </tr>
                     {% endfor %}
-            </table>
+                </table>
             {% endif %}
         </div>
 
