@@ -59,10 +59,15 @@ Versions
 -   0.22 (HAM McLaren 2008/BUT Brawn 2009)
 -   0.27-VIL (Gilles Villeneuve 27)
 
+0.24.2
+======
+-  Adding cache
+-  Fixes and improvement of code
+
 0.24.1
 ======
 -   Driver/Team profile
--   Improve record/streak views
+-   Improvement record/streak views
 
 0.24
 ====
@@ -72,7 +77,7 @@ Versions
 0.23
 ====
 -   Refactor code
--   API improves
+-   API improvement
 -   Streak and Rank models
 
 0.22
