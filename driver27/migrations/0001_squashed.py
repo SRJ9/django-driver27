@@ -11,8 +11,6 @@ import swapfield.fields
 
 class Migration(migrations.Migration):
 
-    replaces = [(b'driver27', '0001_initial'), (b'driver27', '0002_auto_20161103_0846'), (b'driver27', '0003_auto_20170204_2308'), (b'driver27', '0004_auto_20170204_2311'), (b'driver27', '0005_result_points'), (b'driver27', '0006_auto_20170529_2209'), (b'driver27', '0007_auto_20170529_2211'), (b'driver27', '0008_auto_20170529_2220'), (b'driver27', '0009_populate_driver_in_seats'), (b'driver27', '0010_seats_contender_null'), (b'driver27', '0011_remove_contender_teams'), (b'driver27', '0012_auto_20170529_2232'), (b'driver27', '0013_remove_seat_contender'), (b'driver27', '0014_auto_20170529_2320'), (b'driver27', '0015_auto_20170602_1447'), (b'driver27', '0016_driver_teams'), (b'driver27', '0017_auto_20170602_1526'), (b'driver27', '0018_populate_competition_team'), (b'driver27', '0019_remove_team_competitions'), (b'driver27', '0020_team_competitions'), (b'driver27', '0021_auto_20170602_1547'), (b'driver27', '0022_auto_20170602_1552'), (b'driver27', '0023_auto_20170602_1552'), (b'driver27', '0024_auto_20170602_1737'), (b'driver27', '0025_auto_20171022_2012'), (b'driver27', '0026_populate_fastest_race'), (b'driver27', '0027_auto_20171022_2021')]
-
 
     initial = True
 
