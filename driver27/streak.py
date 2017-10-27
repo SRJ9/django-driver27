@@ -55,15 +55,27 @@ class Streak(object):
         return filter_list[comparison_position] in Streak.builtin_function_dict()
 
     @classmethod
+    def convert_filter(cls, filter_key, filter_value):
+
+        if filter_key == 'race.fastest_car' and isinstance(filter_value, F) \
+            and filter_value.name == 'seat':
+            filter_key = 'fastest_lap'
+            filter_value = True
+        return filter_key, filter_value
+
+
+    @classmethod
     def exec_comparison(cls, result, filter_list, filter_value):
         comparison_key = 'eq'
         if cls.exists_comparison(filter_list):
             comparison_key = cls.get_comparison_item(filter_list)
             filter_list.pop(cls.get_comparison_position(filter_list))
         filter_key = '.'.join(filter_list)
+        filter_key, filter_value = cls.convert_filter(filter_key, filter_value)
         result_attr = getattr(result, filter_key)
         if isinstance(filter_value, F):
-            filter_value = getattr(result, filter_value.name)
+            filter_value = filter_value.name
+            filter_value = getattr(result, filter_value)
         builtin_function = cls.get_builtin_function(comparison_key)
         return builtin_function(result_attr, filter_value) if builtin_function else False
 
