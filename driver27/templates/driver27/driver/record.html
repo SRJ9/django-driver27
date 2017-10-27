@@ -1,11 +1,11 @@
-{% extends 'driver27/base.html' %}
+{% extends 'base.html' %}
 {% load i18n %}
-{% block dr27_menu %}
+{% block menu %}
 
     {% include 'driver27/_selector_menu.html' %}
     {% include 'driver27/driver/menu.html' %}
 {% endblock %}
-{% block dr27_content %}
+{% block content %}
     {{ block.super }}
     {% load champion_filter i18n %}
     <form method="POST" class="form-inline">
@@ -38,7 +38,7 @@
     <div id="driver-stats" class="stats" data-standing-model="driver"></div>
 {% endblock %}
 
-{% block bootstrap3_extra_script %}
+{% block extra_script %}
     {{ block.super }}
     {% include 'driver27/include_rank_js.html' %}
 {% endblock %}

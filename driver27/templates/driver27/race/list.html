@@ -1,13 +1,13 @@
-{% extends 'driver27/base.html' %}
+{% extends 'base.html' %}
 {% load i18n static %}
-{% block dr27_menu %}
+{% block menu %}
     {% include 'driver27/season/menu-pre.html' %}
     <li class="nav-item">
         <a class="nav-link"
            href="{{ season.get_races_url }}">{% trans 'Races' %}</a>
     </li>
 {% endblock %}
-{% block dr27_content %}
+{% block content %}
     {{ block.super }}
     <table class="table">
         <tr>
@@ -61,7 +61,7 @@
 
 {% endblock %}
 
-{% block bootstrap3_extra_head %}
+{% block extra_head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
 

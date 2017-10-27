@@ -1,12 +1,12 @@
-{% extends 'driver27/base.html' %}
+{% extends 'base.html' %}
 {% load i18n %}
-{% block dr27_menu %}
+{% block menu %}
 
     {% include 'driver27/_selector_menu.html' %}
     {% include 'driver27/driver/menu.html' %}
 {% endblock %}
 
-{% block dr27_content %}
+{% block content %}
     {{ block.super }}
     {% with rank=season_or_competition.comeback_rank %}
         {% if rank %}
@@ -42,11 +42,11 @@
     {% endwith %}
 {% endblock %}
 
-{% block bootstrap3_extra_script %}
+{% block extra_script %}
     {{ block.super }}
     <script type="text/javascript">
         $('.comeback-table tr.comeback-entry').each(function (index, element) {
-            if ($(element).data('finish') == 1) {
+            if ($(element).data('finish') === 1) {
                 $(element).addClass('bg-info');
             }
         })

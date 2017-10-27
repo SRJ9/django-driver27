@@ -9,7 +9,7 @@ readme.close()
 
 setup(
     name='django-driver27',
-    version='0.24.2.3',
+    version='0.24.2.4',
     include_package_data=True,
     packages=find_packages(),
     url='https://github.com/SRJ9/django-driver27.git',

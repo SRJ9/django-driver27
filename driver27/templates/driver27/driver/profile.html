@@ -1,6 +1,6 @@
-{% extends 'driver27/base.html' %}
+{% extends 'base.html' %}
 {% load static i18n print_pos race_url %}
-{% block dr27_content %}
+{% block content %}
     {{ block.super }}
     <div class="container-fluid">
         <div class="col-md-9">
@@ -113,13 +113,13 @@
 
 {% endblock %}
 
-{% block bootstrap3_extra_head %}
+{% block extra_head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'flags/sprite-hq.css' %}">
 
 {% endblock %}
 
-{% block bootstrap3_extra_script %}
+{% block extra_script %}
     {{ block.super }}
     <script src="{% static 'driver27/js/filter_season_by_competition.js' %}"></script>
 {% endblock %}
