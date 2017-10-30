@@ -12,7 +12,7 @@ from django.contrib.admin import SimpleListFilter
 
 from django.db.models import Q
 
-
+@admin.register(Driver)
 class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     list_display = ('__str__', 'country',)
     list_filter = ('country', 'year_of_birth', 'teams',)
@@ -30,6 +30,7 @@ class CompetitionTeamInline(CompetitionFilterInline):
     model = CompetitionTeam
 
 
+@admin.register(Team)
 class TeamAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     model = Team
     list_display = ('__str__', 'country', 'print_competitions')
@@ -55,7 +56,7 @@ class TeamAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
 class CompetitionSeasonAdmin(admin.TabularInline):
     model = Season
 
-
+@admin.register(Competition)
 class CompetitionAdmin(CommonTabbedModelAdmin):
     model = Competition
     list_display = ('name', 'full_name')
@@ -76,16 +77,16 @@ class CompetitionAdmin(CommonTabbedModelAdmin):
         ('Seasons', tab_seasons)
     ]
 
-
+@admin.register(Circuit)
 class CircuitAdmin(admin.ModelAdmin):
     list_display = ('name', 'city', 'country', 'opened_in')
 
-
+@admin.register(GrandPrix)
 class GrandPrixAdmin(RelatedCompetitionAdmin, admin.ModelAdmin):
     list_display = ('name', 'country', 'default_circuit', 'print_competitions')
     list_filter = ('competitions',)
 
-
+@admin.register(Season)
 class SeasonAdmin(CommonTabbedModelAdmin):
     form = SeasonAdminForm
     tab_overview = (
@@ -238,7 +239,7 @@ class SeasonAdmin(CommonTabbedModelAdmin):
                    ] + urls
         return new_urls
 
-
+@admin.register(Race)
 class RaceAdmin(CommonTabbedModelAdmin):
     list_display = ('__str__', 'season', 'print_pole', 'print_winner', 'print_fastest',)
     list_filter = ('season', 'season__competition', 'circuit', 'grand_prix',)
@@ -314,7 +315,7 @@ class SeatPeriodFilter(SimpleListFilter):
         else:
             return queryset
 
-
+@admin.register(Seat)
 class SeatAdmin(CommonTabbedModelAdmin):
     list_display = ('driver', 'team', 'print_periods')
     list_filter = (SeatPeriodFilter, 'driver', 'team', 'team__competitions')
@@ -344,7 +345,7 @@ class SeatAdmin(CommonTabbedModelAdmin):
     class Media:
         js = ['driver27/js/list_filter_collapse.js']
 
-
+@admin.register(SeatPeriod)
 class SeatPeriodAdmin(admin.ModelAdmin):
     list_filter = ('seat__driver', 'seat__team', 'seat__team__competitions',)
 
@@ -352,12 +353,3 @@ class SeatPeriodAdmin(admin.ModelAdmin):
         js = ['driver27/js/list_filter_collapse.js']
 
 
-admin.site.register(Driver, DriverAdmin)
-admin.site.register(Team, TeamAdmin)
-admin.site.register(Competition, CompetitionAdmin)
-admin.site.register(Circuit, CircuitAdmin)
-admin.site.register(GrandPrix, GrandPrixAdmin)
-admin.site.register(Season, SeasonAdmin)
-admin.site.register(Race, RaceAdmin)
-admin.site.register(Seat, SeatAdmin)
-admin.site.register(SeatPeriod, SeatPeriodAdmin)
