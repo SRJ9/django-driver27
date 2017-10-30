@@ -7,6 +7,8 @@ from ..models import Result
 from ..models import Seat, SeatPeriod
 from ..models import Team, TeamSeason
 
+from django.utils.translation import ugettext as _
+
 
 class RaceInlineForm(AlwaysChangedModelForm):
     class Meta:
@@ -26,6 +28,16 @@ class RaceInline(CompetitionFilterInline):
 class SeatInline(CompetitionFilterInline):
     model = Seat
     extra = 1
+    readonly_fields = ('edit',)
+
+    def edit(self, obj):
+        if obj.pk:
+            link = reverse('admin:driver27_seat_change', args=[obj.pk])
+            return "<a href='{link}'>{text}</a>".format(link=link,
+                                                             text=_('Edit'))
+        else:
+            return ''
+    edit.allow_tags = True
 
 
 

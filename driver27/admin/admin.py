@@ -16,13 +16,16 @@ from django.db.models import Q
 class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     list_display = ('__str__', 'country',)
     list_filter = ('country', 'year_of_birth', 'teams',)
+    search_fields = ('last_name', 'first_name',)
     tab_overview = (
         (None, {
             'fields': ('last_name', 'first_name', 'year_of_birth', 'country')
         }),
     )
+    tab_seats = (SeatInline,)
     tabs = [
         ('Overview', tab_overview),
+        ('Seats', tab_seats),
     ]
 
 
@@ -35,6 +38,7 @@ class TeamAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
     model = Team
     list_display = ('__str__', 'country', 'print_competitions')
     list_filter = ('competitions',)
+    search_fields = ('name', 'full_name',)
     tab_overview = (
         (None, {
             'fields': ('name', 'full_name', 'country')
@@ -65,15 +69,15 @@ class CompetitionAdmin(CommonTabbedModelAdmin):
             'fields': ('name', 'full_name', 'country', 'slug')
         }),
     )
-    # tab_team = (
-    #     CompetitionTeamInline,
-    # )
+    tab_team = (
+        CompetitionTeamInline,
+    )
     tab_seasons = (
         CompetitionSeasonAdmin,
     )
     tabs = [
         ('Overview', tab_overview),
-        # ('Team', tab_team),
+        ('Team', tab_team),
         ('Seasons', tab_seasons)
     ]
 
