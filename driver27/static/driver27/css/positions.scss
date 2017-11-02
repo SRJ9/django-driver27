@@ -1,0 +1,65 @@
+@mixin double-column {
+  -moz-column-count: 2;
+  -moz-column-gap: 20px;
+  -webkit-column-count: 2;
+  -webkit-column-gap: 20px;
+  column-count: 2;
+  column-gap: 20px;
+  column-fill: balance;
+  -moz-column-fill: balance;
+  border-bottom: 1px solid black;
+
+}
+
+.ordered-race-results {
+  @include double-column;
+  & li > * {
+    cursor: pointer;
+  }
+
+  li {
+    list-style-type: none;
+  }
+}
+
+#other_seats {
+  @include double-column;
+  & .dns-button, & .delete-button {
+  display: none;
+}
+}
+
+.position {
+  font-size: 1.3em;
+}
+
+@mixin swap-button {
+  background: none;
+  border-radius: 2px;
+  border: 1px solid black;
+  padding: 2px 3px;
+  height: 10px;
+  line-height: 15px;
+  float: right;
+  font-size: 0.6em;
+}
+
+.dns-button {
+  @include swap-button;
+  color: #000;
+  .is-dns & {
+    background: #ba2121;
+    color: #fff;
+  }
+}
+
+.add-button {
+  @include swap-button;
+  background: olive;
+  color: #fff;
+  cursor: pointer;
+  .ordered-race-results & {
+    display: none;
+  }
+}
+

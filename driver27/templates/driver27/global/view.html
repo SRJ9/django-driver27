@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load champion_filter i18n %}
+{% load driver27 i18n %}
 {% block menu %}
     {% include 'driver27/global/menu-pre.html' %}
     {% include 'driver27/global/menu.html' %}
@@ -7,13 +7,13 @@
 {% block content %}
     {{ block.super }}
 
-    <table class="table table-condensed table-striped table-hover">
+    <table class="table table-condensed table-striped table-hover leaders">
         <tr>
-            <th class="col-md-2">{% trans 'Season' %}</th>
-            <th class="col-md-2">{% trans 'Competition' %}</th>
-            <th class="col-md-1">{% trans 'Year' %}</th>
-            <th class="col-md-4">{% trans 'Driver leader' %}</th>
-            <th class="col-md-3">{% trans 'Team leader' %}</th>
+            <th class="col-xs-1 col-md-2 season">{% trans 'Season' %}</th>
+            <th class="hidden-xs col-md-2 competition">{% trans 'Competition' %}</th>
+            <th class="hidden-xs col-md-1 year">{% trans 'Year' %}</th>
+            <th class="col-xs-5 col-md-4 leader driver">{% trans 'Driver leader' %}</th>
+            <th class="col-xs-6 col-md-3 leader team">{% trans 'Team leader' %}</th>
         </tr>
         <tr id="seasons-list"></tr>
     </table>

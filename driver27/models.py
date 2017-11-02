@@ -674,7 +674,7 @@ class Race(models.Model):
 
     def _abstract_seats(self, exclude=False):
         seat_filter = {'team__competitions__seasons__races': self}
-        seat_exclude = {'driver__seats__results__race': self}
+        seat_exclude = {'results__race': self}
         seats = Seat.objects.filter(**seat_filter)
         if exclude:
             seats = seats.exclude(**seat_exclude)

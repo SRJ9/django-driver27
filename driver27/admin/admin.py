@@ -10,7 +10,8 @@ from .. import lr_diff, lr_intr
 
 from django.contrib.admin import SimpleListFilter
 
-from django.db.models import Q
+from django.db.models import Q, Count
+
 
 @admin.register(Driver)
 class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
@@ -245,13 +246,15 @@ class SeasonAdmin(CommonTabbedModelAdmin):
 
 @admin.register(Race)
 class RaceAdmin(CommonTabbedModelAdmin):
-    list_display = ('__str__', 'season', 'print_pole', 'print_winner', 'print_fastest',)
+    list_display = ('__str__', 'season', 'print_pole', 'print_winner', 'print_fastest', 'print_positions')
     list_filter = ('season', 'season__competition', 'circuit', 'grand_prix',)
 
+    readonly_fields = ('print_positions',)
     form = RaceAdminForm
     tab_overview = (
         (None, {
-            'fields': ('season', 'round', 'grand_prix', 'circuit', 'date', 'alter_punctuation', 'fastest_car')
+            'fields': ('season', 'round', 'grand_prix', 'circuit', 'date', 'alter_punctuation', 'fastest_car',
+                       'print_positions')
         }),
     )
     tab_results = (
@@ -264,13 +267,27 @@ class RaceAdmin(CommonTabbedModelAdmin):
         ('Results', tab_results),
     ]
 
-    # def get_urls(self):
-    #     urls = super(RaceAdmin, self).get_urls()
-    #     urlpatterns = [
-    #         url(r'(?P<race_id>\d+)/results/$', self.admin_site.admin_view(self.results), name='driver27_race_results')
-    #     ]
-    #
-    #     return urlpatterns + urls
+    def get_urls(self):
+        urls = super(RaceAdmin, self).get_urls()
+        urlpatterns = [
+            url(r'(?P<pk>\d+)/positions/$', self.admin_site.admin_view(self.edit_positions), name='driver27_race_results')
+        ]
+
+        return urlpatterns + urls
+
+    def print_positions(self, obj):
+        link = reverse("admin:driver27_race_results", kwargs={'pk': obj.pk})
+        return "<a href='{link}'>{text}</a>".format(link=link,
+                                                    text=_('Positions'))
+    print_positions.allow_tags = True
+    print_positions.short_description = 'Positions'
+
+    def edit_positions(self, request, pk=None, *args, **kwargs):
+        context = {}
+        if pk:
+            race = Race.objects.get(pk=pk)
+            context['race'] = race
+        return render(request, 'driver27/admin/positions.html', context, *args, **kwargs)
 
     def print_seat(self, seat):
         return u"{driver}".format(driver=seat.driver) if seat else None

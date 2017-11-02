@@ -1,22 +1,22 @@
-{% load champion_filter %}
+{% load driver27 %}
 {% for season in seasons %}
     <tr>
-        <td>
+        <td class="col-xs-1 col-md-2 season">
             <a href="{{ season.get_absolute_url }}">
                 {{ season }}
             </a>
         </td>
         {% if not request.GET.competition %}
-            <td>
+            <td class="hidden-xs col-md-2 competition">
                 <a href="{{ season.competition.get_absolute_url }}">
                     {{ season.competition }}
                 </a>
             </td>
-            <td>
+            <td class="hidden-xs col-md-1 year">
                 {{ season.year }}
             </td>
         {% endif %}
-        <td>
+        <td class="col-xs-5 col-md-4 leader driver">
             {% if season.leader %}
                 {{ season.pk | champion_filter | safe }}
                 {{ season.leader.points }}
@@ -26,7 +26,7 @@
                 -
             {% endif %}
         </td>
-        <td>
+        <td class="col-xs-6 col-md-3 leader team">
             {% if season.team_leader %}
                 {{ season.team_leader.points }}
                 <a href="{{ season.team_leader.team.get_absolute_url }}">{{ season.team_leader.team }}</a>

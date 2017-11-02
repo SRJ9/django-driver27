@@ -1,0 +1,13 @@
+{% load static driver27 %}
+{% with  pos_value=result|get_attribute:pos_key %}
+    <li class="{% if not pos_value or pos_value < 1 %} is-dns{% endif %}"
+        data-seat="{{ seat.pk }}" data-driver="{{ seat.driver.pk }}"
+    >
+        <span class="position">{{ pos_value|default:"-" }}</span>
+        <strong>{{ seat.driver }}</strong>
+        <small>{{ seat.team }}</small>
+        <a class="dns-button">DNF</a>
+        <img class="delete-button" src="{% static 'admin/img/icon-deletelink.svg' %}" alt="Delete">
+        <a class="add-button">Add</a>
+    </li>
+{% endwith %}
