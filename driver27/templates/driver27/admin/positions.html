@@ -29,9 +29,13 @@
 {% block content %}
     <h1>Positions of {{ race }}</h1>
 
-    {% include 'driver27/admin/_results_links.html' %}
+    <form id='form-positions' method="post">
+        {% csrf_token %}
+        <input type="button" value="Update positions"/>
+    </form>
 
     {% with results=race.results.all %}
+        {% include 'driver27/admin/_results_links.html' %}
         <ul id="qualifying" class="ordered-race-results">
             <caption>Qualifying</caption>
             {% for result in results|order_results:'qualifying' %}

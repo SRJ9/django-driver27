@@ -1,12 +1,14 @@
 {% load static driver27 %}
 {% with  pos_value=result|get_attribute:pos_key %}
-    <li class="{% if not pos_value or pos_value < 1 %} is-dnf{% endif %}"
+    <li class="{% if not pos_value or pos_value < 1 %} is-dnf{% endif %}{% if result.wildcard %} is-wildcard{% endif %}"
         data-seat="{{ seat.pk }}" data-driver="{{ seat.driver.pk }}"
+        data-wildcard={{ result.wildcard|default:False|lower }}
     >
         <span class="position">{{ pos_value|default:"-" }}</span>
         <strong>{{ seat.driver }}</strong>
         <small>{{ seat.team }}</small>
         <a class="dnf-button">DNF</a>
+        <a class="wildcard-button">WILDCARD</a>
         <img class="delete-button" src="{% static 'admin/img/icon-deletelink.svg' %}" alt="Delete">
         <a class="add-button">Add</a>
     </li>

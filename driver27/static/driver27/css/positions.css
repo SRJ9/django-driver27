@@ -1,30 +1,22 @@
-.ordered-race-results {
-  -moz-column-count: 2;
-  -moz-column-gap: 20px;
-  -webkit-column-count: 2;
-  -webkit-column-gap: 20px;
-  column-count: 2;
-  column-gap: 20px;
-  column-fill: balance;
-  -moz-column-fill: balance;
-  border-bottom: 1px solid black; }
-  .ordered-race-results li > * {
-    cursor: pointer; }
-  .ordered-race-results li {
-    list-style-type: none; }
+.ordered-race-results li > * {
+  cursor: pointer; }
+.ordered-race-results li {
+  list-style-type: none; }
 
-#other_seats {
-  -moz-column-count: 2;
-  -moz-column-gap: 20px;
-  -webkit-column-count: 2;
-  -webkit-column-gap: 20px;
-  column-count: 2;
-  column-gap: 20px;
-  column-fill: balance;
-  -moz-column-fill: balance;
-  border-bottom: 1px solid black; }
-  #other_seats .dnf-button, #other_seats .delete-button {
-    display: none; }
+#other_seats .dnf-button, #other_seats .delete-button {
+  display: none; }
+
+@media screen and (min-width: 768px) {
+  .ordered-race-results, #other_seats {
+    -moz-column-count: 2;
+    -moz-column-gap: 20px;
+    -webkit-column-count: 2;
+    -webkit-column-gap: 20px;
+    column-count: 2;
+    column-gap: 20px;
+    column-fill: balance;
+    -moz-column-fill: balance;
+    border-bottom: 1px solid black; } }
 
 .position {
   font-size: 1.3em; }
@@ -38,6 +30,7 @@
   line-height: 15px;
   float: right;
   font-size: 0.6em;
+  cursor: pointer;
   color: #000; }
   .is-dnf .dnf-button {
     background: #ba2121;
@@ -52,10 +45,34 @@
   line-height: 15px;
   float: right;
   font-size: 0.6em;
+  cursor: pointer;
   background: olive;
-  color: #fff;
-  cursor: pointer; }
+  color: #fff; }
   .ordered-race-results .add-button {
     display: none; }
+
+.wildcard-button {
+  background: none;
+  border-radius: 2px;
+  border: 1px solid black;
+  padding: 2px 3px;
+  height: 10px;
+  line-height: 15px;
+  float: right;
+  font-size: 0.6em;
+  cursor: pointer;
+  display: none;
+  margin-left: 2px;
+  margin-right: 2px; }
+  #finish .wildcard-button {
+    display: inherit; }
+  #finish .is-wildcard .wildcard-button {
+    background: orange;
+    color: #fff; }
+
+#form-positions input[type=button] {
+  right: 2%;
+  position: absolute;
+  padding: 0 3px; }
 
 /*# sourceMappingURL=positions.css.map */

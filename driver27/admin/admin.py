@@ -12,6 +12,10 @@ from django.contrib.admin import SimpleListFilter
 
 from django.db.models import Q, Count
 
+from django.contrib import messages
+
+import json
+
 
 @admin.register(Driver)
 class DriverAdmin(RelatedCompetitionAdmin, CommonTabbedModelAdmin):
@@ -282,11 +286,40 @@ class RaceAdmin(CommonTabbedModelAdmin):
     print_positions.allow_tags = True
     print_positions.short_description = 'Positions'
 
-    def edit_positions(self, request, pk=None, *args, **kwargs):
-        context = {}
-        if pk:
-            race = Race.objects.get(pk=pk)
-            context['race'] = race
+    def edit_positions(self, request, pk, *args, **kwargs):
+        race = Race.objects.get(pk=pk)
+        if request.method == 'POST':
+            positions = request.POST.get('positions')
+            positions = json.loads(positions)
+
+            results_pk = {
+                'to_remove': list(race.results.values_list('pk', flat=True)),
+                'created': []
+            }
+
+
+            for position in positions:
+                result, created = Result.objects.update_or_create(
+                    seat_id=position['seat_id'],
+                    race=race,
+                    defaults=position
+                )
+                if created:
+                    results_pk['created'].append(result.pk)
+                else:
+                    results_pk['to_remove'].remove(result.pk)
+                    has_changed = False
+                    for attr in ['qualifying', 'finish', 'retired', 'wildcard']:
+                        if getattr(result, attr) != position[attr]:
+                            has_changed = True
+
+                    if not has_changed:
+                        continue
+
+            Result.objects.filter(pk__in=results_pk['to_remove']).delete()
+            messages.success(request, 'Positions are updated. Created: {created},  Deleted: {to_remove}'\
+                             .format(**{x:len(results_pk[x]) for x in results_pk}))
+        context = {'race': race}
         return render(request, 'driver27/admin/positions.html', context, *args, **kwargs)
 
     def print_seat(self, seat):

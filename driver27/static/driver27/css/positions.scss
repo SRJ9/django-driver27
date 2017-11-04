@@ -1,32 +1,38 @@
-@mixin double-column {
-  -moz-column-count: 2;
-  -moz-column-gap: 20px;
-  -webkit-column-count: 2;
-  -webkit-column-gap: 20px;
-  column-count: 2;
-  column-gap: 20px;
-  column-fill: balance;
-  -moz-column-fill: balance;
+@mixin multiple-column($column: 2) {
+  @if $column >= 2 {
+    -moz-column-count: $column;
+    -moz-column-gap: #{$column * 10}px;
+    -webkit-column-count: $column;
+    -webkit-column-gap: #{$column * 10}px;
+    column-count: $column;
+    column-gap: #{$column * 10}px;
+    column-fill: balance;
+    -moz-column-fill: balance;
+  }
   border-bottom: 1px solid black;
 
 }
 
 .ordered-race-results {
-  @include double-column;
   & li > * {
     cursor: pointer;
   }
-
   li {
     list-style-type: none;
   }
+
 }
 
 #other_seats {
-  @include double-column;
   & .dnf-button, & .delete-button {
-  display: none;
+    display: none;
+  }
 }
+
+.ordered-race-results, #other_seats {
+  @media screen and (min-width: 768px) {
+    @include multiple-column;
+  }
 }
 
 .position {
@@ -42,6 +48,7 @@
   line-height: 15px;
   float: right;
   font-size: 0.6em;
+  cursor: pointer;
 }
 
 .dnf-button {
@@ -57,9 +64,27 @@
   @include swap-button;
   background: olive;
   color: #fff;
-  cursor: pointer;
   .ordered-race-results & {
     display: none;
   }
 }
 
+.wildcard-button {
+  @include swap-button;
+  display: none;
+  margin-left: 2px;
+  margin-right: 2px;
+  #finish & {
+    display: inherit;
+  }
+  #finish .is-wildcard & {
+    background: orange;
+    color: #fff;
+  }
+}
+
+#form-positions input[type=button] {
+  right: 2%;
+  position: absolute;
+  padding: 0 3px;
+}
