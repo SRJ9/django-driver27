@@ -1,4 +1,21 @@
-# DJANGO
-django>=1.10
+# MANDATORY
+djangorestframework>=3.7.0
+django-swapfield
+django-filter
+django-countries
+python-slugify
 
--r requirements-pytest.txt
+# TEMPLATES
+django-bootstrap3
+
+# OPTIONAL, USED IN DEMO
+django-tabbed-admin
+python-memcached
+django-memcache-status
+django-flat-responsive
+
+# FOR TESTING
+tox
+
+# 2.7
+unicodecsv
