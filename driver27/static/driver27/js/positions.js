@@ -2,12 +2,12 @@ $(function () {
     var drivers = [];
     var drivers_lookup = [];
 
-    function dnsEvent() {
+    function dnfEvent() {
         var closest_li = $(this).closest('li');
-        if (closest_li.hasClass('is-dns')) {
-            closest_li.removeClass('is-dns');
+        if (closest_li.hasClass('is-dfs')) {
+            closest_li.removeClass('is-dfs');
         } else {
-            closest_li.addClass('is-dns').find('.position').text('-');
+            closest_li.addClass('is-dfs').find('.position').text('-');
         }
     }
 
@@ -28,7 +28,7 @@ $(function () {
     }
 
     function addButtonEvent() {
-        var closest_li = $(this).closest('li').addClass('is-dns');
+        var closest_li = $(this).closest('li').addClass('is-dnf');
         var driver = closest_li.data('driver');
         if ($('.ui-sortable [data-driver=' + driver + ']').length > 0) {
             alert('There is at least one seat with this driver. Delete before add.');
@@ -40,8 +40,8 @@ $(function () {
     function order_results(target) {
         $(target).children().each(function () {
             var text_pos = pos = $(this).index() + 1;
-            var is_dns = $(this).hasClass('is-dns');
-            if (is_dns) {
+            var is_dnf = $(this).hasClass('is-dnf');
+            if (is_dnf) {
                 text_pos = '-';
                 pos = null;
             }
@@ -66,7 +66,7 @@ $(function () {
         }
     ).disableSelection();
 
-    $('.dns-button').on('click', dnsEvent);
+    $('.dnf-button').on('click', dnfEvent);
 
     $('.add-button').on('click', addButtonEvent);
 

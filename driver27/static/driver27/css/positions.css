@@ -23,13 +23,13 @@
   column-fill: balance;
   -moz-column-fill: balance;
   border-bottom: 1px solid black; }
-  #other_seats .dns-button, #other_seats .delete-button {
+  #other_seats .dnf-button, #other_seats .delete-button {
     display: none; }
 
 .position {
   font-size: 1.3em; }
 
-.dns-button {
+.dnf-button {
   background: none;
   border-radius: 2px;
   border: 1px solid black;
@@ -39,7 +39,7 @@
   float: right;
   font-size: 0.6em;
   color: #000; }
-  .is-dns .dns-button {
+  .is-dnf .dnf-button {
     background: #ba2121;
     color: #fff; }
 

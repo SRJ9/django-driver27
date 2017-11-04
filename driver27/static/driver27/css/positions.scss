@@ -24,7 +24,7 @@
 
 #other_seats {
   @include double-column;
-  & .dns-button, & .delete-button {
+  & .dnf-button, & .delete-button {
   display: none;
 }
 }
@@ -44,10 +44,10 @@
   font-size: 0.6em;
 }
 
-.dns-button {
+.dnf-button {
   @include swap-button;
   color: #000;
-  .is-dns & {
+  .is-dnf & {
     background: #ba2121;
     color: #fff;
   }
