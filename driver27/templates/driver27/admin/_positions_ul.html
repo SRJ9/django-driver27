@@ -2,6 +2,7 @@
 {% with  pos_value=result|get_attribute:pos_key %}
     <li class="{% if not pos_value or pos_value < 1 %} is-dnf{% endif %}{% if result.wildcard %} is-wildcard{% endif %}"
         data-seat="{{ seat.pk }}" data-driver="{{ seat.driver.pk }}"
+        data-result="{{ result.pk }}"
         data-wildcard={{ result.wildcard|default:False|lower }}
     >
         <span class="position">{{ pos_value|default:"-" }}</span>

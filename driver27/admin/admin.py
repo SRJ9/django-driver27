@@ -292,11 +292,12 @@ class RaceAdmin(CommonTabbedModelAdmin):
             positions = request.POST.get('positions')
             positions = json.loads(positions)
 
-            results_pk = {
-                'to_remove': list(race.results.values_list('pk', flat=True)),
-                'created': []
-            }
+            to_delete = request.POST.get('to_delete')
+            to_delete = json.loads(to_delete)
 
+            Result.objects.filter(pk__in=to_delete).delete()
+
+            created_results = 0
 
             for position in positions:
                 result, created = Result.objects.update_or_create(
@@ -305,9 +306,8 @@ class RaceAdmin(CommonTabbedModelAdmin):
                     defaults=position
                 )
                 if created:
-                    results_pk['created'].append(result.pk)
+                    created_results += 1
                 else:
-                    results_pk['to_remove'].remove(result.pk)
                     has_changed = False
                     for attr in ['qualifying', 'finish', 'retired', 'wildcard']:
                         if getattr(result, attr) != position[attr]:
@@ -316,9 +316,8 @@ class RaceAdmin(CommonTabbedModelAdmin):
                     if not has_changed:
                         continue
 
-            Result.objects.filter(pk__in=results_pk['to_remove']).delete()
-            messages.success(request, 'Positions are updated. Created: {created},  Deleted: {to_remove}'\
-                             .format(**{x:len(results_pk[x]) for x in results_pk}))
+            messages.success(request, 'Positions are updated. Created: {created},  Deleted: {to_delete}'\
+                             .format(created=created_results, to_delete=len(to_delete)))
         context = {'race': race}
         return render(request, 'driver27/admin/positions.html', context, *args, **kwargs)
 

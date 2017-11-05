@@ -84,12 +84,25 @@ $(function () {
 
         positions_JSON = JSON.stringify(positions);
 
-
+        to_delete = [];
+        $('#other_seats').children().each(function(){
+           var result = $(this).data('result');
+           if(result){
+               to_delete.push(result);
+           }
+        });
+        to_delete_JSON = JSON.stringify(to_delete);
 
         $('<input>').attr({
             type: 'hidden',
             name: 'positions',
             value: positions_JSON
+        }).appendTo($(this));
+
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'to_delete',
+            value: to_delete_JSON
         }).appendTo($(this));
 
         $(this).submit();
