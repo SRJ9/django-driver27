@@ -114,6 +114,7 @@ def driver_season_pos_view(request, competition_slug, year):
                                          title=rank_title)
     context = {
         'season': season,
+        'competition': season.competition,
         'title': title,
         'positions': list(season.past_races.values_list('round', flat=True)),
         'olympic': True}
