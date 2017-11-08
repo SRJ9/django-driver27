@@ -37,7 +37,7 @@
     {% with results=race.results.all %}
         {% include 'driver27/admin/_results_links.html' %}
         <ul id="qualifying" class="ordered-race-results">
-            <caption>Qualifying</caption>
+            <caption>Qualifying <input type="button" class="deselect-dnf" value="Deselect DNF"></caption>
             {% for result in results|order_results:'qualifying' %}
                 {% with seat=result.seat pos_key='qualifying' %}
                     {% include 'driver27/admin/_positions_ul.html' %}
@@ -47,7 +47,7 @@
 
         {% include 'driver27/admin/_results_links.html' %}
         <ul id="finish" class="ordered-race-results">
-            <caption>Finish</caption>
+            <caption>Finish <input type="button" class="deselect-dnf" value="Deselect DNF"></caption>
             {% for result in results|order_results:'finish' %}
                 {% with seat=result.seat pos_key='finish' %}
                     {% include 'driver27/admin/_positions_ul.html' %}

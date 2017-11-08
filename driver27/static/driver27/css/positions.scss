@@ -83,7 +83,7 @@
   }
 }
 
-#form-positions input[type=button] {
+#form-positions input[type=button], input[type=button].deselect-dnf {
   right: 2%;
   position: absolute;
   padding: 0 3px;

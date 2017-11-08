@@ -13,10 +13,10 @@ $(function () {
         var closest_li = $(this).closest('li');
         if (closest_li.hasClass('is-dnf')) {
             closest_li.removeClass('is-dnf');
-            order_all_results();
         } else {
             closest_li.addClass('is-dnf').find('.position').text('-');
         }
+        order_all_results();
 
     }
 
@@ -76,6 +76,13 @@ $(function () {
         });
 
     }
+
+    $('.deselect-dnf').click(function(){
+        var closest_ul = $(this).closest('ul');
+        closest_ul.children().each(function(){
+            $(this).removeClass('is-dnf');
+        });
+    });
 
     $('#form-positions').click(function () {
         positions.forEach(function (el, i) {
