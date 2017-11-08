@@ -3,14 +3,14 @@
 
 <script type="text/javascript">
 
-    function get_common_params(){
+    function get_common_params() {
         return {
             'competition_slug': "{{ competition.slug }}",
             'year': "{{ season.year }}"
         }
     }
 
-    function reload_stats(el){
+    function reload_stats(el) {
 
         var standing_model = $(el).data('standingModel');
 
@@ -22,13 +22,13 @@
 
         record_el = $('#record');
 
-        if(record_el.val() !== ''){
+        if (record_el.val() !== '') {
             params['record'] = record_el.val();
         }
 
         rank_opt = $('#rank_opt');
 
-        if(rank_opt.val() !== ''){
+        if (rank_opt.val() !== '') {
             params['rank_opt'] = rank_opt.val();
         }
 
@@ -54,6 +54,10 @@
 
         {% if olympic == True %}
             params.olympic = 1;
+        {% endif %}
+
+        {% if season and draw == True %}
+            params.draw = 1;
         {% endif %}
 
         punctuation = $('#scoring').val();

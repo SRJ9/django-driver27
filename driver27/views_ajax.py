@@ -28,7 +28,8 @@ def standing_view(request, context):
         raise Http404(_('The standing requested is invalid'))
 
     olympic = request.GET.get('olympic', False)
-    if olympic:
+    draw = request.GET.get('draw', False)
+    if olympic or draw:
         standing_type = suffix_tpl = 'olympic'
     else:
         standing_type = 'common'
@@ -40,13 +41,18 @@ def standing_view(request, context):
     }.get(standing_model)[standing_type]
 
 
+
+    if standing_model == 'driver' and draw:
+        standing_method = 'get_positions_draw'
+
+
     # kwargs to rank
     by_season = request.GET.get('by_season', False)
     punctuation_code = request.GET.get('punctuation', None)
 
 
     standing_kwargs = {}
-    if not olympic:
+    if not olympic and not draw:
         standing_kwargs.update(punctuation_code=punctuation_code, by_season=by_season)
 
     rank = getattr(season_or_competition, standing_method)(**standing_kwargs)

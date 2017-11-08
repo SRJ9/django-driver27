@@ -1030,7 +1030,7 @@ class ContenderSeason(AbstractStreakModel, SeasonStatsModel):
         results = get_tuples_from_results(results)
         season_races = list(self.season.past_races.values_list('round', flat=True))
         positions_by_round = {result.round: result.finish for result in results}
-        return [positions_by_round[x] for x in season_races if x in positions_by_round]
+        return [positions_by_round.get(x, None) for x in season_races]
 
     def get_saved_points(self, limit_races=None):
         results = self.season.get_results_list()[self.driver]
