@@ -249,27 +249,14 @@ class SeasonAdmin(CommonTabbedModelAdmin):
         return new_urls
 
 @admin.register(Race)
-class RaceAdmin(CommonTabbedModelAdmin):
+class RaceAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'season', 'print_pole', 'print_winner', 'print_fastest', 'print_positions')
     list_filter = ('season', 'season__competition', 'circuit', 'grand_prix',)
+    fields = ('season', 'round', 'grand_prix', 'circuit', 'date', 'alter_punctuation', 'fastest_car',
+                       'print_positions')
 
     readonly_fields = ('print_positions',)
     form = RaceAdminForm
-    tab_overview = (
-        (None, {
-            'fields': ('season', 'round', 'grand_prix', 'circuit', 'date', 'alter_punctuation', 'fastest_car',
-                       'print_positions')
-        }),
-    )
-    tab_results = (
-        ResultInline,
-    )
-    tabs = [
-        ('Overview', tab_overview),
-        # ('Summary', tab_summary),
-        # ('Drivers', tab_drivers),
-        ('Results', tab_results),
-    ]
 
     def get_urls(self):
         urls = super(RaceAdmin, self).get_urls()
