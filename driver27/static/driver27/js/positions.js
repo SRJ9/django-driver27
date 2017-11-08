@@ -78,8 +78,8 @@ $(function () {
     }
 
     $('.deselect-dnf').click(function(){
-        var closest_ul = $(this).closest('ul');
-        closest_ul.children().each(function(){
+        var sibling_ul = $(this).siblings('ul');
+        sibling_ul.children().each(function(){
             $(this).removeClass('is-dnf');
         });
     });

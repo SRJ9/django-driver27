@@ -1020,6 +1020,26 @@
   }
 },
 {
+  "model": "driver27.driver",
+  "pk": 103,
+  "fields": {
+    "last_name": "Gasly",
+    "first_name": "Pierre",
+    "year_of_birth": 1996,
+    "country": "FR"
+  }
+},
+{
+  "model": "driver27.driver",
+  "pk": 104,
+  "fields": {
+    "last_name": "Hartley",
+    "first_name": "Brendon",
+    "year_of_birth": 1989,
+    "country": "NZ"
+  }
+},
+{
   "model": "driver27.competition",
   "pk": 1,
   "fields": {
@@ -1922,7 +1942,7 @@
   "fields": {
     "seat": 18,
     "from_year": 2016,
-    "until_year": null
+    "until_year": 2017
   }
 },
 {
@@ -2030,7 +2050,7 @@
   "fields": {
     "seat": 11,
     "from_year": 2015,
-    "until_year": null
+    "until_year": 2017
   }
 },
 {
@@ -2876,6 +2896,33 @@
   "fields": {
     "seat": 50,
     "from_year": 2015,
+    "until_year": null
+  }
+},
+{
+  "model": "driver27.seatperiod",
+  "pk": 121,
+  "fields": {
+    "seat": 120,
+    "from_year": 2017,
+    "until_year": null
+  }
+},
+{
+  "model": "driver27.seatperiod",
+  "pk": 122,
+  "fields": {
+    "seat": 121,
+    "from_year": 2017,
+    "until_year": null
+  }
+},
+{
+  "model": "driver27.seatperiod",
+  "pk": 123,
+  "fields": {
+    "seat": 122,
+    "from_year": 2017,
     "until_year": null
   }
 },
@@ -3829,6 +3876,30 @@
   "fields": {
     "team": 27,
     "driver": 74
+  }
+},
+{
+  "model": "driver27.seat",
+  "pk": 120,
+  "fields": {
+    "team": 7,
+    "driver": 103
+  }
+},
+{
+  "model": "driver27.seat",
+  "pk": 121,
+  "fields": {
+    "team": 6,
+    "driver": 14
+  }
+},
+{
+  "model": "driver27.seat",
+  "pk": 122,
+  "fields": {
+    "team": 7,
+    "driver": 104
   }
 },
 {
@@ -5305,7 +5376,7 @@
     "circuit": 16,
     "date": "2016-10-30",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 32
   }
 },
 {
@@ -5318,7 +5389,7 @@
     "circuit": 34,
     "date": "2016-11-13",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 44
   }
 },
 {
@@ -5487,7 +5558,7 @@
     "circuit": 14,
     "date": "2017-09-03",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 20
   }
 },
 {
@@ -5500,7 +5571,7 @@
     "circuit": 15,
     "date": "2017-09-17",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 25
   }
 },
 {
@@ -5513,7 +5584,7 @@
     "circuit": 16,
     "date": "2017-10-01",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 21
   }
 },
 {
@@ -5526,7 +5597,7 @@
     "circuit": 17,
     "date": "2017-10-08",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 59
   }
 },
 {
@@ -5539,7 +5610,7 @@
     "circuit": 18,
     "date": "2017-10-22",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 21
   }
 },
 {
@@ -5552,7 +5623,7 @@
     "circuit": 19,
     "date": "2017-10-29",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 21
   }
 },
 {
@@ -6085,7 +6156,7 @@
     "circuit": 36,
     "date": "1988-04-03",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 88
   }
 },
 {
@@ -6098,7 +6169,7 @@
     "circuit": 35,
     "date": "1988-05-01",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 111
   }
 },
 {
@@ -6111,7 +6182,7 @@
     "circuit": 6,
     "date": "1988-05-15",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 115
   }
 },
 {
@@ -6124,7 +6195,7 @@
     "circuit": 19,
     "date": "1988-05-29",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 111
   }
 },
 {
@@ -6137,7 +6208,7 @@
     "circuit": 7,
     "date": "1988-06-12",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 115
   }
 },
 {
@@ -6150,7 +6221,7 @@
     "circuit": 37,
     "date": "1988-06-19",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 111
   }
 },
 {
@@ -6163,7 +6234,7 @@
     "circuit": 38,
     "date": "1988-07-03",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 111
   }
 },
 {
@@ -6176,7 +6247,7 @@
     "circuit": 10,
     "date": "1988-07-10",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 102
   }
 },
 {
@@ -6189,7 +6260,7 @@
     "circuit": 12,
     "date": "1988-07-24",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 106
   }
 },
 {
@@ -6202,7 +6273,7 @@
     "circuit": 11,
     "date": "1988-07-08",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 111
   }
 },
 {
@@ -6215,7 +6286,7 @@
     "circuit": 13,
     "date": "1988-08-28",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 88
   }
 },
 {
@@ -6228,7 +6299,7 @@
     "circuit": 14,
     "date": "1988-09-11",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 84
   }
 },
 {
@@ -6241,7 +6312,7 @@
     "circuit": 39,
     "date": "1988-09-25",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 88
   }
 },
 {
@@ -6254,7 +6325,7 @@
     "circuit": 24,
     "date": "1988-10-02",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 111
   }
 },
 {
@@ -6267,7 +6338,7 @@
     "circuit": 17,
     "date": "1988-10-30",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 115
   }
 },
 {
@@ -6280,7 +6351,7 @@
     "circuit": 40,
     "date": "1988-11-13",
     "alter_punctuation": null,
-    "fastest_car": null
+    "fastest_car": 111
   }
 },
 {
@@ -6993,7 +7064,7 @@
     "retired": true,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7002,12 +7073,12 @@
   "fields": {
     "race": 1,
     "seat": 13,
-    "qualifying": 5,
-    "finish": 10,
+    "qualifying": 22,
+    "finish": 16,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": 1
+    "points": 0
   }
 },
 {
@@ -7016,7 +7087,7 @@
   "fields": {
     "race": 1,
     "seat": 23,
-    "qualifying": 6,
+    "qualifying": 5,
     "finish": 5,
     "retired": false,
     "wildcard": false,
@@ -7030,7 +7101,7 @@
   "fields": {
     "race": 1,
     "seat": 11,
-    "qualifying": 7,
+    "qualifying": 6,
     "finish": 9,
     "retired": false,
     "wildcard": false,
@@ -7044,7 +7115,7 @@
   "fields": {
     "race": 1,
     "seat": 20,
-    "qualifying": 8,
+    "qualifying": 7,
     "finish": 4,
     "retired": false,
     "wildcard": false,
@@ -7058,12 +7129,12 @@
   "fields": {
     "race": 1,
     "seat": 16,
-    "qualifying": 9,
-    "finish": 13,
+    "qualifying": 8,
+    "finish": 12,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7072,7 +7143,7 @@
   "fields": {
     "race": 1,
     "seat": 17,
-    "qualifying": 10,
+    "qualifying": 9,
     "finish": 7,
     "retired": false,
     "wildcard": false,
@@ -7086,7 +7157,7 @@
   "fields": {
     "race": 1,
     "seat": 22,
-    "qualifying": 11,
+    "qualifying": 10,
     "finish": 8,
     "retired": false,
     "wildcard": false,
@@ -7100,12 +7171,12 @@
   "fields": {
     "race": 1,
     "seat": 8,
-    "qualifying": 12,
+    "qualifying": 11,
     "finish": null,
     "retired": true,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7114,12 +7185,12 @@
   "fields": {
     "race": 1,
     "seat": 7,
-    "qualifying": 13,
-    "finish": 14,
+    "qualifying": 12,
+    "finish": 13,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7128,12 +7199,12 @@
   "fields": {
     "race": 1,
     "seat": 14,
-    "qualifying": 14,
-    "finish": 11,
+    "qualifying": 13,
+    "finish": 10,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 1
   }
 },
 {
@@ -7142,12 +7213,12 @@
   "fields": {
     "race": 1,
     "seat": 15,
-    "qualifying": 15,
-    "finish": 12,
+    "qualifying": 14,
+    "finish": 11,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7156,12 +7227,12 @@
   "fields": {
     "race": 1,
     "seat": 10,
-    "qualifying": 16,
+    "qualifying": 15,
     "finish": null,
     "retired": true,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7170,12 +7241,12 @@
   "fields": {
     "race": 1,
     "seat": 9,
-    "qualifying": 17,
-    "finish": 15,
+    "qualifying": 16,
+    "finish": 14,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7184,12 +7255,12 @@
   "fields": {
     "race": 1,
     "seat": 19,
-    "qualifying": 18,
+    "qualifying": 17,
     "finish": null,
     "retired": true,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7198,7 +7269,7 @@
   "fields": {
     "race": 1,
     "seat": 4,
-    "qualifying": 19,
+    "qualifying": 18,
     "finish": 6,
     "retired": false,
     "wildcard": false,
@@ -7212,12 +7283,12 @@
   "fields": {
     "race": 1,
     "seat": 3,
-    "qualifying": 20,
+    "qualifying": 19,
     "finish": null,
     "retired": true,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7226,12 +7297,12 @@
   "fields": {
     "race": 1,
     "seat": 5,
-    "qualifying": 21,
-    "finish": 16,
+    "qualifying": 20,
+    "finish": 15,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7240,12 +7311,12 @@
   "fields": {
     "race": 1,
     "seat": 6,
-    "qualifying": 22,
+    "qualifying": 21,
     "finish": null,
     "retired": true,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7931,7 +8002,7 @@
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7959,7 +8030,7 @@
     "retired": true,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7973,21 +8044,7 @@
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
-  }
-},
-{
-  "model": "driver27.result",
-  "pk": 75,
-  "fields": {
-    "race": 4,
-    "seat": 13,
-    "qualifying": 9,
-    "finish": null,
-    "retired": true,
-    "wildcard": false,
-    "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -7996,7 +8053,7 @@
   "fields": {
     "race": 4,
     "seat": 25,
-    "qualifying": 10,
+    "qualifying": 9,
     "finish": 2,
     "retired": false,
     "wildcard": false,
@@ -8010,12 +8067,12 @@
   "fields": {
     "race": 4,
     "seat": 11,
-    "qualifying": 11,
+    "qualifying": 10,
     "finish": 12,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -8024,7 +8081,7 @@
   "fields": {
     "race": 4,
     "seat": 7,
-    "qualifying": 12,
+    "qualifying": 11,
     "finish": 10,
     "retired": false,
     "wildcard": false,
@@ -8038,12 +8095,12 @@
   "fields": {
     "race": 4,
     "seat": 17,
-    "qualifying": 13,
+    "qualifying": 12,
     "finish": null,
     "retired": true,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -8052,7 +8109,7 @@
   "fields": {
     "race": 4,
     "seat": 8,
-    "qualifying": 14,
+    "qualifying": 13,
     "finish": 6,
     "retired": false,
     "wildcard": false,
@@ -8066,7 +8123,7 @@
   "fields": {
     "race": 4,
     "seat": 4,
-    "qualifying": 15,
+    "qualifying": 14,
     "finish": 8,
     "retired": false,
     "wildcard": false,
@@ -8080,12 +8137,12 @@
   "fields": {
     "race": 4,
     "seat": 3,
-    "qualifying": 16,
+    "qualifying": 15,
     "finish": 17,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -8094,7 +8151,7 @@
   "fields": {
     "race": 4,
     "seat": 15,
-    "qualifying": 17,
+    "qualifying": 16,
     "finish": 7,
     "retired": false,
     "wildcard": false,
@@ -8108,12 +8165,12 @@
   "fields": {
     "race": 4,
     "seat": 14,
-    "qualifying": 18,
+    "qualifying": 17,
     "finish": 13,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -8122,12 +8179,12 @@
   "fields": {
     "race": 4,
     "seat": 9,
-    "qualifying": 19,
+    "qualifying": 18,
     "finish": 16,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -8136,12 +8193,12 @@
   "fields": {
     "race": 4,
     "seat": 5,
-    "qualifying": 20,
+    "qualifying": 19,
     "finish": 18,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -8150,12 +8207,12 @@
   "fields": {
     "race": 4,
     "seat": 6,
-    "qualifying": 21,
+    "qualifying": 20,
     "finish": null,
     "retired": true,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -8164,12 +8221,12 @@
   "fields": {
     "race": 4,
     "seat": 10,
-    "qualifying": 22,
+    "qualifying": 21,
     "finish": 14,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -14887,9 +14944,9 @@
     "qualifying": 1,
     "finish": null,
     "retired": true,
-    "wildcard": false,
+    "wildcard": true,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -14898,12 +14955,12 @@
   "fields": {
     "race": 27,
     "seat": 43,
-    "qualifying": 2,
-    "finish": 6,
+    "qualifying": 8,
+    "finish": 5,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": 10
+    "points": 11
   }
 },
 {
@@ -14912,7 +14969,7 @@
   "fields": {
     "race": 27,
     "seat": 40,
-    "qualifying": 3,
+    "qualifying": 2,
     "finish": 3,
     "retired": false,
     "wildcard": false,
@@ -14926,7 +14983,7 @@
   "fields": {
     "race": 27,
     "seat": 47,
-    "qualifying": 4,
+    "qualifying": 3,
     "finish": 2,
     "retired": false,
     "wildcard": false,
@@ -14940,7 +14997,7 @@
   "fields": {
     "race": 27,
     "seat": 44,
-    "qualifying": 5,
+    "qualifying": 4,
     "finish": 1,
     "retired": false,
     "wildcard": false,
@@ -14954,7 +15011,7 @@
   "fields": {
     "race": 27,
     "seat": 33,
-    "qualifying": 6,
+    "qualifying": 5,
     "finish": 9,
     "retired": false,
     "wildcard": false,
@@ -14968,7 +15025,7 @@
   "fields": {
     "race": 27,
     "seat": 49,
-    "qualifying": 7,
+    "qualifying": 6,
     "finish": 4,
     "retired": false,
     "wildcard": false,
@@ -14982,12 +15039,12 @@
   "fields": {
     "race": 27,
     "seat": 53,
-    "qualifying": 8,
-    "finish": 7,
+    "qualifying": 7,
+    "finish": 6,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": 9
+    "points": 10
   }
 },
 {
@@ -14997,11 +15054,11 @@
     "race": 27,
     "seat": 50,
     "qualifying": 9,
-    "finish": 8,
+    "finish": 7,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": 8
+    "points": 9
   }
 },
 {
@@ -15013,9 +15070,9 @@
     "qualifying": 10,
     "finish": null,
     "retired": true,
-    "wildcard": false,
+    "wildcard": true,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -15039,90 +15096,6 @@
     "race": 27,
     "seat": 39,
     "qualifying": 12,
-    "finish": 16,
-    "retired": false,
-    "wildcard": false,
-    "comment": "",
-    "points": null
-  }
-},
-{
-  "model": "driver27.result",
-  "pk": 580,
-  "fields": {
-    "race": 27,
-    "seat": 32,
-    "qualifying": 13,
-    "finish": 5,
-    "retired": false,
-    "wildcard": false,
-    "comment": "",
-    "points": 11
-  }
-},
-{
-  "model": "driver27.result",
-  "pk": 581,
-  "fields": {
-    "race": 27,
-    "seat": 37,
-    "qualifying": 14,
-    "finish": 15,
-    "retired": false,
-    "wildcard": false,
-    "comment": "",
-    "points": 1
-  }
-},
-{
-  "model": "driver27.result",
-  "pk": 582,
-  "fields": {
-    "race": 27,
-    "seat": 27,
-    "qualifying": 15,
-    "finish": 12,
-    "retired": false,
-    "wildcard": false,
-    "comment": "",
-    "points": 4
-  }
-},
-{
-  "model": "driver27.result",
-  "pk": 583,
-  "fields": {
-    "race": 27,
-    "seat": 31,
-    "qualifying": 16,
-    "finish": 11,
-    "retired": false,
-    "wildcard": false,
-    "comment": "",
-    "points": 5
-  }
-},
-{
-  "model": "driver27.result",
-  "pk": 584,
-  "fields": {
-    "race": 27,
-    "seat": 46,
-    "qualifying": 17,
-    "finish": null,
-    "retired": true,
-    "wildcard": false,
-    "comment": "",
-    "points": null
-  }
-},
-{
-  "model": "driver27.result",
-  "pk": 585,
-  "fields": {
-    "race": 27,
-    "seat": 42,
-    "qualifying": 18,
     "finish": 13,
     "retired": false,
     "wildcard": false,
@@ -15132,16 +15105,44 @@
 },
 {
   "model": "driver27.result",
+  "pk": 580,
+  "fields": {
+    "race": 27,
+    "seat": 32,
+    "qualifying": 13,
+    "finish": 8,
+    "retired": false,
+    "wildcard": false,
+    "comment": "",
+    "points": 8
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 582,
+  "fields": {
+    "race": 27,
+    "seat": 27,
+    "qualifying": 14,
+    "finish": 11,
+    "retired": false,
+    "wildcard": false,
+    "comment": "",
+    "points": 5
+  }
+},
+{
+  "model": "driver27.result",
   "pk": 586,
   "fields": {
     "race": 27,
     "seat": 28,
-    "qualifying": 19,
+    "qualifying": 15,
     "finish": null,
     "retired": true,
-    "wildcard": false,
+    "wildcard": true,
     "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -15150,12 +15151,12 @@
   "fields": {
     "race": 27,
     "seat": 30,
-    "qualifying": 20,
-    "finish": 14,
+    "qualifying": 16,
+    "finish": 12,
     "retired": false,
     "wildcard": false,
     "comment": "",
-    "points": 2
+    "points": 4
   }
 },
 {
@@ -15164,26 +15165,12 @@
   "fields": {
     "race": 27,
     "seat": 29,
-    "qualifying": 21,
+    "qualifying": 17,
     "finish": null,
     "retired": true,
     "wildcard": false,
     "comment": "",
-    "points": null
-  }
-},
-{
-  "model": "driver27.result",
-  "pk": 589,
-  "fields": {
-    "race": 27,
-    "seat": 51,
-    "qualifying": null,
-    "finish": null,
-    "retired": true,
-    "wildcard": false,
-    "comment": "",
-    "points": null
+    "points": 0
   }
 },
 {
@@ -39345,6 +39332,1700 @@
     "qualifying": 18,
     "finish": null,
     "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2319,
+  "fields": {
+    "race": 4,
+    "seat": 12,
+    "qualifying": null,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2320,
+  "fields": {
+    "race": 52,
+    "seat": 25,
+    "qualifying": 1,
+    "finish": 1,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 25
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2321,
+  "fields": {
+    "race": 52,
+    "seat": 64,
+    "qualifying": 2,
+    "finish": 7,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 6
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2322,
+  "fields": {
+    "race": 52,
+    "seat": 60,
+    "qualifying": 3,
+    "finish": 6,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 8
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2323,
+  "fields": {
+    "race": 52,
+    "seat": 59,
+    "qualifying": 4,
+    "finish": 2,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 18
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2324,
+  "fields": {
+    "race": 52,
+    "seat": 24,
+    "qualifying": 5,
+    "finish": 5,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 10
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2325,
+  "fields": {
+    "race": 52,
+    "seat": 21,
+    "qualifying": 6,
+    "finish": 3,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 15
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2326,
+  "fields": {
+    "race": 52,
+    "seat": 23,
+    "qualifying": 7,
+    "finish": 8,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 4
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2327,
+  "fields": {
+    "race": 52,
+    "seat": 18,
+    "qualifying": 8,
+    "finish": 12,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2328,
+  "fields": {
+    "race": 52,
+    "seat": 61,
+    "qualifying": 9,
+    "finish": 11,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2329,
+  "fields": {
+    "race": 52,
+    "seat": 16,
+    "qualifying": 10,
+    "finish": 9,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 2
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2330,
+  "fields": {
+    "race": 52,
+    "seat": 10,
+    "qualifying": 11,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2331,
+  "fields": {
+    "race": 52,
+    "seat": 63,
+    "qualifying": 12,
+    "finish": 16,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2332,
+  "fields": {
+    "race": 52,
+    "seat": 12,
+    "qualifying": 13,
+    "finish": 10,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 1
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2333,
+  "fields": {
+    "race": 52,
+    "seat": 62,
+    "qualifying": 14,
+    "finish": 13,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2334,
+  "fields": {
+    "race": 52,
+    "seat": 11,
+    "qualifying": 15,
+    "finish": 14,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2335,
+  "fields": {
+    "race": 52,
+    "seat": 20,
+    "qualifying": 16,
+    "finish": 4,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 12
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2336,
+  "fields": {
+    "race": 52,
+    "seat": 14,
+    "qualifying": 17,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2337,
+  "fields": {
+    "race": 52,
+    "seat": 2,
+    "qualifying": 18,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2338,
+  "fields": {
+    "race": 52,
+    "seat": 8,
+    "qualifying": 19,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2339,
+  "fields": {
+    "race": 52,
+    "seat": 4,
+    "qualifying": 20,
+    "finish": 15,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2340,
+  "fields": {
+    "race": 53,
+    "seat": 21,
+    "qualifying": 1,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2341,
+  "fields": {
+    "race": 53,
+    "seat": 12,
+    "qualifying": 2,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2342,
+  "fields": {
+    "race": 53,
+    "seat": 20,
+    "qualifying": 3,
+    "finish": 2,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 18
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2343,
+  "fields": {
+    "race": 53,
+    "seat": 24,
+    "qualifying": 4,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2344,
+  "fields": {
+    "race": 53,
+    "seat": 25,
+    "qualifying": 5,
+    "finish": 1,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 25
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2345,
+  "fields": {
+    "race": 53,
+    "seat": 59,
+    "qualifying": 6,
+    "finish": 3,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 15
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2346,
+  "fields": {
+    "race": 53,
+    "seat": 62,
+    "qualifying": 7,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2347,
+  "fields": {
+    "race": 53,
+    "seat": 8,
+    "qualifying": 8,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2348,
+  "fields": {
+    "race": 53,
+    "seat": 2,
+    "qualifying": 9,
+    "finish": 7,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 6
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2349,
+  "fields": {
+    "race": 53,
+    "seat": 11,
+    "qualifying": 10,
+    "finish": 4,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 12
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2350,
+  "fields": {
+    "race": 53,
+    "seat": 14,
+    "qualifying": 11,
+    "finish": 6,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 8
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2351,
+  "fields": {
+    "race": 53,
+    "seat": 16,
+    "qualifying": 12,
+    "finish": 5,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 10
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2352,
+  "fields": {
+    "race": 53,
+    "seat": 18,
+    "qualifying": 13,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2353,
+  "fields": {
+    "race": 53,
+    "seat": 60,
+    "qualifying": 14,
+    "finish": 10,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 1
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2354,
+  "fields": {
+    "race": 53,
+    "seat": 4,
+    "qualifying": 15,
+    "finish": 9,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 2
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2355,
+  "fields": {
+    "race": 53,
+    "seat": 61,
+    "qualifying": 16,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2356,
+  "fields": {
+    "race": 53,
+    "seat": 23,
+    "qualifying": 17,
+    "finish": 11,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2357,
+  "fields": {
+    "race": 53,
+    "seat": 64,
+    "qualifying": 18,
+    "finish": 8,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 4
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2358,
+  "fields": {
+    "race": 53,
+    "seat": 63,
+    "qualifying": 19,
+    "finish": 12,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2359,
+  "fields": {
+    "race": 53,
+    "seat": 10,
+    "qualifying": 20,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2360,
+  "fields": {
+    "race": 54,
+    "seat": 25,
+    "qualifying": 1,
+    "finish": 2,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 18
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2361,
+  "fields": {
+    "race": 54,
+    "seat": 24,
+    "qualifying": 2,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2362,
+  "fields": {
+    "race": 54,
+    "seat": 12,
+    "qualifying": 3,
+    "finish": 1,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 25
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2363,
+  "fields": {
+    "race": 54,
+    "seat": 20,
+    "qualifying": 4,
+    "finish": 3,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 15
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2364,
+  "fields": {
+    "race": 54,
+    "seat": 59,
+    "qualifying": 5,
+    "finish": 5,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 10
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2365,
+  "fields": {
+    "race": 54,
+    "seat": 60,
+    "qualifying": 6,
+    "finish": 10,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 1
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2366,
+  "fields": {
+    "race": 54,
+    "seat": 2,
+    "qualifying": 7,
+    "finish": 7,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 6
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2367,
+  "fields": {
+    "race": 54,
+    "seat": 62,
+    "qualifying": 8,
+    "finish": 16,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2368,
+  "fields": {
+    "race": 54,
+    "seat": 16,
+    "qualifying": 9,
+    "finish": 6,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 8
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2369,
+  "fields": {
+    "race": 54,
+    "seat": 8,
+    "qualifying": 10,
+    "finish": 11,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2370,
+  "fields": {
+    "race": 54,
+    "seat": 23,
+    "qualifying": 11,
+    "finish": 9,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 2
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2371,
+  "fields": {
+    "race": 54,
+    "seat": 14,
+    "qualifying": 12,
+    "finish": 15,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2372,
+  "fields": {
+    "race": 54,
+    "seat": 64,
+    "qualifying": 13,
+    "finish": 8,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 4
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2373,
+  "fields": {
+    "race": 54,
+    "seat": 11,
+    "qualifying": 14,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2374,
+  "fields": {
+    "race": 54,
+    "seat": 120,
+    "qualifying": 15,
+    "finish": 14,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2375,
+  "fields": {
+    "race": 54,
+    "seat": 4,
+    "qualifying": 16,
+    "finish": 13,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2376,
+  "fields": {
+    "race": 54,
+    "seat": 61,
+    "qualifying": 17,
+    "finish": 12,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2377,
+  "fields": {
+    "race": 54,
+    "seat": 63,
+    "qualifying": 18,
+    "finish": 17,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2378,
+  "fields": {
+    "race": 54,
+    "seat": 10,
+    "qualifying": 19,
+    "finish": 18,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2379,
+  "fields": {
+    "race": 54,
+    "seat": 21,
+    "qualifying": 20,
+    "finish": 4,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 12
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2380,
+  "fields": {
+    "race": 55,
+    "seat": 25,
+    "qualifying": 1,
+    "finish": 1,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 25
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2381,
+  "fields": {
+    "race": 55,
+    "seat": 21,
+    "qualifying": 2,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2382,
+  "fields": {
+    "race": 55,
+    "seat": 20,
+    "qualifying": 3,
+    "finish": 3,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 15
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2383,
+  "fields": {
+    "race": 55,
+    "seat": 12,
+    "qualifying": 4,
+    "finish": 2,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 18
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2384,
+  "fields": {
+    "race": 55,
+    "seat": 60,
+    "qualifying": 5,
+    "finish": 6,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 8
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2385,
+  "fields": {
+    "race": 55,
+    "seat": 16,
+    "qualifying": 6,
+    "finish": 7,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 6
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2386,
+  "fields": {
+    "race": 55,
+    "seat": 59,
+    "qualifying": 7,
+    "finish": 4,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 12
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2387,
+  "fields": {
+    "race": 55,
+    "seat": 23,
+    "qualifying": 8,
+    "finish": 10,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 1
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2388,
+  "fields": {
+    "race": 55,
+    "seat": 2,
+    "qualifying": 9,
+    "finish": 14,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2389,
+  "fields": {
+    "race": 55,
+    "seat": 24,
+    "qualifying": 10,
+    "finish": 5,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 10
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2390,
+  "fields": {
+    "race": 55,
+    "seat": 62,
+    "qualifying": 11,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2391,
+  "fields": {
+    "race": 55,
+    "seat": 61,
+    "qualifying": 12,
+    "finish": 8,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 4
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2392,
+  "fields": {
+    "race": 55,
+    "seat": 4,
+    "qualifying": 13,
+    "finish": 9,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 2
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2393,
+  "fields": {
+    "race": 55,
+    "seat": 120,
+    "qualifying": 14,
+    "finish": 13,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2394,
+  "fields": {
+    "race": 55,
+    "seat": 64,
+    "qualifying": 15,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2395,
+  "fields": {
+    "race": 55,
+    "seat": 10,
+    "qualifying": 16,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2396,
+  "fields": {
+    "race": 55,
+    "seat": 63,
+    "qualifying": 17,
+    "finish": 15,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2397,
+  "fields": {
+    "race": 55,
+    "seat": 14,
+    "qualifying": 18,
+    "finish": 12,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2398,
+  "fields": {
+    "race": 55,
+    "seat": 11,
+    "qualifying": 19,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2399,
+  "fields": {
+    "race": 55,
+    "seat": 8,
+    "qualifying": 20,
+    "finish": 11,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2400,
+  "fields": {
+    "race": 56,
+    "seat": 25,
+    "qualifying": 1,
+    "finish": 1,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 25
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2401,
+  "fields": {
+    "race": 56,
+    "seat": 21,
+    "qualifying": 2,
+    "finish": 2,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 18
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2402,
+  "fields": {
+    "race": 56,
+    "seat": 59,
+    "qualifying": 3,
+    "finish": 5,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 10
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2403,
+  "fields": {
+    "race": 56,
+    "seat": 20,
+    "qualifying": 4,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2404,
+  "fields": {
+    "race": 56,
+    "seat": 24,
+    "qualifying": 5,
+    "finish": 3,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 15
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2405,
+  "fields": {
+    "race": 56,
+    "seat": 60,
+    "qualifying": 6,
+    "finish": 6,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 8
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2406,
+  "fields": {
+    "race": 56,
+    "seat": 121,
+    "qualifying": 7,
+    "finish": 7,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 6
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2407,
+  "fields": {
+    "race": 56,
+    "seat": 8,
+    "qualifying": 8,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2408,
+  "fields": {
+    "race": 56,
+    "seat": 16,
+    "qualifying": 9,
+    "finish": 8,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 4
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2409,
+  "fields": {
+    "race": 56,
+    "seat": 23,
+    "qualifying": 10,
+    "finish": 9,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 2
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2410,
+  "fields": {
+    "race": 56,
+    "seat": 120,
+    "qualifying": 11,
+    "finish": 10,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 1
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2411,
+  "fields": {
+    "race": 56,
+    "seat": 4,
+    "qualifying": 12,
+    "finish": 14,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2412,
+  "fields": {
+    "race": 56,
+    "seat": 10,
+    "qualifying": 13,
+    "finish": 15,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2413,
+  "fields": {
+    "race": 56,
+    "seat": 63,
+    "qualifying": 14,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2414,
+  "fields": {
+    "race": 56,
+    "seat": 61,
+    "qualifying": 15,
+    "finish": 16,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2415,
+  "fields": {
+    "race": 56,
+    "seat": 12,
+    "qualifying": 16,
+    "finish": 4,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 12
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2416,
+  "fields": {
+    "race": 56,
+    "seat": 64,
+    "qualifying": 17,
+    "finish": 11,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2417,
+  "fields": {
+    "race": 56,
+    "seat": 62,
+    "qualifying": 18,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2418,
+  "fields": {
+    "race": 56,
+    "seat": 122,
+    "qualifying": 19,
+    "finish": 13,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2419,
+  "fields": {
+    "race": 56,
+    "seat": 2,
+    "qualifying": 20,
+    "finish": 12,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2420,
+  "fields": {
+    "race": 57,
+    "seat": 21,
+    "qualifying": 1,
+    "finish": 4,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 12
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2421,
+  "fields": {
+    "race": 57,
+    "seat": 12,
+    "qualifying": 2,
+    "finish": 1,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 25
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2422,
+  "fields": {
+    "race": 57,
+    "seat": 25,
+    "qualifying": 3,
+    "finish": 9,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 2
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2423,
+  "fields": {
+    "race": 57,
+    "seat": 59,
+    "qualifying": 4,
+    "finish": 2,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 18
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2424,
+  "fields": {
+    "race": 57,
+    "seat": 24,
+    "qualifying": 5,
+    "finish": 3,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 15
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2425,
+  "fields": {
+    "race": 57,
+    "seat": 60,
+    "qualifying": 6,
+    "finish": 5,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 10
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2426,
+  "fields": {
+    "race": 57,
+    "seat": 62,
+    "qualifying": 7,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2427,
+  "fields": {
+    "race": 57,
+    "seat": 121,
+    "qualifying": 8,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2428,
+  "fields": {
+    "race": 57,
+    "seat": 16,
+    "qualifying": 9,
+    "finish": 7,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 6
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2429,
+  "fields": {
+    "race": 57,
+    "seat": 23,
+    "qualifying": 10,
+    "finish": 11,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2430,
+  "fields": {
+    "race": 57,
+    "seat": 64,
+    "qualifying": 11,
+    "finish": 6,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 8
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2431,
+  "fields": {
+    "race": 57,
+    "seat": 10,
+    "qualifying": 12,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2432,
+  "fields": {
+    "race": 57,
+    "seat": 63,
+    "qualifying": 13,
+    "finish": 14,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2433,
+  "fields": {
+    "race": 57,
+    "seat": 61,
+    "qualifying": 14,
+    "finish": 8,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 4
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2434,
+  "fields": {
+    "race": 57,
+    "seat": 4,
+    "qualifying": 15,
+    "finish": 15,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2435,
+  "fields": {
+    "race": 57,
+    "seat": 20,
+    "qualifying": 16,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2436,
+  "fields": {
+    "race": 57,
+    "seat": 122,
+    "qualifying": 17,
+    "finish": null,
+    "retired": true,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2437,
+  "fields": {
+    "race": 57,
+    "seat": 8,
+    "qualifying": 18,
+    "finish": 10,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 1
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2438,
+  "fields": {
+    "race": 57,
+    "seat": 2,
+    "qualifying": 19,
+    "finish": 12,
+    "retired": false,
+    "wildcard": false,
+    "comment": null,
+    "points": 0
+  }
+},
+{
+  "model": "driver27.result",
+  "pk": 2439,
+  "fields": {
+    "race": 57,
+    "seat": 120,
+    "qualifying": 20,
+    "finish": 13,
+    "retired": false,
     "wildcard": false,
     "comment": null,
     "points": 0

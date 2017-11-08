@@ -36,27 +36,36 @@
 
     {% with results=race.results.all %}
         {% include 'driver27/admin/_results_links.html' %}
-        <ul id="qualifying" class="ordered-race-results">
-            <caption>Qualifying <input type="button" class="deselect-dnf" value="Deselect DNF"></caption>
-            {% for result in results|order_results:'qualifying' %}
-                {% with seat=result.seat pos_key='qualifying' %}
-                    {% include 'driver27/admin/_positions_ul.html' %}
-                {% endwith %}
-            {% endfor %}
-        </ul>
+        <div class="result-list">
+            <input type="button" class="deselect-dnf" value="Deselect DNF">
+            <ul id="qualifying" class="ordered-race-results">
+                <caption>Qualifying</caption>
+                {% for result in results|order_results:'qualifying' %}
+                    {% with seat=result.seat pos_key='qualifying' %}
+                        {% include 'driver27/admin/_positions_ul.html' %}
+                    {% endwith %}
+                {% endfor %}
+            </ul>
+        </div>
+
 
         {% include 'driver27/admin/_results_links.html' %}
-        <ul id="finish" class="ordered-race-results">
-            <caption>Finish <input type="button" class="deselect-dnf" value="Deselect DNF"></caption>
-            {% for result in results|order_results:'finish' %}
-                {% with seat=result.seat pos_key='finish' %}
-                    {% include 'driver27/admin/_positions_ul.html' %}
-                {% endwith %}
-            {% endfor %}
-        </ul>
+        <div class="result-list">
+            <input type="button" class="deselect-dnf" value="Deselect DNF">
+            <ul id="finish" class="ordered-race-results">
+                <caption>Finish</caption>
+                {% for result in results|order_results:'finish' %}
+                    {% with seat=result.seat pos_key='finish' %}
+                        {% include 'driver27/admin/_positions_ul.html' %}
+                    {% endwith %}
+                {% endfor %}
+            </ul>
+        </div>
 
         {% include 'driver27/admin/_results_links.html' %}
+
         <ul id="other_seats">
+            <caption>Other seats</caption>
             {% for seat in race.no_seats.all %}
                 {% with pos_key=None %}
                     {% include 'driver27/admin/_positions_ul.html' %}
