@@ -256,6 +256,7 @@ class RaceAdmin(admin.ModelAdmin):
                        'print_positions')
 
     readonly_fields = ('print_positions',)
+    date_hierarchy = 'date'
     form = RaceAdminForm
 
     def get_urls(self):
