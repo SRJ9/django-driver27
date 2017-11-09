@@ -15,13 +15,13 @@
 
         {% for entry in rank %}
             <tr>
-                <td>
+                <td class="driver">
                     {% with driver=entry.driver %}
                         <i class="flag2x {{ driver.country.flag_css }}"></i>
                         <a href="{{ driver.get_absolute_url }}">{{ driver }}</a>
                     {% endwith %}
                 </td>
-                <td>{{ entry.teams }}</td>
+                <td class="teams">{{ entry.teams }}</td>
                 {% for position in entry.pos_list %}
                     <td>{{ position | default_if_none:"-" }}</td>
                 {% endfor %}

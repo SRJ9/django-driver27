@@ -25,12 +25,12 @@
 
                 {% for entry in rank %}
                     <tr class="comeback-entry" data-finish="{{ entry.finish }}">
-                        <td>{{ entry.comeback }}</td>
-                        <td><a href="{{ entry.driver.get_absolute_url }}">{{ entry.driver }}</a></td>
-                        <td><a href="{{ entry.team.get_absolute_url }}">{{ entry.team }}</a></td>
-                        <td>{{ entry.race }}</td>
-                        <td>{{ entry.qualifying }}</td>
-                        <td>{{ entry.finish }}</td>
+                        <td class="count">{{ entry.comeback }}</td>
+                        <td class="driver"><a href="{{ entry.driver.get_absolute_url }}">{{ entry.driver }}</a></td>
+                        <td class="team"><a href="{{ entry.team.get_absolute_url }}">{{ entry.team }}</a></td>
+                        <td class="race">{{ entry.race }}</td>
+                        <td class="qualifying">{{ entry.qualifying }}</td>
+                        <td class="finish">{{ entry.finish }}</td>
                     </tr>
                 {% endfor %}
 

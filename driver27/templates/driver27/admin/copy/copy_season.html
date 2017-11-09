@@ -18,14 +18,14 @@
         {% if season %}
 
             <dl>
-                <dt>{% trans 'Competition' %}</dt>
-                <dd>{{ season.competition }}</dd>
-                <dt>{% trans 'Year' %}</dt>
-                <dd><input type="number" name="year" required/></dd>
-                <dt>{% trans 'Rounds' %}</dt>
-                <dd>{{ season.rounds }}</dd>
-                <dt>{% trans 'Punctuation' %}</dt>
-                <dd>{{ season.punctuation }}</dd>
+                <dt class="competition">{% trans 'Competition' %}</dt>
+                <dd class="competition">{{ season.competition }}</dd>
+                <dt class="year">{% trans 'Year' %}</dt>
+                <dd class="year"><input type="number" name="year" required/></dd>
+                <dt class="rounds">{% trans 'Rounds' %}</dt>
+                <dd class="rounds">{{ season.rounds }}</dd>
+                <dt class="punctuation">{% trans 'Punctuation' %}</dt>
+                <dd class="punctuation">{{ season.punctuation }}</dd>
             </dl>
             <input type="submit" name="_selector" value="Next step"/>
         {% else %}

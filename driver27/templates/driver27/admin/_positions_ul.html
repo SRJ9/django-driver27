@@ -6,8 +6,8 @@
         data-wildcard={{ result.wildcard|default:False|lower }}
     >
         <span class="position">{{ pos_value|default:"-" }}</span>
-        <strong>{{ seat.driver }}</strong>
-        <small>{{ seat.team }}</small>
+        <strong class="driver">{{ seat.driver }}</strong>
+        <small class="team">{{ seat.team }}</small>
         <a class="dnf-button">DNF</a>
         <a class="wildcard-button">WILDCARD</a>
         <img class="delete-button" src="{% static 'admin/img/icon-deletelink.svg' %}" alt="Delete">

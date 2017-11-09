@@ -21,7 +21,7 @@
         {% for entry in rank %}
             <tr>
                 <td id="points_{{ forloop.counter }}">{{ entry.points }}</td>
-                <td>
+                <td class="driver">
                     {% with driver=entry.driver %}
                         <i class="flag2x {{ driver.country.flag_css }}"></i>
                         <a href="{{ driver.get_absolute_url }}">{{ driver }}</a>
@@ -30,7 +30,7 @@
                         {{ season.pk | champion_filter | safe }}
                     {% endif %}
                 </td>
-                <td>{{ entry.teams }}</td>
+                <td class="team">{{ entry.teams }}</td>
                 {% if by_season %}
                     <td>{{ entry.season }}</td>
 

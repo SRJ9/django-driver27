@@ -7,9 +7,9 @@
     </thead>
     <tbody>
         {% for race in races %}
-        <tr>
-            <td>{{ race.grand_prix }}</td>
-            <td>{{ race.circuit }}</td>
+        <tr class="race">
+            <td class="grand-prix">{{ race.grand_prix }}</td>
+            <td class="circuit">{{ race.circuit }}</td>
         </tr>
             {% if ok and can_save %}
                 <input type="hidden" name="items" value="{{ race.pk }}">
