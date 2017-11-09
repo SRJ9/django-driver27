@@ -1,4 +1,5 @@
 # MANDATORY
+six
 djangorestframework>=3.7.0
 django-swapfield
 django-filter
@@ -7,15 +8,4 @@ python-slugify
 
 # TEMPLATES
 django-bootstrap3
-
-# OPTIONAL, USED IN DEMO
 django-tabbed-admin
-python-memcached
-django-memcache-status
-django-flat-responsive
-
-# FOR TESTING
-tox
-
-# 2.7
-unicodecsv

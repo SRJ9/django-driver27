@@ -1,0 +1,13 @@
+-r ../requirements.txt
+
+# OPTIONAL, USED IN DEMO
+python-memcached
+django-memcache-status
+django-flat-responsive
+django_clear_memcache
+
+# FOR TESTING
+tox
+
+# 2.7
+unicodecsv
