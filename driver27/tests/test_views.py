@@ -12,7 +12,8 @@ from ..models import GrandPrix, Race, Seat, TeamSeason, ContenderSeason
 from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, TeamAdmin
 from ..admin import CompetitionAdmin, CircuitAdmin, GrandPrixAdmin
 from ..admin import RaceAdmin, RelatedCompetitionAdmin
-from ..admin import RaceInline, TeamSeasonInline
+from ..admin import RaceInline, TeamSeasonInline, ResultInline, SeatInline
+from ..admin.forms import RaceAdminForm
 from ..admin.formsets import RaceFormSet
 from ..admin.common import AlwaysChangedModelForm
 from ..punctuation import get_punctuation_config
@@ -320,6 +321,24 @@ class ViewTest(FixturesTest):
         # self.assertIsNotNone(race_ma.get_formset())
         season = race.season
         self._check_formfield_for_foreignkey(race_ma, request_obj=season, dbfield=Race.grand_prix.field)
+
+    def test_result_inline(self):
+        race = Race.objects.get(pk=1)
+        result = race.results.filter(points__gt=0).first()
+        self.assertEqual(ResultInline(RaceAdmin, self.site).points(result), result.points)
+
+        result = race.results.filter(points=0).first()
+        self.assertFalse(ResultInline(RaceAdmin, self.site).points(result))
+
+    def test_race_admin_fastest_car(self):
+        race = Race.objects.get(pk=1)
+        self.assertTrue(RaceAdminForm(instance=race))
+
+    def test_seat_inline(self):
+        driver = Driver.objects.get(pk=1)
+        seat = driver.seats.first()
+        link = str(reverse('admin:driver27_seat_change', args=[seat.pk]))
+        self.assertIn(link, SeatInline(DriverAdmin, self.site).edit(seat))
 
     # Currently not exists race with no results
     # def test_race_with_no_results(self):

@@ -31,12 +31,12 @@ class SeatInline(CompetitionFilterInline):
     readonly_fields = ('edit',)
 
     def edit(self, obj):
+        edit_link = ''
         if obj.pk:
             link = reverse('admin:driver27_seat_change', args=[obj.pk])
-            return "<a href='{link}'>{text}</a>".format(link=link,
+            edit_link = "<a href='{link}'>{text}</a>".format(link=link,
                                                              text=_('Edit'))
-        else:
-            return ''
+        return edit_link
     edit.allow_tags = True
 
 

@@ -1,7 +1,7 @@
 from django.db.models.fields import BLANK_CHOICE_DASH
 from .common import *
 from ..punctuation import get_punctuation_label_dict
-from ..models import Season
+from ..models import Season, Race
 
 
 class SeasonAdminForm(AlwaysChangedModelForm):
@@ -29,6 +29,8 @@ class RaceAdminForm(forms.ModelForm):
             self.fields['fastest_car'].queryset = qs
 
     class Meta:
+        model = Race
+        fields = '__all__'
         widgets = {
             'grand_prix': GrandPrixWidget,
         }
