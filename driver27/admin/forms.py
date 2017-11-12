@@ -22,8 +22,8 @@ class RaceAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(RaceAdminForm, self).__init__(*args, **kwargs)
-        instance = kwargs.pop('instance')
-        if getattr(instance, 'pk'):
+        instance = kwargs.pop('instance', None)
+        if getattr(instance, 'pk', None):
             fastest_choices = list(instance.seats.values_list('pk', flat=True))
             qs = self.fields['fastest_car'].queryset.filter(pk__in=fastest_choices)
             self.fields['fastest_car'].queryset = qs

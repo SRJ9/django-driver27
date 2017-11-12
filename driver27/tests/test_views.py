@@ -361,6 +361,37 @@ class ViewTest(FixturesTest):
         grand_prix = GrandPrix.objects.filter(default_circuit__isnull=False).first()
         self.assertEqual(get_circuit_id_from_gp(grand_prix.pk), grand_prix.default_circuit.pk)
 
+    def test_grand_prix_widget_create_option(self):
+        attrs = {'id': 'id_grand_prix'}
+        grand_prix = GrandPrix.objects.filter(default_circuit__isnull=False).first()
+        index = grand_prix.pk
+        label = '{grand_prix}'.format(grand_prix=grand_prix)
+        name = 'grand_prix'
+        selected = True
+        subindex = None
+        value = grand_prix.pk
+        widget = GrandPrixWidget()
+        option = widget.create_option(name, value, label, selected, index, subindex, attrs)
+        if option: # >3.7
+            self.assertEqual(option['attrs']['data-circuit'], get_circuit_id_from_gp(value))
+
+    def test_grand_prix_widget_render_option(self):
+
+        widget = GrandPrixWidget()
+        option = widget.render_option([], None, '')
+        self.assertIn('value=""', option)
+
+        grand_prix = GrandPrix.objects.filter(default_circuit__isnull=False).first()
+        pk_circuit = grand_prix.default_circuit.pk
+        widget = GrandPrixWidget()
+        option = widget.render_option([], grand_prix.pk, str(grand_prix))
+        self.assertIn('data-circuit="{pk_circuit}"'.format(pk_circuit=pk_circuit), option)
+        self.assertNotIn(' selected="selected"', option)
+
+        widget = GrandPrixWidget()
+        option = widget.render_option([u'{gp}'.format(gp=grand_prix.pk)], grand_prix.pk, str(grand_prix))
+        self.assertIn(' selected="selected"', option)
+
 
 
 

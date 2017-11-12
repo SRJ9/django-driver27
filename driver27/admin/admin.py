@@ -268,9 +268,12 @@ class RaceAdmin(admin.ModelAdmin):
         return urlpatterns + urls
 
     def print_positions(self, obj):
-        link = reverse("admin:driver27_race_results", kwargs={'pk': obj.pk})
-        return "<a href='{link}'>{text}</a>".format(link=link,
-                                                    text=_('Positions'))
+        text_link = ''
+        if obj.pk:
+            link = reverse("admin:driver27_race_results", kwargs={'pk': obj.pk})
+            text_link = "<a href='{link}'>{text}</a>".format(link=link,
+                                                        text=_('Positions'))
+        return text_link
     print_positions.allow_tags = True
     print_positions.short_description = 'Positions'
 
