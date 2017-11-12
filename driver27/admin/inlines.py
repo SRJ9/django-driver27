@@ -10,7 +10,7 @@ from ..models import Team, TeamSeason
 from django.utils.translation import ugettext as _
 
 
-class RaceInlineForm(AlwaysChangedModelForm):
+class RaceInlineForm(forms.ModelForm):
     class Meta:
         widgets = {
             'grand_prix': GrandPrixWidget,
@@ -39,22 +39,6 @@ class SeatInline(CompetitionFilterInline):
         return edit_link
     edit.allow_tags = True
 
-
-
-# class CompetitionTeamInline(admin.TabularInline):
-#     model = Team.competitions.through
-#     extra = 1
-
-
-class TeamSeasonInlineForm(AlwaysChangedModelForm):
-    pass
-
-
-class TeamSeasonInline(CompetitionFilterInline):
-    model = TeamSeason
-    extra = 1
-    formset = TeamSeasonFormSet
-    form = TeamSeasonInlineForm
 
 
 class TeamInline(admin.TabularInline):

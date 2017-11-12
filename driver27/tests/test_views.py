@@ -12,13 +12,14 @@ from ..models import GrandPrix, Race, Seat, TeamSeason, ContenderSeason
 from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, TeamAdmin
 from ..admin import CompetitionAdmin, CircuitAdmin, GrandPrixAdmin
 from ..admin import RaceAdmin, RelatedCompetitionAdmin
-from ..admin import RaceInline, TeamSeasonInline, ResultInline, SeatInline
+from ..admin import RaceInline, ResultInline, SeatInline
 from ..admin.forms import RaceAdminForm
 from ..admin.formsets import RaceFormSet
-from ..admin.common import AlwaysChangedModelForm
+from ..admin.common import get_circuit_id_from_gp, GrandPrixWidget
 from ..punctuation import get_punctuation_config
 from rest_framework.test import APITestCase
 from ..common import DRIVER27_NAMESPACE, DRIVER27_API_NAMESPACE
+from django import forms
 
 class MockRequest(object):
     pass
@@ -284,7 +285,7 @@ class ViewTest(FixturesTest):
     def _test_season_formset(self, child_model, formset, fields):
         inline_formset = inlineformset_factory(Season, child_model, formset=formset,
                                                fields=fields,
-                                               form=AlwaysChangedModelForm, can_delete=True)
+                                               form=forms.ModelForm, can_delete=True)
         return inline_formset
 
     def _test_season_formset_copy(self, child_model, formset, fields, data=None):
@@ -295,6 +296,7 @@ class ViewTest(FixturesTest):
         # self.assertFalse(related_formset.is_empty_form())
         self.assertFalse(related_formset.has_changed())
         return related_formset
+
 
     def test_race_formset(self):
         self._test_season_formset_copy(Race, RaceFormSet,
@@ -348,18 +350,19 @@ class ViewTest(FixturesTest):
     #     self.assertIsNone(ma.print_winner(race))
     #     self.assertIsNone(ma.print_fastest(race))
 
-    def test_team_season_inline_admin(self):
-        ma = TeamSeasonInline(SeasonAdmin, self.site)
-        season = Season.objects.get(pk=1)
-        self._check_formfield_for_foreignkey(ma, request_obj=season, dbfield=TeamSeason.team.field)
-        team = Team.objects.get(pk=1)
-        self._check_formfield_for_foreignkey(ma, request_obj=team, dbfield=TeamSeason.team.field)
 
     def test_related_competition_admin(self):
         race = Race.objects.get(pk=1)
         related_competition = RelatedCompetitionAdmin()
         # maybe exception
         self.assertIsNone(related_competition.print_competitions(race))
+
+    def test_circuit_widget(self):
+        grand_prix = GrandPrix.objects.filter(default_circuit__isnull=False).first()
+        self.assertEqual(get_circuit_id_from_gp(grand_prix.pk), grand_prix.default_circuit.pk)
+
+
+
 
 
 class DR27Api(APITestCase):

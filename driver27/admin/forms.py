@@ -4,7 +4,7 @@ from ..punctuation import get_punctuation_label_dict
 from ..models import Season, Race
 
 
-class SeasonAdminForm(AlwaysChangedModelForm):
+class SeasonAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(SeasonAdminForm, self).__init__(*args, **kwargs)
         punctuation_choices = get_punctuation_label_dict()
