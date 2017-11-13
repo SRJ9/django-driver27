@@ -30,6 +30,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'bootstrap3',
+    'tabbed_admin',
     'driver27',
     'django.contrib.admin',
     'django.contrib.auth',

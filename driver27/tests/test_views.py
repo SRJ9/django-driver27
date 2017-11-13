@@ -54,11 +54,11 @@ class ViewTest(FixturesTest):
         self.client = Client()
         self.factory = RequestFactory()
 
-    def _GET_request(self, reverse_url, kwargs=None, data=None, code=200):
+    def _GET_request(self, reverse_url, kwargs=None, data=None, code=200, namespace=DRIVER27_NAMESPACE):
         # Issue a GET request.
-        reverse_url = DRIVER27_NAMESPACE+':'+reverse_url
+        reverse_url = namespace+':'+reverse_url
         the_reverse = reverse(reverse_url, kwargs=kwargs)
-        response = self.client.get(the_reverse, data=data)
+        response = self.client.get(the_reverse, data=data, follow=True)
         # Check that the response is 302 OK.
         self.assertEqual(response.status_code, code)
 
@@ -143,7 +143,6 @@ class ViewTest(FixturesTest):
 
 
     def test_driver_records_global_view(self):
-        kwargs = {}
         self._GET_request('global:index')
         self._GET_request('global:driver')
         self._GET_request('global:driver-olympic')
@@ -341,6 +340,10 @@ class ViewTest(FixturesTest):
         seat = driver.seats.first()
         link = str(reverse('admin:driver27_seat_change', args=[seat.pk]))
         self.assertIn(link, SeatInline(DriverAdmin, self.site).edit(seat))
+
+    def test_edit_positions(self):
+        race = Race.objects.filter(results__isnull=False).first()
+        self._GET_request("driver27_race_results", namespace='admin', kwargs={'pk': race.pk})
 
     # Currently not exists race with no results
     # def test_race_with_no_results(self):
