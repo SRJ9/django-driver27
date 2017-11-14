@@ -343,7 +343,8 @@ class ViewTest(FixturesTest):
 
     def test_edit_positions(self):
         race = Race.objects.filter(results__isnull=False).first()
-        self._GET_request("driver27_race_results", namespace='admin', kwargs={'pk': race.pk})
+        request = get_request()
+        self.assertTrue(RaceAdmin(Race, self.site).edit_positions(request=request, pk=race.pk))
 
     # Currently not exists race with no results
     # def test_race_with_no_results(self):
