@@ -280,32 +280,34 @@ class RaceAdmin(admin.ModelAdmin):
     def edit_positions(self, request, pk, *args, **kwargs):
         race = Race.objects.get(pk=pk)
         if request.method == 'POST':
-            positions = request.POST.get('positions')
-            positions = json.loads(positions)
 
-            to_delete = request.POST.get('to_delete')
-            to_delete = json.loads(to_delete)
-
-            Result.objects.filter(pk__in=to_delete).delete()
+            to_delete = request.POST.get('to_delete', [])
+            if to_delete:
+                to_delete = json.loads(to_delete)
+                Result.objects.filter(race=race, pk__in=list(to_delete)).delete()
 
             created_results = 0
 
-            for position in positions:
-                result, created = Result.objects.update_or_create(
-                    seat_id=position['seat_id'],
-                    race=race,
-                    defaults=position
-                )
-                if created:
-                    created_results += 1
-                else:
-                    has_changed = False
-                    for attr in ['qualifying', 'finish', 'retired', 'wildcard']:
-                        if getattr(result, attr) != position[attr]:
-                            has_changed = True
+            positions = request.POST.get('positions', [])
+            if positions:
+                positions = json.loads(positions)
 
-                    if not has_changed:
-                        continue
+                for position in positions:
+                    result, created = Result.objects.update_or_create(
+                        seat_id=position['seat_id'],
+                        race=race,
+                        defaults=position
+                    )
+                    if created:
+                        created_results += 1
+                    else:
+                        has_changed = False
+                        for attr in ['qualifying', 'finish', 'retired', 'wildcard']:
+                            if getattr(result, attr) != position[attr]:
+                                has_changed = True
+
+                        if not has_changed:
+                            continue
 
             messages.success(request, 'Positions are updated. Created: {created},  Deleted: {to_delete}'\
                              .format(created=created_results, to_delete=len(to_delete)))

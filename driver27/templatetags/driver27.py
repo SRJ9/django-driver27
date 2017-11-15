@@ -19,7 +19,7 @@ def get_attribute(obj, attr):
 
 @register.filter(is_safe=False)
 def order_results(value, arg):
-    return sorted(value, key=lambda x: (getattr(x, arg)<1, getattr(x, arg)))
+    return sorted(value, key=lambda x: (getattr(x, arg) is None, getattr(x, arg, 0) < 1, getattr(x, arg)))
 
 @register.filter
 def print_pos(pos):

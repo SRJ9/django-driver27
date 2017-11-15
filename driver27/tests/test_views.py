@@ -7,8 +7,9 @@ try:
 except ImportError:
     from django.core.urlresolvers import reverse
 from django.forms.models import inlineformset_factory
+from django.contrib.messages.storage.fallback import FallbackStorage
 from ..models import Season, Driver, Team, Competition, Circuit, get_tuples_from_results
-from ..models import GrandPrix, Race, Seat, TeamSeason, ContenderSeason
+from ..models import GrandPrix, Race, Seat, ContenderSeason
 from ..admin import SeasonAdmin, SeasonAdminForm, DriverAdmin, TeamAdmin
 from ..admin import CompetitionAdmin, CircuitAdmin, GrandPrixAdmin
 from ..admin import RaceAdmin, RelatedCompetitionAdmin
@@ -20,6 +21,7 @@ from ..punctuation import get_punctuation_config
 from rest_framework.test import APITestCase
 from ..common import DRIVER27_NAMESPACE, DRIVER27_API_NAMESPACE
 from django import forms
+import json
 
 class MockRequest(object):
     pass
@@ -341,11 +343,54 @@ class ViewTest(FixturesTest):
         link = str(reverse('admin:driver27_seat_change', args=[seat.pk]))
         self.assertIn(link, SeatInline(DriverAdmin, self.site).edit(seat))
 
+    def _test_edit_positions(self, request, **kwargs):
+        setattr(request, 'session', 'session')
+        messages = FallbackStorage(request)
+        setattr(request, '_messages', messages)
+        self.assertTrue(RaceAdmin(Race, self.site).edit_positions(request=request, **kwargs))
+
     def test_edit_positions(self):
         race = Race.objects.filter(results__isnull=False).first()
         kwargs = {'pk': race.pk}
-        request = self.factory.get(reverse('admin:driver27_race_results', kwargs=kwargs), follow=True)
-        self.assertTrue(RaceAdmin(Race, self.site).edit_positions(request=request, **kwargs))
+        URL = reverse('admin:driver27_race_results', kwargs=kwargs)
+        request = self.factory.get(URL, follow=True)
+        self._test_edit_positions(request, **kwargs)
+
+        request = self.factory.post(URL, follow=True)
+        self._test_edit_positions(request, **kwargs)
+
+        positions = to_delete = ''
+        data={'positions': positions, 'to_delete': to_delete}
+        request = self.factory.post(URL, data=data, follow=True)
+        self._test_edit_positions(request, **kwargs)
+
+        race_results = race.results.all()
+        race_results_count = race_results.count()
+
+        result = race_results.filter(finish__gte=1).first()
+        result.finish += 1
+
+        position = json.dumps([{
+            'seat_id': result.seat_id,
+            'qualifying': result.qualifying,
+            'finish': result.finish,
+            'retired': result.retired,
+            'wildcard': result.wildcard}])
+
+
+        result_to_delete = race.results.filter(finish__gte=1).exclude(pk=result.pk).last()
+
+        data={'positions': position, 'to_delete': json.dumps([result_to_delete.pk])}
+        request = self.factory.post(URL, data=data, follow=True)
+        self._test_edit_positions(request, **kwargs)
+        self.assertNotEqual(race.results.count(), race_results_count)
+        self.assertEqual(race.results.get(pk=result.pk).finish, result.finish)
+        self.assertFalse(race.results.filter(pk=result_to_delete.pk).exists())
+
+        data={'positions': position, 'to_delete': json.dumps([result.pk])}
+        request = self.factory.post(URL, data=data, follow=True)
+        self._test_edit_positions(request, **kwargs)
+        self.assertTrue(race.results.filter(seat_id=result.seat_id).exists())
 
     # Currently not exists race with no results
     # def test_race_with_no_results(self):
