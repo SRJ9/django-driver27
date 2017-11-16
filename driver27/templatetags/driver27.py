@@ -28,7 +28,7 @@ def print_pos(pos):
     if pos:
         str_pos = u'{pos}º'.format(pos=pos)
         if pos == 1:
-            str_pos = '<strong>{0}</strong>'.format(str_pos)
+            str_pos = u'<strong>{0}</strong>'.format(str_pos)
     return str_pos
 
 @register.filter
