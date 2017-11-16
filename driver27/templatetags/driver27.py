@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django import template
 from ..models import Season, Race
+from ..common import ordered_position
 register = template.Library()
 
 @register.filter
@@ -18,17 +19,16 @@ def get_attribute(obj, attr):
     return getattr(obj, attr)
 
 @register.filter(is_safe=False)
-def order_results(value, arg):
-    return sorted(value, key=lambda x: (getattr(x, arg) is None, getattr(x, arg, 0) < 1, getattr(x, arg)))
+def order_results(results, pos_key):
+    return sorted(results, key=lambda result: (ordered_position(result, pos_key)))
 
 @register.filter
 def print_pos(pos):
+    str_pos = u''
     if pos:
         str_pos = u'{pos}º'.format(pos=pos)
         if pos == 1:
-            str_pos = '<strong>' + str_pos + '</strong>'
-    else:
-        str_pos = u''
+            str_pos = '<strong>{0}</strong>'.format(str_pos)
     return str_pos
 
 @register.filter
