@@ -25,26 +25,24 @@ class CommonDetailViewSet(object):
         serializer = serializer_cls(instance=self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
-    def get_seat_detail_route(self, request, filter=None, exclude=None):
-        """ Seat can not be directly accessed from Race """
-        if filter is None:
-            filter = {}
-        if exclude is None:
-            exclude = {}
+class AbstractCommonSeatViewSet(CommonDetailViewSet):
 
-        self.queryset = Seat.objects.filter(**filter).exclude(**exclude)
-        serializer = SeatSerializer(instance=self.queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+    @detail_route(methods=['get'])
+    def seats(self, request, pk=None):
+        return self.get_common_detail_route(request, 'seats', SeatSerializer)
 
-class AbstractCommonSeatViewSet(object):
     @detail_route(methods=['get'], url_path='no-seats')
     def no_seats(self, request, pk=None):
         """ Seats with team in season:competition but not active in season """
-        return getattr(self, 'get_common_detail_route')(request, 'no_seats', SeatSerializer)
+        return self.get_common_detail_route(request, 'no_seats', SeatSerializer)
+
+    @detail_route(methods=['get'], url_path='drivers')
+    def drivers(self, request, pk=None):
+        return self.get_common_detail_route(request, 'drivers', DriverSerializer)
 
 
 # ViewSets define the view behavior.
-class RaceViewSet(DR27ViewSet, CommonDetailViewSet, AbstractCommonSeatViewSet):
+class RaceViewSet(DR27ViewSet, AbstractCommonSeatViewSet):
     queryset = Race.objects.all()
     serializer_class = RaceSerializer
 
@@ -52,16 +50,6 @@ class RaceViewSet(DR27ViewSet, CommonDetailViewSet, AbstractCommonSeatViewSet):
     def results(self, request, pk=None):
         return self.get_common_detail_route(request, 'results', ResultSerializer)
 
-    @detail_route(methods=['get'])
-    def seats(self, request, pk=None):
-        obj = self.get_object()
-        return self.get_seat_detail_route(request, filter={'results__race': obj})
-
-    @detail_route(methods=['get'], url_path='no-start-seats')
-    def no_start_seats(self, request, pk=None):
-        """ Seats in this season that are not part of the race """
-
-        return self.get_common_detail_route(request, 'no_seats', SeatSerializer)
 
 
 
@@ -83,7 +71,7 @@ class DR27CommonCompetitionViewSet(DR27ViewSet):
 
 
 # ViewSets define the view behavior.
-class SeasonViewSet(DR27CommonCompetitionViewSet, CommonDetailViewSet, AbstractCommonSeatViewSet):
+class SeasonViewSet(DR27CommonCompetitionViewSet, AbstractCommonSeatViewSet):
     queryset = Season.objects.all()
     serializer_class = SeasonSerializer
 

@@ -674,10 +674,10 @@ class Race(models.Model):
 
     def _abstract_seats(self, exclude=False):
         seat_filter = {'team__competitions__seasons__races': self}
-        seat_exclude = {'results__race': self}
+        seat_in_race = {'results__race': self}
         seats = Seat.objects.filter(**seat_filter)
-        if exclude:
-            seats = seats.exclude(**seat_exclude)
+        include_method = 'exclude' if exclude else 'filter'
+        seats = getattr(seats, include_method)(**seat_in_race)
 
         return seats.filter(
             Q(periods__from_year__lte=self.season.year) | Q(periods__from_year__isnull=True),

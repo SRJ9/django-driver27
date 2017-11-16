@@ -479,6 +479,7 @@ class DR27Api(APITestCase):
         self._GET_request('race-no-seats', kwargs={'pk': 1})
         self._GET_request('race-results', kwargs={'pk': 1})
         self._GET_request('race-seats', kwargs={'pk': 1})
+        self._GET_request('race-drivers', kwargs={'pk': 1})
 
     def test_api_result(self):
         self._GET_request('result-list')
@@ -494,6 +495,7 @@ class DR27Api(APITestCase):
         self._GET_request('season-standings', kwargs={'pk': 1})
         self._GET_request('season-standings-team', kwargs={'pk': 1})
         self._GET_request('season-teams', kwargs={'pk': 1})
+        self._GET_request('season-drivers', kwargs={'pk': 1})
         self._GET_request('season-title', kwargs={'pk': 1})
 
     def test_api_seat(self):
